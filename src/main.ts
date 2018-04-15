@@ -270,8 +270,11 @@ function main() {
     }, false);
 
     window.addEventListener('keyup', function (event) {
-        // need to do this, otherwise "this" points to Window?
         player.handleKeyUpEvent(event);
+    }, false);
+
+    window.addEventListener('blur', function () {
+        player.handleLostFocus();
     }, false);
 
     renderer.setSize(window.innerWidth, window.innerHeight);

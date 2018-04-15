@@ -101,6 +101,10 @@ class Player {
         }
     }
 
+    handleLostFocus() {
+        this.movementFlags = MovementFlags.NONE;
+    }
+
     move(deltaTime: number) {
         if (this.movementFlags == MovementFlags.NONE || this.movementFlags == MovementFlags.ALL) {
             return;
