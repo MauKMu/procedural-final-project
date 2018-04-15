@@ -2,6 +2,8 @@ import {gl} from '../../globals';
 import {mat4} from 'gl-matrix';
 
 abstract class Drawable {
+  isActive: boolean = true;
+
   count: number = 0;
 
   bufIdx: WebGLBuffer;

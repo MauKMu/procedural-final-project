@@ -420,8 +420,10 @@ class OpenGLRenderer {
         gbProg.setTime(this.currentTime);
 
         for (let drawable of drawables) {
-            gbProg.setModelMatrix(drawable.modelMatrix);
-            gbProg.draw(drawable);
+            if (drawable.isActive) {
+                gbProg.setModelMatrix(drawable.modelMatrix);
+                gbProg.draw(drawable);
+            }
         }
 
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
