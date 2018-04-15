@@ -39,14 +39,14 @@ const LOADED_MODEL = "Model";
 controls[ENABLE_DOF] = false;
 controls[ENABLE_BLOOM] = false;
 controls[ENABLE_POINTILISM] = false;
-controls[ENABLE_PAINT] = true;
+controls[ENABLE_PAINT] = false;
 controls[ENABLE_VAPORWAVE] = false;
 controls[PAINT_COHERENCE] = 0.8;
 controls[PAINT_BRUSH_SIZE] = 0.5;
 controls[PAINT_BRUSH_NOISE] = 0.5;
 controls[LOADED_MODEL] = Model.WAHOO;
 
-let shaderFlags = ShaderFlags.PAINT;
+let shaderFlags = ShaderFlags.NONE;
 
 const sound = new Howler.Howl({
     src: ["resources/audio/vaporwave.mp3"],
@@ -241,10 +241,38 @@ function main() {
         requestAnimationFrame(tick);
     }
 
+    // Event listeners
     window.addEventListener('resize', function () {
         renderer.setSize(window.innerWidth, window.innerHeight);
         camera.setAspectRatio(window.innerWidth / window.innerHeight);
         camera.updateProjectionMatrix();
+    }, false);
+
+    window.addEventListener('keydown', function (event) {
+        if (event.defaultPrevented) {
+            return; // Do nothing if event was already processed
+        }
+
+        switch (event.key) {
+            case "w":
+            case "W":
+                camera.moveForward();
+                break;
+            case "s":
+            case "S":
+                camera.moveBackward();
+                break;
+            case "d":
+            case "D":
+                camera.moveRight();
+                break;
+            case "a":
+            case "A":
+                camera.moveLeft();
+                break;
+            default:
+                return;
+        }
     }, false);
 
     renderer.setSize(window.innerWidth, window.innerHeight);
