@@ -6,6 +6,7 @@ import Mesh from './geometry/Mesh';
 import TerrainPlane from './geometry/TerrainPlane';
 import OpenGLRenderer from './rendering/gl/OpenGLRenderer';
 import Camera from './Camera';
+import Player from './game/Player';
 import {setGL} from './globals';
 import {readTextFile} from './globals';
 import ShaderProgram, {Shader} from './rendering/gl/ShaderProgram';
@@ -84,6 +85,7 @@ let obj0: string;
 let mesh0: Mesh;
 let mesh1: Mesh;
 let tp: TerrainPlane;
+let tp2: TerrainPlane;
 
 let tex0: Texture;
 
@@ -111,6 +113,7 @@ function loadScene() {
     mesh0 && mesh0.destroy();
     mesh1 && mesh1.destroy();
     tp && tp.destroy();
+    tp2 && tp2.destroy();
 
     square = new Square(vec3.fromValues(0, 0, 0));
     square.create();
@@ -128,6 +131,9 @@ function loadScene() {
 
     tp = new TerrainPlane(vec3.fromValues(0, 0, 0), 1, 10);
     tp.create();
+
+    tp2 = new TerrainPlane(vec3.fromValues(10, 0, 0), 1, 10);
+    tp2.create();
 
     //tex0 = new Texture('../resources/textures/lapras.png');
 }
@@ -205,6 +211,8 @@ function main() {
 
     const camera = new Camera(vec3.fromValues(0, 2, 5), vec3.fromValues(0, 0, 0));
 
+    const player = new Player(camera, camera.position, camera.direction);
+
     const renderer = new OpenGLRenderer(canvas);
     renderer.updateShaderFlags(shaderFlags);
     renderer.setClearColor(0, 0, 0, 1);
@@ -218,7 +226,8 @@ function main() {
     standardDeferred.setupTexUnits(["tex_Color"]);
 
     function tick() {
-        camera.update();
+        player.update(timer.deltaTime);
+        //camera.update();
         stats.begin();
         gl.viewport(0, 0, window.innerWidth, window.innerHeight);
         timer.updateTime();
@@ -235,7 +244,7 @@ function main() {
 
         // TODO: pass any arguments you may need for shader passes
         // forward render mesh info into gbuffers
-        renderer.renderToGBuffer(camera, standardDeferred, [tp]);
+        renderer.renderToGBuffer(camera, standardDeferred, [tp, tp2]);
         //renderer.renderToGBuffer(camera, standardDeferred, [mesh0, mesh1, tp]);
         // render from gbuffers into 32-bit color buffer
         renderer.renderFromGBuffer(camera);
@@ -256,30 +265,13 @@ function main() {
     }, false);
 
     window.addEventListener('keydown', function (event) {
-        if (event.defaultPrevented) {
-            return; // Do nothing if event was already processed
-        }
+        // need to do this, otherwise "this" points to Window?
+        player.handleKeyDownEvent(event);
+    }, false);
 
-        switch (event.key) {
-            case "w":
-            case "W":
-                camera.moveForward();
-                break;
-            case "s":
-            case "S":
-                camera.moveBackward();
-                break;
-            case "d":
-            case "D":
-                camera.moveRight();
-                break;
-            case "a":
-            case "A":
-                camera.moveLeft();
-                break;
-            default:
-                return;
-        }
+    window.addEventListener('keyup', function (event) {
+        // need to do this, otherwise "this" points to Window?
+        player.handleKeyUpEvent(event);
     }, false);
 
     renderer.setSize(window.innerWidth, window.innerHeight);
