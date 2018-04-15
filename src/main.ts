@@ -129,10 +129,10 @@ function loadScene() {
     mat4.scale(mesh1.modelMatrix, mesh1.modelMatrix, vec3.fromValues(scale, scale, scale));
     mesh1.create();
 
-    tp = new TerrainPlane(vec3.fromValues(0, 0, 0), 1, 10);
+    tp = new TerrainPlane(vec3.fromValues(0, 0, 0), 4, 10);
     tp.create();
 
-    tp2 = new TerrainPlane(vec3.fromValues(10, 0, 0), 1, 10);
+    tp2 = new TerrainPlane(vec3.fromValues(40, 0, 0), 4, 10);
     tp2.create();
 
     //tex0 = new Texture('../resources/textures/lapras.png');
