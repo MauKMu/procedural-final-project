@@ -1,7 +1,7 @@
 import {vec2, vec3, vec4} from 'gl-matrix';
 import Drawable from '../rendering/gl/Drawable';
 import {gl} from '../globals';
-import {smoothNoise} from '../noise/Noise';
+import {smoothNoise} from '../Utils';
 
 const NOISE_OFFSET = vec2.fromValues(3.141, -5.965);
 
@@ -15,6 +15,7 @@ class TerrainPlane extends Drawable {
     tileDim: number; // dimension (height and width) of each tile
     tileNum: number; // how many tiles exist on each axis
     heightScale: number = 5;
+    heightField: Array<Array<number>> = [];
 
     constructor(origin: vec3, tileDim: number, tileNum: number) {
         super(); // Call the constructor of the super class. This is required.
@@ -31,7 +32,7 @@ class TerrainPlane extends Drawable {
         let idxTemp: Array<number> = [];
         let colTemp: Array<number> = [];
 
-        let heightField: Array<Array<number>> = [];
+        this.heightField = [];
 
         // populate height field (indices refer to each tile, starting from origin)
         let xzOrigin = vec2.fromValues(this.origin[0], this.origin[2]);
@@ -45,14 +46,14 @@ class TerrainPlane extends Drawable {
                 vec2.scaleAndAdd(xzPoint, xzOrigin, xzOffset, this.tileDim);
                 heights.push(this.heightScale * smoothNoise(xzPoint));
             }
-            heightField.push(heights);
+            this.heightField.push(heights);
         }
 
         // assumes heightField is initialized
         function addPos(i: number, j: number, xOffset: number, zOffset: number): vec3 {
             let pos = vec3.fromValues(
                 xzPoint[0] + xOffset * this.tileDim,
-                this.origin[1] + heightField[i + xOffset][j + zOffset],
+                this.origin[1] + this.heightField[i + xOffset][j + zOffset],
                 xzPoint[1] + zOffset * this.tileDim
             );
             posTemp.push(pos[0]);

@@ -1,5 +1,9 @@
 import {vec2} from 'gl-matrix';
 
+export function mod(x: number, y: number) {
+    return x - y * Math.floor(x / y);
+}
+
 function fract(x: number): number {
     return x - Math.floor(x);
 }
