@@ -3,6 +3,7 @@ import * as Stats from 'stats-js';
 import * as DAT from 'dat-gui';
 import Square from './geometry/Square';
 import Mesh from './geometry/Mesh';
+import TerrainPlane from './geometry/TerrainPlane';
 import OpenGLRenderer from './rendering/gl/OpenGLRenderer';
 import Camera from './Camera';
 import {setGL} from './globals';
@@ -82,6 +83,7 @@ let square: Square;
 let obj0: string;
 let mesh0: Mesh;
 let mesh1: Mesh;
+let tp: TerrainPlane;
 
 let tex0: Texture;
 
@@ -108,6 +110,7 @@ function loadScene() {
     square && square.destroy();
     mesh0 && mesh0.destroy();
     mesh1 && mesh1.destroy();
+    tp && tp.destroy();
 
     square = new Square(vec3.fromValues(0, 0, 0));
     square.create();
@@ -122,6 +125,9 @@ function loadScene() {
     mat4.rotate(mesh1.modelMatrix, mesh1.modelMatrix, 0.75, vec3.fromValues(0, 1, 0));
     mat4.scale(mesh1.modelMatrix, mesh1.modelMatrix, vec3.fromValues(scale, scale, scale));
     mesh1.create();
+
+    tp = new TerrainPlane(vec3.fromValues(0, 0, 0), 1, 10);
+    tp.create();
 
     //tex0 = new Texture('../resources/textures/lapras.png');
 }
@@ -197,7 +203,7 @@ function main() {
     //loadScene();
     loadModel(controls[LOADED_MODEL]);
 
-    const camera = new Camera(vec3.fromValues(0, 9, 25), vec3.fromValues(0, 9, 0));
+    const camera = new Camera(vec3.fromValues(0, 2, 5), vec3.fromValues(0, 0, 0));
 
     const renderer = new OpenGLRenderer(canvas);
     renderer.updateShaderFlags(shaderFlags);
@@ -229,7 +235,8 @@ function main() {
 
         // TODO: pass any arguments you may need for shader passes
         // forward render mesh info into gbuffers
-        renderer.renderToGBuffer(camera, standardDeferred, [mesh0, mesh1]);
+        renderer.renderToGBuffer(camera, standardDeferred, [tp]);
+        //renderer.renderToGBuffer(camera, standardDeferred, [mesh0, mesh1, tp]);
         // render from gbuffers into 32-bit color buffer
         renderer.renderFromGBuffer(camera);
         // apply 32-bit post and tonemap from 32-bit color to 8-bit color
