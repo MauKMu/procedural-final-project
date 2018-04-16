@@ -13,7 +13,7 @@ enum MovementFlags {
 }
 
 const UP = vec3.fromValues(0, 1, 0);
-const EYE_OFFSET = vec3.fromValues(0, 1, 0);
+const EYE_OFFSET = vec3.fromValues(0, 2, 0);
 
 class Player {
     camera: Camera;
