@@ -139,7 +139,7 @@ class Player {
     }
 
     update(deltaTime: number) {
-        this.move(deltaTime);
+        //this.move(deltaTime);
         // TODO: update camera position, target, direction
         vec3.copy(this.camera.position, this.position);
         vec3.copy(this.camera.direction, this.forward);

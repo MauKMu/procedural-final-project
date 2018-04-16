@@ -4,6 +4,7 @@ import * as DAT from 'dat-gui';
 import Square from './geometry/Square';
 import Mesh from './geometry/Mesh';
 import TerrainPlane from './geometry/TerrainPlane';
+import Terrain from './game/Terrain';
 import OpenGLRenderer from './rendering/gl/OpenGLRenderer';
 import Camera from './Camera';
 import Player from './game/Player';
@@ -84,8 +85,7 @@ let square: Square;
 let obj0: string;
 let mesh0: Mesh;
 let mesh1: Mesh;
-let tp: TerrainPlane;
-let tp2: TerrainPlane;
+let tps: Array<TerrainPlane>;
 
 let tex0: Texture;
 
@@ -112,8 +112,12 @@ function loadScene() {
     square && square.destroy();
     mesh0 && mesh0.destroy();
     mesh1 && mesh1.destroy();
-    tp && tp.destroy();
-    tp2 && tp2.destroy();
+    if (tps) {
+        for (let i = 0; i < tps.length; i++) {
+            tps[i].destroy();
+        }
+    }
+    tps = [];
 
     square = new Square(vec3.fromValues(0, 0, 0));
     square.create();
@@ -129,11 +133,13 @@ function loadScene() {
     mat4.scale(mesh1.modelMatrix, mesh1.modelMatrix, vec3.fromValues(scale, scale, scale));
     mesh1.create();
 
-    tp = new TerrainPlane(vec3.fromValues(0, 0, 0), 4, 10);
-    tp.create();
-
-    tp2 = new TerrainPlane(vec3.fromValues(40, 0, 0), 4, 10);
-    tp2.create();
+    for (let i = 0; i < 9; i++) {
+        let x = i % 3;
+        let z = Math.floor(i / 3);
+        let tp = new TerrainPlane(vec3.fromValues(x * 40, 0, z * 40), 4, 10);
+        tp.create()
+        tps.push(tp);
+    }
 
     //tex0 = new Texture('../resources/textures/lapras.png');
 }
@@ -201,6 +207,9 @@ function main() {
     if (!gl) {
         alert('WebGL 2 not supported!');
     }
+    //let debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+    //let r = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+    //console.log(r);
     // `setGL` is a function imported above which sets the value of `gl` in the `globals.ts` module.
     // Later, we can import `gl` from `globals.ts` to access it
     setGL(gl);
@@ -212,6 +221,8 @@ function main() {
     const camera = new Camera(vec3.fromValues(0, 2, 5), vec3.fromValues(0, 0, 0));
 
     const player = new Player(camera, camera.position, camera.direction);
+
+    const terrain = new Terrain(vec3.fromValues(0, 0, 0), 4, 10, 3, 3);
 
     const renderer = new OpenGLRenderer(canvas);
     renderer.updateShaderFlags(shaderFlags);
@@ -225,16 +236,21 @@ function main() {
 
     standardDeferred.setupTexUnits(["tex_Color"]);
 
+    console.time("render");
     function tick() {
+        //console.timeEnd("render");
+        //console.time("update");
+        player.move(timer.deltaTime);
+        terrain.updatePlanes(player.position);
         player.update(timer.deltaTime);
         //camera.update();
         stats.begin();
         gl.viewport(0, 0, window.innerWidth, window.innerHeight);
         timer.updateTime();
         renderer.updateShaderFlags(shaderFlags);
-        renderer.updateCoherence(controls[PAINT_COHERENCE]);
-        renderer.updateBrushSize(controls[PAINT_BRUSH_SIZE]);
-        renderer.updateBrushNoise(controls[PAINT_BRUSH_NOISE]);
+        //renderer.updateCoherence(controls[PAINT_COHERENCE]);
+        //renderer.updateBrushSize(controls[PAINT_BRUSH_SIZE]);
+        //renderer.updateBrushNoise(controls[PAINT_BRUSH_NOISE]);
         renderer.updateTime(timer.deltaTime, timer.currentTime);
 
         standardDeferred.bindTexToUnit("tex_Color", tex0, 0);
@@ -244,7 +260,7 @@ function main() {
 
         // TODO: pass any arguments you may need for shader passes
         // forward render mesh info into gbuffers
-        renderer.renderToGBuffer(camera, standardDeferred, [tp, tp2]);
+        renderer.renderToGBuffer(camera, standardDeferred, terrain.terrainPlanes);
         //renderer.renderToGBuffer(camera, standardDeferred, [mesh0, mesh1, tp]);
         // render from gbuffers into 32-bit color buffer
         renderer.renderFromGBuffer(camera);
@@ -254,7 +270,9 @@ function main() {
         renderer.renderPostProcessLDR();
 
         stats.end();
+        //console.timeEnd("update");
         requestAnimationFrame(tick);
+        //console.time("render");
     }
 
     // Event listeners
