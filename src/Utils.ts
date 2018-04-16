@@ -1,6 +1,25 @@
-import {vec2} from 'gl-matrix';
+import {vec2, vec3} from 'gl-matrix';
 
-export function mod(x: number, y: number) {
+// http://geomalgorithms.com/a01-_area.html
+// https://gamedev.stackexchange.com/questions/23743/whats-the-most-efficient-way-to-find-barycentric-coordinates
+export function baryInterp(a: vec2, b: vec2, c: vec2, p: vec2): vec3 {
+    let ba = vec2.fromValues(b[0] - a[0], b[1] - a[1]);
+    let ca = vec2.fromValues(c[0] - a[0], c[1] - a[1]);
+    let pa = vec2.fromValues(p[0] - a[0], p[1] - a[1]);
+
+    let invArea = 1.0 / (ba[0] * ca[1] - ca[0] * ba[1]);
+    let valB = (pa[0] * ca[1] - ca[0] * pa[1]) * invArea;
+    let valC = (ba[0] * pa[1] - pa[0] * ba[1]) * invArea;
+
+    return vec3.fromValues(1.0 - valB - valC, valB, valC);
+}
+
+export function modfVec2(x: vec2, y: number, intPart: vec2): vec2 {
+    vec2.set(intPart, Math.floor(x[0] / y), Math.floor(x[1] / y));
+    return vec2.fromValues(x[0] - y * intPart[0], x[1] - y * intPart[1]);
+}
+
+export function mod(x: number, y: number): number {
     return x - y * Math.floor(x / y);
 }
 

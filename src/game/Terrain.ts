@@ -1,5 +1,5 @@
 import TerrainPlane from '../geometry/TerrainPlane';
-import {mod} from '../Utils';
+import {mod, modfVec2, baryInterp} from '../Utils';
 import {vec2, vec3, mat4} from 'gl-matrix';
 
 class Terrain {
@@ -69,11 +69,60 @@ class Terrain {
         return x * this.planeNumZ + z;
     }
 
+    // takes in Player's "target" position (where they would move
+    // if terrain was flat) and returns target position shifted to
+    // height coherent with terrain
+    collide(target: vec3): vec3 {
+        // position after "looping" around terrain
+        let posLooped = vec2.fromValues(mod(target[0], this.totalDimX), mod(target[2], this.totalDimZ));
+        // XZ "indices" of plane where player is
+        let posPlaneIdx = vec2.create();
+        let posInPlane = modfVec2(posLooped, this.planeDim, posPlaneIdx);
+        //let posPlaneIdx = vec2.fromValues(Math.floor(posLooped[0] / this.planeDim), Math.floor(posLooped[1] / this.planeDim));
+        //incorrect? let posInPlane = vec2.fromValues(Math.floor(posLooped[0] - posPlaneIdx[0] * this.planeDim), Math.floor(posLooped[0] - posPlaneIdx[0] * this.planeDim)); 
+        // XZ "indices" of tile within plane
+        let posTileIdx = vec2.create();
+        let posInTile = modfVec2(posInPlane, this.tileDim, posTileIdx);
+        //let posTileIdx = vec2.fromValues(posInPlane[0] / this.tileDim, posInPlane[1] / this.tileDim);
+        //let posTile = vec2.fromValues(mod(posLooped[0], this.tileDim), mod(posLooped[1], this.tileDim));
+        // get plane
+        let tp = this.terrainPlanes[this.getAbsIdx(posPlaneIdx[0], posPlaneIdx[1])];
+        // do barycentric interpolation to find height
+        let a = vec2.fromValues(0, 0);
+        let b: vec2;
+        let c = vec2.fromValues(this.tileDim, this.tileDim);
+        let heights: vec3;
+        // which triangle are we in? 012 or 023? (see TerrainPlane)
+        if (posInTile[0] > posInTile[1]) {
+            // triangle is 012
+            b = vec2.fromValues(this.tileDim, 0);
+            heights = vec3.fromValues(
+                tp.heightField[posTileIdx[0]][posTileIdx[1]],
+                tp.heightField[posTileIdx[0] + 1][posTileIdx[1]],
+                tp.heightField[posTileIdx[0] + 1][posTileIdx[1] + 1]
+            );
+        }
+        else {
+            // triangle is 023
+            b = vec2.fromValues(0, this.tileDim);
+            heights = vec3.fromValues(
+                tp.heightField[posTileIdx[0]][posTileIdx[1]],
+                tp.heightField[posTileIdx[0]][posTileIdx[1] + 1],
+                tp.heightField[posTileIdx[0] + 1][posTileIdx[1] + 1]
+            );
+        }
+        let weights = baryInterp(a, b, c, posInTile);
+        let height = vec3.dot(weights, heights);
+        return vec3.fromValues(posLooped[0], this.origin[1] + height, posLooped[1]);
+    }
+
     // makes planes active or not depending on player's position
     updatePlanes(playerPos: vec3) {
         // position after "looping" around terrain
-        let posLooped = vec2.fromValues(mod(playerPos[0], this.totalDimX), mod(playerPos[2], this.totalDimZ));
-        vec3.set(playerPos, posLooped[0], playerPos[1], posLooped[1]);
+        // already looped in collide()
+        //let posLooped = vec2.fromValues(mod(playerPos[0], this.totalDimX), mod(playerPos[2], this.totalDimZ));
+        //vec3.set(playerPos, posLooped[0], playerPos[1], posLooped[1]);
+        let posLooped = vec2.fromValues(playerPos[0], playerPos[2]);
         // XZ "indices" of plane where player is
         let posPlane = vec2.fromValues(Math.floor(posLooped[0] / this.planeDim), Math.floor(posLooped[1] / this.planeDim));
         // set all to inactive

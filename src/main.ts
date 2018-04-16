@@ -241,6 +241,7 @@ function main() {
         //console.timeEnd("render");
         //console.time("update");
         player.move(timer.deltaTime);
+        vec3.copy(player.position, terrain.collide(player.position));
         terrain.updatePlanes(player.position);
         player.update(timer.deltaTime);
         //camera.update();
