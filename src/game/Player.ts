@@ -13,11 +13,13 @@ enum MovementFlags {
 }
 
 const UP = vec3.fromValues(0, 1, 0);
+const EYE_OFFSET = vec3.fromValues(0, 1, 0);
 
 class Player {
     camera: Camera;
     movementFlags: MovementFlags;
     position: vec3;
+    eye: vec3;
     forward: vec3;
     right: vec3;
 
@@ -25,6 +27,7 @@ class Player {
         this.camera = camera;
         this.movementFlags = MovementFlags.NONE;
         this.position = vec3.clone(position);
+        this.eye = vec3.create();
         this.forward = vec3.clone(forward);
         vec3.normalize(this.forward, this.forward);
         this.right = vec3.create();
@@ -141,7 +144,8 @@ class Player {
     update(deltaTime: number) {
         //this.move(deltaTime);
         // TODO: update camera position, target, direction
-        vec3.copy(this.camera.position, this.position);
+        vec3.add(this.eye, this.position, EYE_OFFSET);
+        vec3.copy(this.camera.position, this.eye);
         vec3.copy(this.camera.direction, this.forward);
         this.camera.update();
         //this.controls.tick();
