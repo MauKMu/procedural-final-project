@@ -30,13 +30,43 @@ class Terrain {
             for (let z = 0; z < planeNumZ; z++) {
                 vec3.set(planeOffset, x, 0, z);
                 vec3.scaleAndAdd(planeOrigin, this.origin, planeOffset, tileDim * tileNum);
+                // constructor will generate height fields
                 let tp = new TerrainPlane(planeOrigin, tileDim, tileNum);
-                tp.create();
+                //tp.create();
                 // planes inactive at first; made active when updated
                 tp.isActive = false;
                 this.terrainPlanes.push(tp);
             }
         }
+        // "stitch" height fields at borders together
+        // X border: 0, planeNumX - 1
+        for (let z = 0; z < this.planeNumZ; z++) {
+            let tpA = this.terrainPlanes[this.getAbsIdx(0, z)];
+            let tpB = this.terrainPlanes[this.getAbsIdx(this.planeNumX - 1, z)];
+            // just copy one subset of height field to the other
+            for (let j = 0; j < this.tileNum + 1; j++) {
+                tpB.heightField[this.tileNum][j] = tpA.heightField[0][j];
+            }
+        }
+        // Z border: 0, planeNumZ - 1
+        for (let x = 0; x < this.planeNumX; x++) {
+            let tpA = this.terrainPlanes[this.getAbsIdx(x, 0)];
+            let tpB = this.terrainPlanes[this.getAbsIdx(x, this.planeNumZ - 1)];
+            // just copy one subset of height field to the other
+            // could try something else, like averaging, but this seems to work
+            for (let j = 0; j < this.tileNum + 1; j++) {
+                tpB.heightField[j][this.tileNum] = tpA.heightField[j][0];
+            }
+        }
+
+        // actually create planes' VBOs, now that stitching is done
+        for (let i = 0; i < this.terrainPlanes.length; i++) {
+            this.terrainPlanes[i].create();
+        }
+    }
+
+    getAbsIdx(x: number, z: number): number {
+        return x * this.planeNumZ + z;
     }
 
     // makes planes active or not depending on player's position
@@ -47,6 +77,7 @@ class Terrain {
         // XZ "indices" of plane where player is
         let posPlane = vec2.fromValues(Math.floor(posLooped[0] / this.planeDim), Math.floor(posLooped[1] / this.planeDim));
         // set all to inactive
+        // TODO: could optimize to only update ones that need to be updated
         for (let i = 0; i < this.terrainPlanes.length; i++) {
             this.terrainPlanes[i].isActive = false;
         }
@@ -75,7 +106,7 @@ class Terrain {
                 }
 
                 // now have good indices
-                this.terrainPlanes[xIdx * this.planeNumZ + zIdx].isActive = true;
+                this.terrainPlanes[this.getAbsIdx(xIdx, zIdx)].isActive = true;
                 let xTranslate =
                     xUnderflow ? -this.totalDimX :
                     xOverflow ? this.totalDimX : 0;

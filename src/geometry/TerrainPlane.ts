@@ -23,14 +23,6 @@ class TerrainPlane extends Drawable {
         //this.origin = vec4.fromValues(origin[0], origin[1], origin[2], 1);
         this.tileDim = tileDim;
         this.tileNum = tileNum;
-    }
-
-    create() {
-        let posTemp: Array<number> = [];
-        let norTemp: Array<number> = [];
-        let uvsTemp: Array<number> = [];
-        let idxTemp: Array<number> = [];
-        let colTemp: Array<number> = [];
 
         this.heightField = [];
 
@@ -48,6 +40,19 @@ class TerrainPlane extends Drawable {
             }
             this.heightField.push(heights);
         }
+    }
+
+
+    create() {
+        let posTemp: Array<number> = [];
+        let norTemp: Array<number> = [];
+        let uvsTemp: Array<number> = [];
+        let idxTemp: Array<number> = [];
+        let colTemp: Array<number> = [];
+
+        let xzOrigin = vec2.create();
+        let xzOffset = vec2.create();
+        let xzPoint = vec2.create();
 
         // assumes heightField is initialized
         function addPos(i: number, j: number, xOffset: number, zOffset: number): vec3 {
