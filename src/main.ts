@@ -283,13 +283,18 @@ function main() {
         canvas.requestPointerLock();
     }
 
+    // need this so "this" is set properly in player's handler
+    function handleMouseMovement(event: MouseEvent) {
+        player.handleMouseMovement(event);
+    }
+
     function lockChangeAlert() {
         if (document.pointerLockElement === canvas) {
             console.log('The pointer lock status is now locked');
-            document.addEventListener("mousemove", player.handleMouseMovement, false);
+            document.addEventListener("mousemove", handleMouseMovement, false);
         } else {
             console.log('The pointer lock status is now unlocked');
-            document.removeEventListener("mousemove", player.handleMouseMovement, false);
+            document.removeEventListener("mousemove", handleMouseMovement, false);
         }
     }
 
