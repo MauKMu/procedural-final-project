@@ -190,16 +190,16 @@ function main() {
     updateShaderFlags();
 
     // Add controls to the gui
-    const gui = new DAT.GUI();
-    gui.add(controls, ENABLE_DOF).onChange(updateShaderFlags);
-    gui.add(controls, ENABLE_BLOOM).onChange(updateShaderFlags);
-    gui.add(controls, ENABLE_POINTILISM).onChange(updateShaderFlags);
-    gui.add(controls, ENABLE_PAINT).onChange(updateShaderFlags);
-    gui.add(controls, ENABLE_VAPORWAVE).onChange(updateShaderFlags);
-    gui.add(controls, PAINT_COHERENCE, 0.0, 1.0);
-    gui.add(controls, PAINT_BRUSH_SIZE, 0.0, 1.0);
-    gui.add(controls, PAINT_BRUSH_NOISE, 0.0, 1.0);
-    gui.add(controls, LOADED_MODEL, { "Wahoo": Model.WAHOO, "Staryu": Model.STARYU, "Lapras": Model.LAPRAS, "Chikorita": Model.CHIKORITA }).onChange(loadModel);
+    //const gui = new DAT.GUI();
+    //gui.add(controls, ENABLE_DOF).onChange(updateShaderFlags);
+    //gui.add(controls, ENABLE_BLOOM).onChange(updateShaderFlags);
+    //gui.add(controls, ENABLE_POINTILISM).onChange(updateShaderFlags);
+    //gui.add(controls, ENABLE_PAINT).onChange(updateShaderFlags);
+    //gui.add(controls, ENABLE_VAPORWAVE).onChange(updateShaderFlags);
+    //gui.add(controls, PAINT_COHERENCE, 0.0, 1.0);
+    //gui.add(controls, PAINT_BRUSH_SIZE, 0.0, 1.0);
+    //gui.add(controls, PAINT_BRUSH_NOISE, 0.0, 1.0);
+    //gui.add(controls, LOADED_MODEL, { "Wahoo": Model.WAHOO, "Staryu": Model.STARYU, "Lapras": Model.LAPRAS, "Chikorita": Model.CHIKORITA }).onChange(loadModel);
 
     // get canvas and webgl context
     const canvas = <HTMLCanvasElement>document.getElementById('canvas');
