@@ -108,6 +108,10 @@ class Player {
         this.movementFlags = MovementFlags.NONE;
     }
 
+    handleMouseMovement(event: MouseEvent) {
+        console.log(event);
+    }
+
     move(deltaTime: number) {
         if (this.movementFlags == MovementFlags.NONE || this.movementFlags == MovementFlags.ALL) {
             return;

@@ -276,7 +276,28 @@ function main() {
         //console.time("render");
     }
 
+    // pointer lock things
+    // https://developer.mozilla.org/en-US/docs/Web/API/Pointer_Lock_API
+    // don't need to handle prefixes anymore?
+    canvas.onclick = function () {
+        canvas.requestPointerLock();
+    }
+
+    function lockChangeAlert() {
+        if (document.pointerLockElement === canvas) {
+            console.log('The pointer lock status is now locked');
+            document.addEventListener("mousemove", player.handleMouseMovement, false);
+        } else {
+            console.log('The pointer lock status is now unlocked');
+            document.removeEventListener("mousemove", player.handleMouseMovement, false);
+        }
+    }
+
     // Event listeners
+
+    // Hook pointer lock state change events for different browsers
+    document.addEventListener('pointerlockchange', lockChangeAlert, false);
+
     window.addEventListener('resize', function () {
         renderer.setSize(window.innerWidth, window.innerHeight);
         camera.setAspectRatio(window.innerWidth / window.innerHeight);
