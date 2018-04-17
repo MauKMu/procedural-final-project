@@ -23,6 +23,10 @@ export function mod(x: number, y: number): number {
     return x - y * Math.floor(x / y);
 }
 
+export function clamp(x: number, minVal: number, maxVal: number) {
+    return (x <= minVal) ? minVal : (x >= maxVal) ? maxVal : x;
+}
+
 function fract(x: number): number {
     return x - Math.floor(x);
 }
