@@ -175,11 +175,13 @@ class Player {
         // compute move direction -- guaranteed not to be <0, 0, 0>, since
         // this only happens on MovementFlags.NONE or MovementFlags.ALL
         let movDir = vec3.fromValues(0, 0, 0);
+        console.log(vec3.length(this.flatForward));
+        console.log(vec3.length(this.right));
         if (this.movementFlags & MovementFlags.FORWARD) {
-            vec3.add(movDir, movDir, this.forward);
+            vec3.add(movDir, movDir, this.flatForward);
         }
         if (this.movementFlags & MovementFlags.BACKWARD) {
-            vec3.scaleAndAdd(movDir, movDir, this.forward, -1);
+            vec3.scaleAndAdd(movDir, movDir, this.flatForward, -1);
         }
         if (this.movementFlags & MovementFlags.RIGHT) {
             vec3.add(movDir, movDir, this.right);
