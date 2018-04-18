@@ -24,10 +24,11 @@ void main() {
     // Presently, the provided shader passes "nothing" to the first
     // two gbuffers and basic color to the third.
 
-    vec3 col = texture(tex_Color, fs_UV).rgb;
+    //vec3 col = texture(tex_Color, fs_UV).rgb;
+    vec3 col = fs_Col.xyz;
 
     // if using textures, inverse gamma correct
-    col = pow(col, vec3(2.2));
+    //col = pow(col, vec3(2.2));
 
     // normal.xyz, depth
     fragColor[0] = vec4(fs_Nor.xyz, fs_Pos.z - DEPTH_OFFSET);
