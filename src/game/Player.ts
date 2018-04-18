@@ -169,14 +169,10 @@ class Player {
         if (this.movementFlags == MovementFlags.NONE || this.movementFlags == MovementFlags.ALL) {
             return;
         }
-        // TODO: use xz direction only;
-        // can store in handlemouseevent
 
         // compute move direction -- guaranteed not to be <0, 0, 0>, since
         // this only happens on MovementFlags.NONE or MovementFlags.ALL
         let movDir = vec3.fromValues(0, 0, 0);
-        console.log(vec3.length(this.flatForward));
-        console.log(vec3.length(this.right));
         if (this.movementFlags & MovementFlags.FORWARD) {
             vec3.add(movDir, movDir, this.flatForward);
         }
@@ -197,12 +193,22 @@ class Player {
         }
 
         vec3.normalize(movDir, movDir);
-        vec3.scaleAndAdd(this.position, this.position, movDir, deltaTime * 10.0);
+
+        let target = vec3.create();
+        vec3.scaleAndAdd(target, this.position, movDir, deltaTime * 10.0);
 
         // TODO: collision
         // terrain collision
-        let target = this.terrain.collide(this.position);
-        vec3.copy(this.position, target);
+        vec3.copy(target, this.terrain.collide(target));
+        // find direction towards terrain-aware target, adjust its length
+        // NOTE: this may not work if tiles are too small relative to step size
+        vec3.subtract(movDir, target, this.position);
+        vec3.normalize(movDir, movDir);
+        vec3.scaleAndAdd(target, this.position, movDir, deltaTime * 10.0);
+
+        // "loop" position on terrain
+        let loopedXZPos = this.terrain.getLoopedPosition(target);
+        vec3.set(this.position, loopedXZPos[0], target[1], loopedXZPos[1]);
     }
 
     update(deltaTime: number) {

@@ -1,5 +1,5 @@
 import TerrainPlane from '../geometry/TerrainPlane';
-import {mod, modfVec2, baryInterp} from '../Utils';
+import {clamp, mod, modfVec2, baryInterp} from '../Utils';
 import {vec2, vec3, mat4} from 'gl-matrix';
 
 class Terrain {
@@ -69,12 +69,16 @@ class Terrain {
         return x * this.planeNumZ + z;
     }
 
+    getLoopedPosition(pos: vec3) {
+        return vec2.fromValues(mod(pos[0], this.totalDimX), mod(pos[2], this.totalDimZ));
+    }
+
     // takes in Player's "target" position (where they would move
     // if terrain was flat) and returns target position shifted to
     // height coherent with terrain
     collide(target: vec3): vec3 {
         // position after "looping" around terrain
-        let posLooped = vec2.fromValues(mod(target[0], this.totalDimX), mod(target[2], this.totalDimZ));
+        let posLooped = this.getLoopedPosition(target);
         // XZ "indices" of plane where player is
         let posPlaneIdx = vec2.create();
         let posInPlane = modfVec2(posLooped, this.planeDim, posPlaneIdx);
@@ -113,7 +117,7 @@ class Terrain {
         }
         let weights = baryInterp(a, b, c, posInTile);
         let height = vec3.dot(weights, heights);
-        return vec3.fromValues(posLooped[0], this.origin[1] + height, posLooped[1]);
+        return vec3.fromValues(target[0], this.origin[1] + height, target[2]);
     }
 
     // makes planes active or not depending on player's position

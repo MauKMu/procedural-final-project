@@ -218,7 +218,7 @@ function main() {
     //loadScene();
     loadModel(controls[LOADED_MODEL]);
 
-    const camera = new Camera(vec3.fromValues(0, 2, 5), vec3.fromValues(0, 0, 0));
+    const camera = new Camera(vec3.fromValues(1, 2, 5), vec3.fromValues(1, 0, 0));
 
     const player = new Player(camera, camera.position, camera.direction);
 
