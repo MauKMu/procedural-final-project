@@ -224,6 +224,8 @@ function main() {
 
     const terrain = new Terrain(vec3.fromValues(0, 0, 0), 4, 10, 3, 3);
 
+    player.terrain = terrain;
+
     const renderer = new OpenGLRenderer(canvas);
     renderer.updateShaderFlags(shaderFlags);
     renderer.setClearColor(0, 0, 0, 1);
@@ -240,9 +242,9 @@ function main() {
     function tick() {
         //console.timeEnd("render");
         //console.time("update");
-        player.move(timer.deltaTime);
-        vec3.copy(player.position, terrain.collide(player.position));
-        terrain.updatePlanes(player.position);
+        //player.move(timer.deltaTime);
+        //vec3.copy(player.position, terrain.collide(player.position));
+        //terrain.updatePlanes(player.position);
         player.update(timer.deltaTime);
         //camera.update();
         stats.begin();

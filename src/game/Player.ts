@@ -1,5 +1,6 @@
 import Camera from '../Camera';
 import {clamp} from '../Utils';
+import Terrain from './Terrain';
 import {vec3, mat4} from 'gl-matrix';
 
 enum MovementFlags {
@@ -28,6 +29,7 @@ class Player {
     right: vec3;
     xzAngle: number;
     flatForward: vec3; // forward projected on XZ plane
+    terrain: Terrain;
 
     constructor(camera: Camera, position: vec3, forward: vec3) {
         this.camera = camera;
@@ -54,6 +56,7 @@ class Player {
         // call mouse event handler to avoid "jerk" when first activating mouse
         let mouseEvent = new MouseEvent("Fake event");
         this.handleMouseMovement(mouseEvent);
+        this.terrain = undefined;
     }
 
     handleKeyDownEvent(event: KeyboardEvent) {
@@ -195,11 +198,15 @@ class Player {
         vec3.scaleAndAdd(this.position, this.position, movDir, deltaTime * 10.0);
 
         // TODO: collision
+        // terrain collision
+        let target = this.terrain.collide(this.position);
+        vec3.copy(this.position, target);
     }
 
     update(deltaTime: number) {
-        //this.move(deltaTime);
-        // TODO: update camera position, target, direction
+        this.move(deltaTime);
+        this.terrain.updatePlanes(this.position);
+        // update camera position, target, direction
         vec3.add(this.eye, this.position, EYE_OFFSET);
         vec3.copy(this.camera.position, this.eye);
         vec3.copy(this.camera.direction, this.forward);
