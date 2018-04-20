@@ -1,8 +1,11 @@
+import Drawable from '../rendering/gl/Drawable';
 import TerrainPlane from '../geometry/TerrainPlane';
+import Decoration from '../geometry/Decoration';
 import {clamp, mod, modfVec2, baryInterp} from '../Utils';
 import {vec2, vec3, mat4} from 'gl-matrix';
 
 class Terrain {
+    drawables: Array<Drawable>;
     terrainPlanes: Array<TerrainPlane>;
     origin: vec3; // bottom-left corner
     tileDim: number; // dimension (height and width) of each tile (for planes)
@@ -24,6 +27,7 @@ class Terrain {
         this.totalDimZ = this.planeDim * planeNumZ;
 
         this.terrainPlanes = [];
+        this.drawables = [];
         let planeOrigin = vec3.create();
         let planeOffset = vec3.create();
         for (let x = 0; x < planeNumX; x++) {
@@ -60,9 +64,28 @@ class Terrain {
         }
 
         // actually create planes' VBOs, now that stitching is done
+        // also copy over to drawables
         for (let i = 0; i < this.terrainPlanes.length; i++) {
             this.terrainPlanes[i].create();
+            this.drawables.push(this.terrainPlanes[i]);
         }
+
+        // add some decorations
+        let decorations = new Decoration();
+        let decorationMat = mat4.create();
+
+        for (let x = 0; x < planeNumX; x++) {
+            for (let z = 0; z < planeNumZ; z++) {
+                vec3.set(planeOffset, x, 0, z);
+                vec3.scaleAndAdd(planeOrigin, this.origin, planeOffset, tileDim * tileNum);
+                planeOrigin[1] += 3 + Math.random() * 2;
+                mat4.fromTranslation(decorationMat, planeOrigin);
+                decorations.addNormalCorrectPrism(decorationMat, 5, 1, 1, 1);
+            }
+        }
+
+        decorations.create();
+        this.drawables.push(decorations);
     }
 
     getAbsIdx(x: number, z: number): number {

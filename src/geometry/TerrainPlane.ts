@@ -94,11 +94,11 @@ class TerrainPlane extends Drawable {
                 // indices are [0, 1, 2, 3, 4, 5]
                 // positions ==================================================
                 // call() makes "this" visible in addPos (wow!)
-                let pos0 = addPos.call(this, i, j, 0, 0);
                 let pos1 = addPos.call(this, i, j, 1, 0);
+                let pos0 = addPos.call(this, i, j, 0, 0);
                 let pos2 = addPos.call(this, i, j, 1, 1);
-                addPos.call(this, i, j, 0, 0); // add 0 again
                 addPos.call(this, i, j, 1, 1); // add 2 again
+                addPos.call(this, i, j, 0, 0); // add 0 again
                 let pos3 = addPos.call(this, i, j, 0, 1);
                 // normals ====================================================
                 let sideA = vec3.create();

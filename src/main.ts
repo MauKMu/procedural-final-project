@@ -213,6 +213,9 @@ function main() {
     // `setGL` is a function imported above which sets the value of `gl` in the `globals.ts` module.
     // Later, we can import `gl` from `globals.ts` to access it
     setGL(gl);
+    gl.frontFace(gl.CCW);
+    gl.enable(gl.CULL_FACE);
+    gl.cullFace(gl.BACK);
 
     // Initial call to load scene
     //loadScene();
@@ -263,7 +266,7 @@ function main() {
 
         // TODO: pass any arguments you may need for shader passes
         // forward render mesh info into gbuffers
-        renderer.renderToGBuffer(camera, standardDeferred, terrain.terrainPlanes);
+        renderer.renderToGBuffer(camera, standardDeferred, terrain.drawables);
         //renderer.renderToGBuffer(camera, standardDeferred, [mesh0, mesh1, tp]);
         // render from gbuffers into 32-bit color buffer
         renderer.renderFromGBuffer(camera);
