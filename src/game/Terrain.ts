@@ -87,43 +87,54 @@ class Terrain {
                 vec3.scaleAndAdd(planeOrigin, this.origin, planeOffset, tileDim * tileNum);
                 planeOrigin[0] += (Math.random() * 0.5 + 0.25) * this.planeDim;
                 planeOrigin[2] += (Math.random() * 0.5 + 0.25) * this.planeDim;
-                let tree = new BasicTree(decorations);
-                tree.initAlphabet();
-                tree.resetTurtleStack(planeOrigin);
-                tree.expandString();
-                tree.expandString();
-                tree.executeString();
-                //mat4.fromTranslation(decorationMat, planeOrigin);
-                //decorations.addNormalCorrectPrism(decorationMat, 5, 1, 1, 1);
+                let treesInCluster = Math.floor(Math.random() * 4.0 + 1.01);
+                console.log(treesInCluster);
+                let treeOrigin = vec3.create();
+                let angle = Math.random() * Math.PI;
+                let angleIncrement = 2.0 * Math.PI / treesInCluster;
+                for (let i = 0; i < treesInCluster; i++) {
+                    angle += angleIncrement;
+                    vec3.set(treeOrigin, Math.cos(angle), 0, Math.sin(angle));
+                    vec3.scaleAndAdd(treeOrigin, planeOrigin, treeOrigin, 1.6 * this.tileDim);
+                    treeOrigin[0] += tileDim;
+                    let tree = new BasicTree(decorations);
+                    tree.initAlphabet();
+                    tree.resetTurtleStack(treeOrigin);
+                    tree.expandString();
+                    tree.expandString();
+                    tree.executeString();
+                    //mat4.fromTranslation(decorationMat, planeOrigin);
+                    //decorations.addNormalCorrectPrism(decorationMat, 5, 1, 1, 1);
 
-                // add collider
-                this.colliders.push(new Collider(vec2.fromValues(planeOrigin[0], planeOrigin[2]), 1.0));
+                    // add collider
+                    this.colliders.push(new Collider(vec2.fromValues(treeOrigin[0], treeOrigin[2]), 1.0));
 
-                // add clones to maintain continuity when looping
-                if (xClone != 0) {
-                    let cloneOrigin = vec3.clone(planeOrigin);
-                    cloneOrigin[0] += xClone;
-                    tree.resetTurtleStack(cloneOrigin);
-                    tree.executeString();
-                    //mat4.fromTranslation(decorationMat, cloneOrigin);
-                    //decorations.addNormalCorrectPrism(decorationMat, 5, 1, 1, 1);
-                }
-                if (zClone != 0) {
-                    let cloneOrigin = vec3.clone(planeOrigin);
-                    cloneOrigin[2] += zClone;
-                    tree.resetTurtleStack(cloneOrigin);
-                    tree.executeString();
-                    //mat4.fromTranslation(decorationMat, cloneOrigin);
-                    //decorations.addNormalCorrectPrism(decorationMat, 5, 1, 1, 1);
-                }
-                if (xClone != 0 && zClone != 0) {
-                    let cloneOrigin = vec3.clone(planeOrigin);
-                    cloneOrigin[0] += xClone;
-                    cloneOrigin[2] += zClone;
-                    tree.resetTurtleStack(cloneOrigin);
-                    tree.executeString();
-                    //mat4.fromTranslation(decorationMat, cloneOrigin);
-                    //decorations.addNormalCorrectPrism(decorationMat, 5, 1, 1, 1);
+                    // add clones to maintain continuity when looping
+                    if (xClone != 0) {
+                        let cloneOrigin = vec3.clone(treeOrigin);
+                        cloneOrigin[0] += xClone;
+                        tree.resetTurtleStack(cloneOrigin);
+                        tree.executeString();
+                        //mat4.fromTranslation(decorationMat, cloneOrigin);
+                        //decorations.addNormalCorrectPrism(decorationMat, 5, 1, 1, 1);
+                    }
+                    if (zClone != 0) {
+                        let cloneOrigin = vec3.clone(treeOrigin);
+                        cloneOrigin[2] += zClone;
+                        tree.resetTurtleStack(cloneOrigin);
+                        tree.executeString();
+                        //mat4.fromTranslation(decorationMat, cloneOrigin);
+                        //decorations.addNormalCorrectPrism(decorationMat, 5, 1, 1, 1);
+                    }
+                    if (xClone != 0 && zClone != 0) {
+                        let cloneOrigin = vec3.clone(treeOrigin);
+                        cloneOrigin[0] += xClone;
+                        cloneOrigin[2] += zClone;
+                        tree.resetTurtleStack(cloneOrigin);
+                        tree.executeString();
+                        //mat4.fromTranslation(decorationMat, cloneOrigin);
+                        //decorations.addNormalCorrectPrism(decorationMat, 5, 1, 1, 1);
+                    }
                 }
             }
         }
