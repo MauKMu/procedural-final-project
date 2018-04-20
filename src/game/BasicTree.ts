@@ -12,6 +12,7 @@ class BasicTree extends LSystem {
     constructor(decoration: Decoration) {
         super();
         this.decoration = decoration;
+        this.prismSides = 5;
     }
 
     resetTurtleStack(pos: vec3) {

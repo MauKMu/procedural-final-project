@@ -12,6 +12,7 @@ class LSystem {
     decoration: Decoration;
     axiom: Array<LSymbol>;
     lstring: LString;
+    prismSides: number;
 
     constructor() {
         //this.alphabet = [];
@@ -20,6 +21,7 @@ class LSystem {
         this.axiom = [];
         this.lstring = new LString([]);
         this.initAlphabet();
+        this.prismSides = 8;
     }
 
     setAxiom(axiomArray: Array<LSymbol>) {
@@ -40,7 +42,7 @@ class LSystem {
             return;
         }
         let trans = turtle.getTransformationToTurtle();
-        this.decoration.addPrism(trans, 8, turtle.scaleBottom, turtle.scaleTop, 1);
+        this.decoration.addPrism(trans, this.prismSides, turtle.scaleBottom, turtle.scaleTop, 1);
         turtle.scaleBottom = turtle.scaleTop;
         turtle.scaleTop *= 0.99;
     }
@@ -50,7 +52,7 @@ class LSystem {
             return;
         }
         let trans = turtle.getTransformationToTurtle();
-        this.decoration.addNormalCorrectPrism(trans, 8, turtle.scaleBottom, turtle.scaleTop, scaleHeight);
+        this.decoration.addNormalCorrectPrism(trans, this.prismSides, turtle.scaleBottom, turtle.scaleTop, scaleHeight);
         turtle.scaleBottom = turtle.scaleTop;
         turtle.scaleTop *= 0.8;
     }
@@ -61,7 +63,7 @@ class LSystem {
             return;
         }
         let trans = turtle.getTransformationToTurtle();
-        this.decoration.addNormalCorrectPrism(trans, 8, turtle.scaleBottom, turtle.scaleTop, scaleHeight);
+        this.decoration.addNormalCorrectPrism(trans, this.prismSides, turtle.scaleBottom, turtle.scaleTop, scaleHeight);
     }
 
     addPearAtTurtle(turtle: Turtle, pearMesh: any) {
