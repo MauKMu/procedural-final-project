@@ -50,7 +50,7 @@ class BasicTree extends LSystem {
             turtle.scaleBottom = bot;
             turtle.moveForward(PRISM_HEIGHT * 0.35);
             // make next prisms thinner so they "connect" better
-            turtle.scaleBottom *= 0.6;
+            turtle.scaleBottom *= 0.5;
         });
         this.alphabet.push(T);
         // straighten
@@ -85,7 +85,7 @@ class BasicTree extends LSystem {
         ]);
         T.setExpansionRules([
             new ExpansionRule(1, [T]),
-            new ExpansionRule(2, [push, T, S, pop, T])
+            new ExpansionRule(1, [push, T, S, pop, T])
         ]);
         S.setExpansionRules([
             new ExpansionRule(1, [S]),
