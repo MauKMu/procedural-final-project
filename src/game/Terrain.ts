@@ -1,6 +1,7 @@
 import Drawable from '../rendering/gl/Drawable';
 import TerrainPlane from '../geometry/TerrainPlane';
 import Decoration from '../geometry/Decoration';
+import BasicTree from './BasicTree';
 import {clamp, mod, modfVec2, baryInterp} from '../Utils';
 import {vec2, vec3, mat4} from 'gl-matrix';
 
@@ -106,6 +107,13 @@ class Terrain {
                 }
             }
         }
+
+        let tree = new BasicTree(decorations);
+        tree.initAlphabet();
+        tree.resetTurtleStack(vec3.fromValues(3, 1, 3));
+        tree.expandString();
+        tree.expandString();
+        tree.executeString();
 
         decorations.create();
         this.drawables.push(decorations);

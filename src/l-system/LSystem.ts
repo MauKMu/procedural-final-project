@@ -15,11 +15,11 @@ class LSystem {
 
     constructor() {
         //this.alphabet = [];
-        this.initAlphabet();
         this.turtleStack = [new Turtle()];
         this.decoration = new Decoration();
         this.axiom = [];
         this.lstring = new LString([]);
+        this.initAlphabet();
     }
 
     setAxiom(axiomArray: Array<LSymbol>) {
@@ -113,6 +113,12 @@ class LSystem {
 
     executeString() {
         this.lstring.execute(this);
+    }
+
+    resetTurtleStack(pos: vec3) {
+        let t = new Turtle();
+        vec3.copy(t.position, pos);
+        this.turtleStack = [t];
     }
 
     // resets expansions and decoration VBOs
