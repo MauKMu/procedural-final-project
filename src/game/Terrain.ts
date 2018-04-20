@@ -74,13 +74,35 @@ class Terrain {
         let decorations = new Decoration();
         let decorationMat = mat4.create();
 
-        for (let x = 0; x < planeNumX; x++) {
-            for (let z = 0; z < planeNumZ; z++) {
+        for (let x = 0; x < this.planeNumX; x++) {
+            let xClone = this.totalDimX * ((x == 0) ? 1 : (x == this.planeNumX - 1) ? -1 : 0);
+            for (let z = 0; z < this.planeNumZ; z++) {
+                let zClone = this.totalDimZ * ((z == 0) ? 1 : (z == this.planeNumZ - 1) ? -1 : 0);
                 vec3.set(planeOffset, x, 0, z);
                 vec3.scaleAndAdd(planeOrigin, this.origin, planeOffset, tileDim * tileNum);
                 planeOrigin[1] += 3 + Math.random() * 2;
                 mat4.fromTranslation(decorationMat, planeOrigin);
                 decorations.addNormalCorrectPrism(decorationMat, 5, 1, 1, 1);
+                // add clones to maintain continuity when looping
+                if (xClone != 0) {
+                    let cloneOrigin = vec3.clone(planeOrigin);
+                    cloneOrigin[0] += xClone;
+                    mat4.fromTranslation(decorationMat, cloneOrigin);
+                    decorations.addNormalCorrectPrism(decorationMat, 5, 1, 1, 1);
+                }
+                if (zClone != 0) {
+                    let cloneOrigin = vec3.clone(planeOrigin);
+                    cloneOrigin[2] += zClone;
+                    mat4.fromTranslation(decorationMat, cloneOrigin);
+                    decorations.addNormalCorrectPrism(decorationMat, 5, 1, 1, 1);
+                }
+                if (xClone != 0 && zClone != 0) {
+                    let cloneOrigin = vec3.clone(planeOrigin);
+                    cloneOrigin[0] += xClone;
+                    cloneOrigin[2] += zClone;
+                    mat4.fromTranslation(decorationMat, cloneOrigin);
+                    decorations.addNormalCorrectPrism(decorationMat, 5, 1, 1, 1);
+                }
             }
         }
 
