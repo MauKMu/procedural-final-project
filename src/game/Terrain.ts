@@ -74,6 +74,7 @@ class Terrain {
         let decorations = new Decoration();
         let decorationMat = mat4.create();
 
+        // add decorations on each terrain plane
         for (let x = 0; x < this.planeNumX; x++) {
             let xClone = this.totalDimX * ((x == 0) ? 1 : (x == this.planeNumX - 1) ? -1 : 0);
             for (let z = 0; z < this.planeNumZ; z++) {
