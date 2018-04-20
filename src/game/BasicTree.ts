@@ -5,7 +5,7 @@ import LSystem from '../l-system/LSystem';
 import Decoration from '../geometry/Decoration';
 import {PRISM_HEIGHT} from '../geometry/Decoration';
 import LString from '../l-system/LString';
-import {lRandom} from '../l-system/LRandom';
+import {lRandom, LRANDOM_DETERMINISTIC} from '../l-system/LRandom';
 
 class BasicTree extends LSystem {
 
@@ -95,6 +95,12 @@ class BasicTree extends LSystem {
         this.setAxiom([
             F, push, T, S, pop, push, T, S, pop
         ]);
+    }
+
+    executeString() {
+        lRandom.setMode(LRANDOM_DETERMINISTIC);
+        lRandom.setSeed(0);
+        super.executeString();
     }
 
 };
