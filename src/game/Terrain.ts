@@ -2,12 +2,14 @@ import Drawable from '../rendering/gl/Drawable';
 import TerrainPlane from '../geometry/TerrainPlane';
 import Decoration from '../geometry/Decoration';
 import BasicTree from './BasicTree';
+import Collider from './Collider';
 import {clamp, mod, modfVec2, baryInterp} from '../Utils';
 import {vec2, vec3, mat4} from 'gl-matrix';
 
 class Terrain {
     drawables: Array<Drawable>;
     terrainPlanes: Array<TerrainPlane>;
+    colliders: Array<Collider>;
     origin: vec3; // bottom-left corner
     tileDim: number; // dimension (height and width) of each tile (for planes)
     tileNum: number; // how many tiles exist on each axis (for planes)
@@ -29,6 +31,7 @@ class Terrain {
 
         this.terrainPlanes = [];
         this.drawables = [];
+        this.colliders = [];
         let planeOrigin = vec3.create();
         let planeOffset = vec3.create();
         for (let x = 0; x < planeNumX; x++) {
@@ -93,6 +96,9 @@ class Terrain {
                 //mat4.fromTranslation(decorationMat, planeOrigin);
                 //decorations.addNormalCorrectPrism(decorationMat, 5, 1, 1, 1);
 
+                // add collider
+                this.colliders.push(new Collider(vec2.fromValues(planeOrigin[0], planeOrigin[2]), 1.0));
+
                 // add clones to maintain continuity when looping
                 if (xClone != 0) {
                     let cloneOrigin = vec3.clone(planeOrigin);
@@ -135,12 +141,38 @@ class Terrain {
         return vec2.fromValues(mod(pos[0], this.totalDimX), mod(pos[2], this.totalDimZ));
     }
 
+    getLoopedPositionVec2(pos: vec2) {
+        return vec2.fromValues(mod(pos[0], this.totalDimX), mod(pos[1], this.totalDimZ));
+    }
+
     // takes in Player's "target" position (where they would move
     // if terrain was flat) and returns target position shifted to
     // height coherent with terrain
-    collide(target: vec3): vec3 {
+    collide(target: vec3, startPos: vec3, targetSpeed: number): vec3 {
+        // janky collision
+        // doesn't work for things too close to edge of loop rectangle
+        let posAfterCollision: vec2;
+        let targetVec2 = vec2.fromValues(target[0], target[2]);
+        let collided = false;
+        for (let i = 0; i < this.colliders.length; i++) {
+            let collision = this.colliders[i].collide(targetVec2, 0.5);
+            if (collision == null) {
+                continue;
+            }
+            console.log("coll");
+            collided = true;
+            posAfterCollision = collision;
+            //posLooped = this.getLoopedPosition(startPos);
+        }
+        if (!collided) {
+            posAfterCollision = targetVec2;
+        }
+        // guarantee loop
+        //if (collided) {
+            //posLooped = this.getLoopedPosition(vec3.fromValues(posLooped[0], 0, posLooped[1]));
+        //}
         // position after "looping" around terrain
-        let posLooped = this.getLoopedPosition(target);
+        let posLooped = this.getLoopedPositionVec2(posAfterCollision);
         // XZ "indices" of plane where player is
         let posPlaneIdx = vec2.create();
         let posInPlane = modfVec2(posLooped, this.planeDim, posPlaneIdx);
@@ -179,7 +211,20 @@ class Terrain {
         }
         let weights = baryInterp(a, b, c, posInTile);
         let height = vec3.dot(weights, heights);
-        return vec3.fromValues(target[0], this.origin[1] + height, target[2]);
+        let newTarget = vec3.fromValues(posAfterCollision[0], this.origin[1] + height, posAfterCollision[1]);
+        // find direction towards terrain-aware target, adjust its length
+        // NOTE: this may not work if tiles are too small relative to step size
+        let movDir = vec3.create();
+        let startPosLoopedVec2 = this.getLoopedPosition(startPos);
+        let startPosLooped = vec3.fromValues(startPosLoopedVec2[0], startPos[1], startPosLoopedVec2[1]);
+        vec3.subtract(movDir, newTarget, startPos);
+        // skip speed adjustment if unnecessary
+        if (collided && vec3.length(movDir) <= targetSpeed) {
+            return newTarget;
+        }
+        vec3.normalize(movDir, movDir);
+        vec3.scaleAndAdd(newTarget, startPos, movDir, targetSpeed);
+        return newTarget;
     }
 
     // makes planes active or not depending on player's position

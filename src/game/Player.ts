@@ -199,12 +199,12 @@ class Player {
 
         // TODO: collision
         // terrain collision
-        vec3.copy(target, this.terrain.collide(target));
+        vec3.copy(target, this.terrain.collide(target, this.position, deltaTime * 10.0));
         // find direction towards terrain-aware target, adjust its length
         // NOTE: this may not work if tiles are too small relative to step size
-        vec3.subtract(movDir, target, this.position);
-        vec3.normalize(movDir, movDir);
-        vec3.scaleAndAdd(target, this.position, movDir, deltaTime * 10.0);
+        //vec3.subtract(movDir, target, this.position);
+        //vec3.normalize(movDir, movDir);
+        //vec3.scaleAndAdd(target, this.position, movDir, deltaTime * 10.0);
 
         // "loop" position on terrain
         let loopedXZPos = this.terrain.getLoopedPosition(target);

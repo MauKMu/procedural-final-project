@@ -22,7 +22,7 @@ class Collider {
             let toOther = vec2.create();
             vec2.subtract(toOther, otherPos, this.position);
             vec2.normalize(toOther, toOther);
-            vec2.scale(toOther, toOther, Math.sqrt(this.radius + otherRadius));
+            vec2.scale(toOther, toOther, (this.radius + otherRadius));
             vec2.add(toOther, toOther, this.position);
             return toOther;
         }
