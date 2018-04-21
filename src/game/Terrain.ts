@@ -3,6 +3,7 @@ import TerrainPlane from '../geometry/TerrainPlane';
 import Decoration from '../geometry/Decoration';
 import BasicTree from './BasicTree';
 import Collider from './Collider';
+import SquareCollider from './SquareCollider';
 import {clamp, mod, modfVec2, baryInterp} from '../Utils';
 import {vec2, vec3, mat4} from 'gl-matrix';
 
@@ -148,6 +149,7 @@ class Terrain {
             mat4.fromTranslation(pyramidMat, planeOrigin);
             decorations.addPyramid(pyramidMat, 20, 30);
             // TODO: add pyramid collider
+            tp.bigColliders.push(new SquareCollider(vec2.fromValues(planeOrigin[0], planeOrigin[2]), 20));
             // add clones to maintain continuity when looping
             if (xClone != 0) {
                 let cloneOrigin = vec3.clone(planeOrigin);
@@ -289,6 +291,17 @@ class Terrain {
         let tp = this.terrainPlanes[this.getAbsIdx(posPlaneIdx[0], posPlaneIdx[1])];
         let collided = false;
         let colliders = tp.colliders[posTileIdx[0]][posTileIdx[1]];
+        for (let i = 0; i < colliders.length; i++) {
+            let collision = colliders[i].collide(targetVec2, 0.5);
+            if (collision == null) {
+                continue;
+            }
+            console.log("coll");
+            collided = true;
+            posAfterCollision = collision;
+            //posLooped = this.getLoopedPosition(startPos);
+        }
+        colliders = tp.bigColliders;
         for (let i = 0; i < colliders.length; i++) {
             let collision = colliders[i].collide(targetVec2, 0.5);
             if (collision == null) {

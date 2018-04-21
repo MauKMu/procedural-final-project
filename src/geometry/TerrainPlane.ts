@@ -17,7 +17,10 @@ class TerrainPlane extends Drawable {
     tileNum: number; // how many tiles exist on each axis
     heightScale: number = 5;
     heightField: Array<Array<number>> = [];
+    // colliders whose dimensions are in the same order of magnitude as tiles
     colliders: Array<Array<Array<Collider>>> = [];
+    // huge colliders. believe me. biiiig colliders. biggest you'll ever see.
+    bigColliders: Array<Collider> = [];
 
     constructor(origin: vec3, tileDim: number, tileNum: number) {
         super(); // Call the constructor of the super class. This is required.
@@ -28,6 +31,7 @@ class TerrainPlane extends Drawable {
 
         this.heightField = [];
         this.colliders = [];
+        this.bigColliders = [];
 
         // populate height field (indices refer to each tile, starting from origin)
         let xzOrigin = vec2.fromValues(this.origin[0], this.origin[2]);

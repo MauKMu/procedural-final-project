@@ -23,6 +23,14 @@ export function mod(x: number, y: number): number {
     return x - y * Math.floor(x / y);
 }
 
+export function maxVec2(x: vec2, y: vec2): vec2 {
+    return vec2.fromValues((x[0] > y[0]) ? x[0] : y[0], (x[1] > y[1]) ? x[1] : y[1]);
+}
+
+export function absVec2(x: vec2): vec2 {
+    return vec2.fromValues(Math.abs(x[0]), Math.abs(x[1]));
+}
+
 export function clamp(x: number, minVal: number, maxVal: number) {
     return (x <= minVal) ? minVal : (x >= maxVal) ? maxVal : x;
 }
