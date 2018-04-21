@@ -9,7 +9,6 @@ import {vec2, vec3, mat4} from 'gl-matrix';
 class Terrain {
     drawables: Array<Drawable>;
     terrainPlanes: Array<TerrainPlane>;
-    colliders: Array<Collider>;
     origin: vec3; // bottom-left corner
     tileDim: number; // dimension (height and width) of each tile (for planes)
     tileNum: number; // how many tiles exist on each axis (for planes)
@@ -31,7 +30,6 @@ class Terrain {
 
         this.terrainPlanes = [];
         this.drawables = [];
-        this.colliders = [];
         let planeOrigin = vec3.create();
         let planeOffset = vec3.create();
         for (let x = 0; x < planeNumX; x++) {
@@ -83,20 +81,26 @@ class Terrain {
             let xClone = this.totalDimX * ((x == 0) ? 1 : (x == this.planeNumX - 1) ? -1 : 0);
             for (let z = 0; z < this.planeNumZ; z++) {
                 let zClone = this.totalDimZ * ((z == 0) ? 1 : (z == this.planeNumZ - 1) ? -1 : 0);
+                // find terrain plane so we can add colliders
+                let tp = this.terrainPlanes[this.getAbsIdx(x, z)];
+                // compute position of decoration
                 vec3.set(planeOffset, x, 0, z);
-                vec3.scaleAndAdd(planeOrigin, this.origin, planeOffset, tileDim * tileNum);
-                planeOrigin[0] += (Math.random() * 0.5 + 0.25) * this.planeDim;
-                planeOrigin[2] += (Math.random() * 0.5 + 0.25) * this.planeDim;
+                vec3.scaleAndAdd(planeOrigin, this.origin, planeOffset, this.planeDim);
+                let baseInPlane = vec3.fromValues((Math.random() * 0.5 + 0.25) * this.planeDim, 0, (Math.random() * 0.5 + 0.25) * this.planeDim);
+                planeOrigin[0] += baseInPlane[0];
+                planeOrigin[2] += baseInPlane[2];
                 let treesInCluster = Math.floor(Math.random() * 4.0 + 1.01);
                 console.log(treesInCluster);
                 let treeOrigin = vec3.create();
                 let angle = Math.random() * Math.PI;
                 let angleIncrement = 2.0 * Math.PI / treesInCluster;
+                let posInPlane = vec3.create();
                 for (let i = 0; i < treesInCluster; i++) {
                     angle += angleIncrement;
                     vec3.set(treeOrigin, Math.cos(angle), 0, Math.sin(angle));
+                    vec3.scaleAndAdd(posInPlane, baseInPlane, treeOrigin, 1.6 * this.tileDim);
                     vec3.scaleAndAdd(treeOrigin, planeOrigin, treeOrigin, 1.6 * this.tileDim);
-                    treeOrigin[0] += tileDim;
+                    //treeOrigin[0] += tileDim;
                     let tree = new BasicTree(decorations);
                     tree.initAlphabet();
                     tree.resetTurtleStack(treeOrigin);
@@ -107,7 +111,21 @@ class Terrain {
                     //decorations.addNormalCorrectPrism(decorationMat, 5, 1, 1, 1);
 
                     // add collider
-                    this.colliders.push(new Collider(vec2.fromValues(treeOrigin[0], treeOrigin[2]), 1.0));
+                    let collider = new Collider(vec2.fromValues(treeOrigin[0], treeOrigin[2]), 1.0);
+                    let posTileIdx = vec2.fromValues(Math.floor(posInPlane[0] / this.tileDim), Math.floor(posInPlane[2] / this.tileDim));
+                    let xMin = Math.max(0, posTileIdx[0] - 1);
+                    let xMax = Math.min(this.tileNum - 1, posTileIdx[0] + 1);
+                    let zMin = Math.max(0, posTileIdx[1] - 1);
+                    let zMax = Math.min(this.tileNum - 1, posTileIdx[1] + 1);
+                    for (let tileX = xMin; tileX <= xMax; tileX++) {
+                        for (let tileZ = zMin; tileZ <= zMax; tileZ++) {
+                            // TODO: would be nice to check more precisely if
+                            // collider should go in this tile... but this
+                            // should help filter it a bit anyway
+                            tp.colliders[tileX][tileZ].push(collider);
+                        }
+                    }
+                    //this.colliders.push(new Collider(vec2.fromValues(treeOrigin[0], treeOrigin[2]), 1.0));
 
                     // add clones to maintain continuity when looping
                     if (xClone != 0) {
@@ -164,9 +182,20 @@ class Terrain {
         // doesn't work for things too close to edge of loop rectangle
         let posAfterCollision: vec2;
         let targetVec2 = vec2.fromValues(target[0], target[2]);
+        // position after "looping" around terrain
+        let posLooped = this.getLoopedPositionVec2(targetVec2);
+        // XZ "indices" of plane where player is
+        let posPlaneIdx = vec2.create();
+        let posInPlane = modfVec2(posLooped, this.planeDim, posPlaneIdx);
+        // XZ "indices" of tile within plane
+        let posTileIdx = vec2.create();
+        let posInTile = modfVec2(posInPlane, this.tileDim, posTileIdx);
+        // get plane
+        let tp = this.terrainPlanes[this.getAbsIdx(posPlaneIdx[0], posPlaneIdx[1])];
         let collided = false;
-        for (let i = 0; i < this.colliders.length; i++) {
-            let collision = this.colliders[i].collide(targetVec2, 0.5);
+        let colliders = tp.colliders[posTileIdx[0]][posTileIdx[1]];
+        for (let i = 0; i < colliders.length; i++) {
+            let collision = colliders[i].collide(targetVec2, 0.5);
             if (collision == null) {
                 continue;
             }
@@ -178,24 +207,17 @@ class Terrain {
         if (!collided) {
             posAfterCollision = targetVec2;
         }
-        // guarantee loop
-        //if (collided) {
-            //posLooped = this.getLoopedPosition(vec3.fromValues(posLooped[0], 0, posLooped[1]));
-        //}
-        // position after "looping" around terrain
-        let posLooped = this.getLoopedPositionVec2(posAfterCollision);
-        // XZ "indices" of plane where player is
-        let posPlaneIdx = vec2.create();
-        let posInPlane = modfVec2(posLooped, this.planeDim, posPlaneIdx);
-        //let posPlaneIdx = vec2.fromValues(Math.floor(posLooped[0] / this.planeDim), Math.floor(posLooped[1] / this.planeDim));
-        //incorrect? let posInPlane = vec2.fromValues(Math.floor(posLooped[0] - posPlaneIdx[0] * this.planeDim), Math.floor(posLooped[0] - posPlaneIdx[0] * this.planeDim)); 
-        // XZ "indices" of tile within plane
-        let posTileIdx = vec2.create();
-        let posInTile = modfVec2(posInPlane, this.tileDim, posTileIdx);
-        //let posTileIdx = vec2.fromValues(posInPlane[0] / this.tileDim, posInPlane[1] / this.tileDim);
-        //let posTile = vec2.fromValues(mod(posLooped[0], this.tileDim), mod(posLooped[1], this.tileDim));
-        // get plane
-        let tp = this.terrainPlanes[this.getAbsIdx(posPlaneIdx[0], posPlaneIdx[1])];
+        else {
+            // update with collided position
+            // position after "looping" around terrain
+            posLooped = this.getLoopedPositionVec2(posAfterCollision);
+            // XZ "indices" of plane where player is
+            posInPlane = modfVec2(posLooped, this.planeDim, posPlaneIdx);
+            // XZ "indices" of tile within plane
+            posInTile = modfVec2(posInPlane, this.tileDim, posTileIdx);
+            // get plane
+            tp = this.terrainPlanes[this.getAbsIdx(posPlaneIdx[0], posPlaneIdx[1])];
+        }
         // do barycentric interpolation to find height
         let a = vec2.fromValues(0, 0);
         let b: vec2;

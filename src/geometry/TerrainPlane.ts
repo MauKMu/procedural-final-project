@@ -1,5 +1,6 @@
 import {vec2, vec3, vec4} from 'gl-matrix';
 import Drawable from '../rendering/gl/Drawable';
+import Collider from '../game/Collider';
 import {gl} from '../globals';
 import {smoothNoise} from '../Utils';
 
@@ -16,6 +17,7 @@ class TerrainPlane extends Drawable {
     tileNum: number; // how many tiles exist on each axis
     heightScale: number = 5;
     heightField: Array<Array<number>> = [];
+    colliders: Array<Array<Array<Collider>>> = [];
 
     constructor(origin: vec3, tileDim: number, tileNum: number) {
         super(); // Call the constructor of the super class. This is required.
@@ -25,6 +27,7 @@ class TerrainPlane extends Drawable {
         this.tileNum = tileNum;
 
         this.heightField = [];
+        this.colliders = [];
 
         // populate height field (indices refer to each tile, starting from origin)
         let xzOrigin = vec2.fromValues(this.origin[0], this.origin[2]);
@@ -33,12 +36,17 @@ class TerrainPlane extends Drawable {
         let xzPoint = vec2.create();
         for (let i = 0; i < this.tileNum + 1; i++) {
             let heights: Array<number> = [];
+            let collidersColumn: Array<Array<Collider>> = [];
             for (let j = 0; j < this.tileNum + 1; j++) {
                 vec2.set(xzOffset, i, j);
                 vec2.scaleAndAdd(xzPoint, xzOrigin, xzOffset, this.tileDim);
                 heights.push(this.heightScale * smoothNoise(xzPoint));
+                collidersColumn.push([]);
             }
             this.heightField.push(heights);
+            if (i < this.tileNum) {
+                this.colliders.push(collidersColumn);
+            }
         }
     }
 
