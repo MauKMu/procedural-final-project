@@ -472,6 +472,136 @@ class Decoration extends Drawable {
         }
     }
 
+    addPyramid(transform: mat4, scaleBottom: number, scaleHeight: number) {
+        // set up =============================================
+        let idxStart = this.stagedPositions.length / 4;
+
+        // get the inverse transpose for normals
+        let invTr = mat3.create();
+        mat3.fromMat4(invTr, transform);
+        mat3.invert(invTr, invTr);
+        mat3.transpose(invTr, invTr);
+
+        // add +X face
+        let a = vec4.fromValues(scaleBottom, 0, scaleBottom, 1);
+        vec4.transformMat4(a, a, transform);
+        appendVec4ToArray(this.stagedPositions, a);
+        appendVec4ToArray(this.stagedColors, this.currColor);
+        appendVec2ToArray(this.stagedUVs, vec2.fromValues(-1, -1));
+
+        let b = vec4.fromValues(scaleBottom, 0, -scaleBottom, 1);
+        vec4.transformMat4(b, b, transform);
+        appendVec4ToArray(this.stagedPositions, b);
+        appendVec4ToArray(this.stagedColors, this.currColor);
+        appendVec2ToArray(this.stagedUVs, vec2.fromValues(-1, -1));
+
+        let c = vec4.fromValues(0, scaleHeight, 0, 1);
+        vec4.transformMat4(c, c, transform);
+        appendVec4ToArray(this.stagedPositions, c);
+        appendVec4ToArray(this.stagedColors, this.currColor);
+        appendVec2ToArray(this.stagedUVs, vec2.fromValues(-1, -1));
+
+        let ab = vec3.fromValues(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
+        let cb = vec3.fromValues(c[0] - b[0], c[1] - b[1], c[2] - b[2]);
+        let n = vec3.create();
+        vec3.cross(n, ab, cb);
+        vec3.transformMat3(n, n, invTr);
+        vec3.normalize(n, n);
+        for (let i = 0; i < 3; i++) {
+            appendNormalToArray(this.stagedNormals, n);
+        }
+
+        // add -X face
+        a = vec4.fromValues(-scaleBottom, 0, -scaleBottom, 1);
+        vec4.transformMat4(a, a, transform);
+        appendVec4ToArray(this.stagedPositions, a);
+        appendVec4ToArray(this.stagedColors, this.currColor);
+        appendVec2ToArray(this.stagedUVs, vec2.fromValues(-1, -1));
+
+        b = vec4.fromValues(-scaleBottom, 0, scaleBottom, 1);
+        vec4.transformMat4(b, b, transform);
+        appendVec4ToArray(this.stagedPositions, b);
+        appendVec4ToArray(this.stagedColors, this.currColor);
+        appendVec2ToArray(this.stagedUVs, vec2.fromValues(-1, -1));
+
+        c = vec4.fromValues(0, scaleHeight, 0, 1);
+        vec4.transformMat4(c, c, transform);
+        appendVec4ToArray(this.stagedPositions, c);
+        appendVec4ToArray(this.stagedColors, this.currColor);
+        appendVec2ToArray(this.stagedUVs, vec2.fromValues(-1, -1));
+
+        ab = vec3.fromValues(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
+        cb = vec3.fromValues(c[0] - b[0], c[1] - b[1], c[2] - b[2]);
+        vec3.cross(n, ab, cb);
+        vec3.transformMat3(n, n, invTr);
+        vec3.normalize(n, n);
+        for (let i = 0; i < 3; i++) {
+            appendNormalToArray(this.stagedNormals, n);
+        }
+
+        // add +Z face
+        b = vec4.fromValues(-scaleBottom, 0, scaleBottom, 1);
+        vec4.transformMat4(b, b, transform);
+        appendVec4ToArray(this.stagedPositions, b);
+        appendVec4ToArray(this.stagedColors, this.currColor);
+        appendVec2ToArray(this.stagedUVs, vec2.fromValues(-1, -1));
+
+        a = vec4.fromValues(scaleBottom, 0, scaleBottom, 1);
+        vec4.transformMat4(a, a, transform);
+        appendVec4ToArray(this.stagedPositions, a);
+        appendVec4ToArray(this.stagedColors, this.currColor);
+        appendVec2ToArray(this.stagedUVs, vec2.fromValues(-1, -1));
+
+        c = vec4.fromValues(0, scaleHeight, 0, 1);
+        vec4.transformMat4(c, c, transform);
+        appendVec4ToArray(this.stagedPositions, c);
+        appendVec4ToArray(this.stagedColors, this.currColor);
+        appendVec2ToArray(this.stagedUVs, vec2.fromValues(-1, -1));
+
+        ab = vec3.fromValues(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
+        cb = vec3.fromValues(c[0] - b[0], c[1] - b[1], c[2] - b[2]);
+        vec3.cross(n, ab, cb);
+        vec3.transformMat3(n, n, invTr);
+        vec3.normalize(n, n);
+        for (let i = 0; i < 3; i++) {
+            appendNormalToArray(this.stagedNormals, n);
+        }
+
+        // add -Z face
+        b = vec4.fromValues(scaleBottom, 0, -scaleBottom, 1);
+        vec4.transformMat4(b, b, transform);
+        appendVec4ToArray(this.stagedPositions, b);
+        appendVec4ToArray(this.stagedColors, this.currColor);
+        appendVec2ToArray(this.stagedUVs, vec2.fromValues(-1, -1));
+
+        a = vec4.fromValues(-scaleBottom, 0, -scaleBottom, 1);
+        vec4.transformMat4(a, a, transform);
+        appendVec4ToArray(this.stagedPositions, a);
+        appendVec4ToArray(this.stagedColors, this.currColor);
+        appendVec2ToArray(this.stagedUVs, vec2.fromValues(-1, -1));
+
+        c = vec4.fromValues(0, scaleHeight, 0, 1);
+        vec4.transformMat4(c, c, transform);
+        appendVec4ToArray(this.stagedPositions, c);
+        appendVec4ToArray(this.stagedColors, this.currColor);
+        appendVec2ToArray(this.stagedUVs, vec2.fromValues(-1, -1));
+
+        ab = vec3.fromValues(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
+        cb = vec3.fromValues(c[0] - b[0], c[1] - b[1], c[2] - b[2]);
+        vec3.cross(n, ab, cb);
+        vec3.transformMat3(n, n, invTr);
+        vec3.normalize(n, n);
+        for (let i = 0; i < 3; i++) {
+            appendNormalToArray(this.stagedNormals, n);
+        }
+
+        // add indices
+        for (let i = 0; i < 12; i += 3) {
+            appendTri(this.stagedIndices, idxStart + i, idxStart + i + 1, idxStart + i + 2);
+        }
+
+    }
+
     create() {
         this.indices = new Uint32Array(this.stagedIndices);
         this.positions = new Float32Array(this.stagedPositions);
