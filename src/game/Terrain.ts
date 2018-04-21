@@ -72,6 +72,164 @@ class Terrain {
             this.drawables.push(this.terrainPlanes[i]);
         }
 
+        function addTrees(xClone: number, zClone: number, tp: TerrainPlane) {
+            let numClusters = Math.floor(Math.random() * 2.0 + 1.01);
+            for (let cluster = 0; cluster < numClusters; cluster++) {
+                vec3.scaleAndAdd(planeOrigin, this.origin, planeOffset, this.planeDim);
+                let baseInPlane = vec3.fromValues((Math.random() * 0.65 + 0.15) * this.planeDim, 0, (Math.random() * 0.65 + 0.15) * this.planeDim);
+                planeOrigin[0] += baseInPlane[0];
+                planeOrigin[2] += baseInPlane[2];
+                let treesInCluster = Math.floor(Math.random() * 4.0 + 1.01);
+                let treeOrigin = vec3.create();
+                let angle = Math.random() * Math.PI;
+                let angleIncrement = 2.0 * Math.PI / treesInCluster;
+                let posInPlane = vec3.create();
+                for (let i = 0; i < treesInCluster; i++) {
+                    angle += angleIncrement;
+                    vec3.set(treeOrigin, Math.cos(angle), 0, Math.sin(angle));
+                    vec3.scaleAndAdd(posInPlane, baseInPlane, treeOrigin, 1.6 * this.tileDim);
+                    vec3.scaleAndAdd(treeOrigin, planeOrigin, treeOrigin, 1.6 * this.tileDim);
+                    let tree = new BasicTree(decorations);
+                    tree.initAlphabet();
+                    tree.resetTurtleStack(treeOrigin);
+                    tree.expandString();
+                    tree.expandString();
+                    tree.executeString();
+
+                    // add collider
+                    let collider = new Collider(vec2.fromValues(treeOrigin[0], treeOrigin[2]), 1.0);
+                    let posTileIdx = vec2.fromValues(Math.floor(posInPlane[0] / this.tileDim), Math.floor(posInPlane[2] / this.tileDim));
+                    let xMin = Math.max(0, posTileIdx[0] - 1);
+                    let xMax = Math.min(this.tileNum - 1, posTileIdx[0] + 1);
+                    let zMin = Math.max(0, posTileIdx[1] - 1);
+                    let zMax = Math.min(this.tileNum - 1, posTileIdx[1] + 1);
+                    for (let tileX = xMin; tileX <= xMax; tileX++) {
+                        for (let tileZ = zMin; tileZ <= zMax; tileZ++) {
+                            // TODO: would be nice to check more precisely if
+                            // collider should go in this tile... but this
+                            // should help filter it a bit anyway
+                            tp.colliders[tileX][tileZ].push(collider);
+                        }
+                    }
+                    //this.colliders.push(new Collider(vec2.fromValues(treeOrigin[0], treeOrigin[2]), 1.0));
+
+                    // add clones to maintain continuity when looping
+                    if (xClone != 0) {
+                        let cloneOrigin = vec3.clone(treeOrigin);
+                        cloneOrigin[0] += xClone;
+                        tree.resetTurtleStack(cloneOrigin);
+                        tree.executeString();
+                    }
+                    if (zClone != 0) {
+                        let cloneOrigin = vec3.clone(treeOrigin);
+                        cloneOrigin[2] += zClone;
+                        tree.resetTurtleStack(cloneOrigin);
+                        tree.executeString();
+                    }
+                    if (xClone != 0 && zClone != 0) {
+                        let cloneOrigin = vec3.clone(treeOrigin);
+                        cloneOrigin[0] += xClone;
+                        cloneOrigin[2] += zClone;
+                        tree.resetTurtleStack(cloneOrigin);
+                        tree.executeString();
+                    }
+                }
+            }
+        }
+
+        // TODO
+        function addPyramid(xClone: number, zClone: number, tp: TerrainPlane) {
+            // add just pyramid
+            vec3.scaleAndAdd(planeOrigin, this.origin, planeOffset, this.planeDim);
+            let baseInPlane = vec3.fromValues((Math.random() * 0.15 + 0.45) * this.planeDim, 0, (Math.random() * 0.15 + 0.45) * this.planeDim);
+            planeOrigin[0] += baseInPlane[0];
+            planeOrigin[2] += baseInPlane[2];
+            let pyramidMat = mat4.create();
+            mat4.fromTranslation(pyramidMat, planeOrigin);
+            decorations.addPyramid(pyramidMat, 20, 30);
+            // TODO: add pyramid collider
+            // add clones to maintain continuity when looping
+            if (xClone != 0) {
+                let cloneOrigin = vec3.clone(planeOrigin);
+                cloneOrigin[0] += xClone;
+                mat4.fromTranslation(pyramidMat, cloneOrigin);
+                decorations.addPyramid(pyramidMat, 20, 30);
+            }
+            if (zClone != 0) {
+                let cloneOrigin = vec3.clone(planeOrigin);
+                cloneOrigin[2] += zClone;
+                mat4.fromTranslation(pyramidMat, cloneOrigin);
+                decorations.addPyramid(pyramidMat, 20, 30);
+            }
+            if (xClone != 0 && zClone != 0) {
+                let cloneOrigin = vec3.clone(planeOrigin);
+                cloneOrigin[0] += xClone;
+                cloneOrigin[2] += zClone;
+                mat4.fromTranslation(pyramidMat, cloneOrigin);
+                decorations.addPyramid(pyramidMat, 20, 30);
+            }
+            /*
+            let numClusters = Math.floor(Math.random() * 2.0 + 1.01);
+            for (let cluster = 0; cluster < numClusters; cluster++) {
+                let treesInCluster = Math.floor(Math.random() * 4.0 + 1.01);
+                let treeOrigin = vec3.create();
+                let angle = Math.random() * Math.PI;
+                let angleIncrement = 2.0 * Math.PI / treesInCluster;
+                let posInPlane = vec3.create();
+                for (let i = 0; i < treesInCluster; i++) {
+                    angle += angleIncrement;
+                    vec3.set(treeOrigin, Math.cos(angle), 0, Math.sin(angle));
+                    vec3.scaleAndAdd(posInPlane, baseInPlane, treeOrigin, 1.6 * this.tileDim);
+                    vec3.scaleAndAdd(treeOrigin, planeOrigin, treeOrigin, 1.6 * this.tileDim);
+                    let tree = new BasicTree(decorations);
+                    tree.initAlphabet();
+                    tree.resetTurtleStack(treeOrigin);
+                    tree.expandString();
+                    tree.expandString();
+                    tree.executeString();
+
+                    // add collider
+                    let collider = new Collider(vec2.fromValues(treeOrigin[0], treeOrigin[2]), 1.0);
+                    let posTileIdx = vec2.fromValues(Math.floor(posInPlane[0] / this.tileDim), Math.floor(posInPlane[2] / this.tileDim));
+                    let xMin = Math.max(0, posTileIdx[0] - 1);
+                    let xMax = Math.min(this.tileNum - 1, posTileIdx[0] + 1);
+                    let zMin = Math.max(0, posTileIdx[1] - 1);
+                    let zMax = Math.min(this.tileNum - 1, posTileIdx[1] + 1);
+                    for (let tileX = xMin; tileX <= xMax; tileX++) {
+                        for (let tileZ = zMin; tileZ <= zMax; tileZ++) {
+                            // TODO: would be nice to check more precisely if
+                            // collider should go in this tile... but this
+                            // should help filter it a bit anyway
+                            tp.colliders[tileX][tileZ].push(collider);
+                        }
+                    }
+                    //this.colliders.push(new Collider(vec2.fromValues(treeOrigin[0], treeOrigin[2]), 1.0));
+
+                    // add clones to maintain continuity when looping
+                    if (xClone != 0) {
+                        let cloneOrigin = vec3.clone(treeOrigin);
+                        cloneOrigin[0] += xClone;
+                        tree.resetTurtleStack(cloneOrigin);
+                        tree.executeString();
+                    }
+                    if (zClone != 0) {
+                        let cloneOrigin = vec3.clone(treeOrigin);
+                        cloneOrigin[2] += zClone;
+                        tree.resetTurtleStack(cloneOrigin);
+                        tree.executeString();
+                    }
+                    if (xClone != 0 && zClone != 0) {
+                        let cloneOrigin = vec3.clone(treeOrigin);
+                        cloneOrigin[0] += xClone;
+                        cloneOrigin[2] += zClone;
+                        tree.resetTurtleStack(cloneOrigin);
+                        tree.executeString();
+                    }
+                }
+            }
+            */
+        }
+
         // add some decorations
         let decorations = new Decoration();
         let decorationMat = mat4.create();
@@ -85,69 +243,11 @@ class Terrain {
                 let tp = this.terrainPlanes[this.getAbsIdx(x, z)];
                 // compute position of decoration
                 vec3.set(planeOffset, x, 0, z);
-                let numClusters = Math.floor(Math.random() * 2.0 + 1.01);
-                for (let cluster = 0; cluster < numClusters; cluster++) {
-                    vec3.scaleAndAdd(planeOrigin, this.origin, planeOffset, this.planeDim);
-                    let baseInPlane = vec3.fromValues((Math.random() * 0.65 + 0.15) * this.planeDim, 0, (Math.random() * 0.65 + 0.15) * this.planeDim);
-                    planeOrigin[0] += baseInPlane[0];
-                    planeOrigin[2] += baseInPlane[2];
-                    let treesInCluster = Math.floor(Math.random() * 4.0 + 1.01);
-                    let treeOrigin = vec3.create();
-                    let angle = Math.random() * Math.PI;
-                    let angleIncrement = 2.0 * Math.PI / treesInCluster;
-                    let posInPlane = vec3.create();
-                    for (let i = 0; i < treesInCluster; i++) {
-                        angle += angleIncrement;
-                        vec3.set(treeOrigin, Math.cos(angle), 0, Math.sin(angle));
-                        vec3.scaleAndAdd(posInPlane, baseInPlane, treeOrigin, 1.6 * this.tileDim);
-                        vec3.scaleAndAdd(treeOrigin, planeOrigin, treeOrigin, 1.6 * this.tileDim);
-                        let tree = new BasicTree(decorations);
-                        tree.initAlphabet();
-                        tree.resetTurtleStack(treeOrigin);
-                        tree.expandString();
-                        tree.expandString();
-                        tree.executeString();
-                        //mat4.fromTranslation(decorationMat, planeOrigin);
-                        //decorations.addNormalCorrectPrism(decorationMat, 5, 1, 1, 1);
-
-                        // add collider
-                        let collider = new Collider(vec2.fromValues(treeOrigin[0], treeOrigin[2]), 1.0);
-                        let posTileIdx = vec2.fromValues(Math.floor(posInPlane[0] / this.tileDim), Math.floor(posInPlane[2] / this.tileDim));
-                        let xMin = Math.max(0, posTileIdx[0] - 1);
-                        let xMax = Math.min(this.tileNum - 1, posTileIdx[0] + 1);
-                        let zMin = Math.max(0, posTileIdx[1] - 1);
-                        let zMax = Math.min(this.tileNum - 1, posTileIdx[1] + 1);
-                        for (let tileX = xMin; tileX <= xMax; tileX++) {
-                            for (let tileZ = zMin; tileZ <= zMax; tileZ++) {
-                                // TODO: would be nice to check more precisely if
-                                // collider should go in this tile... but this
-                                // should help filter it a bit anyway
-                                tp.colliders[tileX][tileZ].push(collider);
-                            }
-                        }
-                        //this.colliders.push(new Collider(vec2.fromValues(treeOrigin[0], treeOrigin[2]), 1.0));
-
-                        // add clones to maintain continuity when looping
-                        if (xClone != 0) {
-                            let cloneOrigin = vec3.clone(treeOrigin);
-                            cloneOrigin[0] += xClone;
-                            tree.resetTurtleStack(cloneOrigin);
-                            tree.executeString();
-                        }
-                        if (zClone != 0) {
-                            let cloneOrigin = vec3.clone(treeOrigin);
-                            cloneOrigin[2] += zClone;
-                            tree.resetTurtleStack(cloneOrigin);
-                            tree.executeString();
-                        }
-                        if (xClone != 0 && zClone != 0) {
-                            let cloneOrigin = vec3.clone(treeOrigin);
-                            cloneOrigin[0] += xClone;
-                            cloneOrigin[2] += zClone;
-                            tree.resetTurtleStack(cloneOrigin);
-                            tree.executeString();
-                        }
-                    }
+                if (x == 0 && z == 0) {
+                    addPyramid.call(this, xClone, zClone, tp);
+                }
+                else {
+                    addTrees.call(this, xClone, zClone, tp);
                 }
             }
         }
