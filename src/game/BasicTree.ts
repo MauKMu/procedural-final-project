@@ -80,7 +80,8 @@ class BasicTree extends LSystem {
 
         // set expansion rules
         F.setExpansionRules([
-            new ExpansionRule(2, [F]),
+            new ExpansionRule(4, [F]),
+            new ExpansionRule(1, [F, push, T, S, pop, F, F]),
             new ExpansionRule(1, [F, F])
         ]);
         T.setExpansionRules([
@@ -88,8 +89,8 @@ class BasicTree extends LSystem {
             new ExpansionRule(1, [push, T, S, pop, T])
         ]);
         S.setExpansionRules([
-            new ExpansionRule(1, [S]),
-            new ExpansionRule(2, [S, S])
+            new ExpansionRule(2, [S]),
+            new ExpansionRule(1, [S, S])
         ]);
 
         this.setAxiom([
@@ -99,8 +100,10 @@ class BasicTree extends LSystem {
 
     executeString() {
         lRandom.setMode(LRANDOM_DETERMINISTIC);
+        let seed = lRandom.state;
         lRandom.setSeed(0);
         super.executeString();
+        lRandom.setSeed(seed);
     }
 
 };
