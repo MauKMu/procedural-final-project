@@ -3,12 +3,16 @@ precision highp float;
 
 #define EPS 0.0001
 #define PI 3.1415962
+#define FAR 100.0
+
+// 1 / (e - 1)
+#define INV_E_MINUS_ONE 0.5819767
 
 in vec2 fs_UV;
 out vec4 out_Col;
 
 uniform sampler2D u_gb0;
-uniform sampler2D u_gb1;
+//uniform sampler2D u_gb1;
 uniform sampler2D u_gb2;
 
 uniform float u_Time;
@@ -144,10 +148,14 @@ vec3 getBGColor(float fbm) {
     return pow(col + vec3(m), vec3(4.2));
 }
 
+float getFogFactor(float dist) {
+    return min(1.0, INV_E_MINUS_ONE * (exp(dist / FAR) - 1.0));
+}
+
 void main() { 
 	// read from GBuffers
 	vec4 gb0 = texture(u_gb0, fs_UV);
-	vec4 gb1 = texture(u_gb1, fs_UV);
+	//vec4 gb1 = texture(u_gb1, fs_UV);
 	vec4 gb2 = texture(u_gb2, fs_UV);
 
     // put GBuffer data in more readable variables
@@ -159,10 +167,13 @@ void main() {
     vec3 col;
 
     float time = u_Time * 0.03;
+    float fbm = getFBMFromRawPosition(fs_UV + vec2(-8.88 + cos(time * 5.0), 7.22 + time * 1.5), 1.0 + 0.5 * sin(time * 2.0));
+    vec3 bgColor = getBGColor(fbm);
+    float fogFactor = getFogFactor(-depth);
     // background
     if (depth >= -DEPTH_OFFSET) {
-        float fbm = getFBMFromRawPosition(fs_UV + vec2(-8.88 + cos(time * 5.0), 7.22 + time * 1.5), 1.0 + 0.5 * sin(time * 2.0));
-        col = getBGColor(fbm);
+        //fogFactor = getFogFactor(FAR);
+        col = bgColor;
     }
     // shade
     else {
@@ -177,6 +188,7 @@ void main() {
         col = max(0.05, (0.2 + 0.8 * getLambert(worldPos, nor))) * albedo;
         col = abs(nor) * 0.6;
     }
+    col = mix(col, bgColor, fogFactor);
     col *= 5.0;
 	out_Col = vec4(col, 1.0);
 }
