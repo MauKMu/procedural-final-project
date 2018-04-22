@@ -188,6 +188,10 @@ void main() {
         vec3 camPos = ndcPos * vec3(hori, vert, 1.0);
         // convert to world-space pos
         vec3 worldPos = vec3(inverse(u_View) * vec4(camPos, 1.0));
+        //vec3 lookDir = normalize(vec3(inverse(u_View) * vec4(0, 0, 1, 0)));
+        //vec3 halfDir = normalize(lookDir + normalize(LIGHT_DIR));
+        //float blinn = pow(clamp(0.0, 1.0, dot(halfDir, nor)), 8.0);
+        //col = max(0.05, (0.05 + 0.95 * getLambert(worldPos, nor))) * albedo + vec3(0.02 * blinn);
         col = max(0.05, (0.05 + 0.95 * getLambert(worldPos, nor))) * albedo;
         //col = abs(nor) * 0.6;
         //vec3 someLight = vec3(15, 0, 15);
