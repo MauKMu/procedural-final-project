@@ -1,4 +1,9 @@
-import {vec2, vec3} from 'gl-matrix';
+import {vec2, vec3, vec4} from 'gl-matrix';
+
+// converts RGB in [0, 255]^3 to [0, 1]^3 and adds 4th coordinate = 1
+export function normalizeRGB(r: number, g: number, b: number): vec4 {
+    return vec4.fromValues(r / 255.0, g / 255.0, b / 255.0, 1.0);
+}
 
 // http://geomalgorithms.com/a01-_area.html
 // https://gamedev.stackexchange.com/questions/23743/whats-the-most-efficient-way-to-find-barycentric-coordinates
