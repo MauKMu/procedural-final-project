@@ -4,8 +4,20 @@ import Decoration from '../geometry/Decoration';
 import BasicTree from './BasicTree';
 import Collider from './Collider';
 import SquareCollider from './SquareCollider';
-import {clamp, mod, modfVec2, baryInterp} from '../Utils';
+import {clamp, mod, modfVec2, baryInterp, normalizeRGB} from '../Utils';
 import {vec2, vec3, mat4} from 'gl-matrix';
+
+const TERRAIN_COLOR = normalizeRGB(201, 142, 14);
+const TREE_COLORS = [
+    normalizeRGB(4, 221, 15),
+    normalizeRGB(4, 221, 15),
+    normalizeRGB(4, 201, 15),
+    normalizeRGB(4, 201, 15),
+    normalizeRGB(155, 149, 0),
+    normalizeRGB(155, 149, 0),
+    normalizeRGB(0, 155, 90),
+];
+const PYRAMID_COLOR = normalizeRGB(255, 140, 0);
 
 class Terrain {
     drawables: Array<Drawable>;
@@ -39,6 +51,7 @@ class Terrain {
                 vec3.scaleAndAdd(planeOrigin, this.origin, planeOffset, tileDim * tileNum);
                 // constructor will generate height fields
                 let tp = new TerrainPlane(planeOrigin, tileDim, tileNum);
+                tp.setColor(TERRAIN_COLOR);
                 //tp.create();
                 // planes inactive at first; made active when updated
                 tp.isActive = false;
@@ -86,6 +99,7 @@ class Terrain {
                 let angleIncrement = 2.0 * Math.PI / treesInCluster;
                 let posInPlane = vec3.create();
                 for (let i = 0; i < treesInCluster; i++) {
+                    decorations.useColor(TREE_COLORS[Math.floor(Math.random() * TREE_COLORS.length * 0.999)]);
                     angle += angleIncrement;
                     vec3.set(treeOrigin, Math.cos(angle), 0, Math.sin(angle));
                     vec3.scaleAndAdd(posInPlane, baseInPlane, treeOrigin, 1.6 * this.tileDim);
@@ -140,6 +154,7 @@ class Terrain {
 
         // TODO
         function addPyramid(xClone: number, zClone: number, tp: TerrainPlane) {
+            decorations.useColor(PYRAMID_COLOR);
             // add just pyramid
             vec3.scaleAndAdd(planeOrigin, this.origin, planeOffset, this.planeDim);
             let baseInPlane = vec3.fromValues((Math.random() * 0.15 + 0.45) * this.planeDim, 0, (Math.random() * 0.15 + 0.45) * this.planeDim);
@@ -147,6 +162,7 @@ class Terrain {
             planeOrigin[2] += baseInPlane[2];
             let pyramidMat = mat4.create();
             mat4.fromTranslation(pyramidMat, planeOrigin);
+
             decorations.addPyramid(pyramidMat, 20, 30);
             // TODO: add pyramid collider
             tp.bigColliders.push(new SquareCollider(vec2.fromValues(planeOrigin[0], planeOrigin[2]), 20));
