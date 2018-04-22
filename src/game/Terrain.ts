@@ -74,7 +74,7 @@ class Terrain {
         }
 
         function addTrees(xClone: number, zClone: number, tp: TerrainPlane) {
-            let numClusters = Math.floor(Math.random() * 2.0 + 1.01);
+            let numClusters = Math.floor(Math.random() * 3.0 + 1.01);
             for (let cluster = 0; cluster < numClusters; cluster++) {
                 vec3.scaleAndAdd(planeOrigin, this.origin, planeOffset, this.planeDim);
                 let baseInPlane = vec3.fromValues((Math.random() * 0.65 + 0.15) * this.planeDim, 0, (Math.random() * 0.65 + 0.15) * this.planeDim);
@@ -236,6 +236,11 @@ class Terrain {
         let decorations = new Decoration();
         let decorationMat = mat4.create();
 
+        // pick a plane in which to place the pyramid
+        let pyramidX = 2;
+        let pyramidZ = Math.floor(Math.random() * this.planeNumZ * 0.999);
+        console.log(["pyramid: ", pyramidX, pyramidZ]);
+
         // add decorations on each terrain plane
         for (let x = 0; x < this.planeNumX; x++) {
             let xClone = this.totalDimX * ((x == 0) ? 1 : (x == this.planeNumX - 1) ? -1 : 0);
@@ -245,7 +250,7 @@ class Terrain {
                 let tp = this.terrainPlanes[this.getAbsIdx(x, z)];
                 // compute position of decoration
                 vec3.set(planeOffset, x, 0, z);
-                if (x == 0 && z == 0) {
+                if (x == pyramidX && z == pyramidZ) {
                     addPyramid.call(this, xClone, zClone, tp);
                 }
                 else {
@@ -296,7 +301,7 @@ class Terrain {
             if (collision == null) {
                 continue;
             }
-            console.log("coll");
+            //console.log("coll");
             collided = true;
             posAfterCollision = collision;
             //posLooped = this.getLoopedPosition(startPos);
@@ -307,7 +312,7 @@ class Terrain {
             if (collision == null) {
                 continue;
             }
-            console.log("coll");
+            //console.log("coll");
             collided = true;
             posAfterCollision = collision;
             //posLooped = this.getLoopedPosition(startPos);
@@ -326,6 +331,7 @@ class Terrain {
             // get plane
             tp = this.terrainPlanes[this.getAbsIdx(posPlaneIdx[0], posPlaneIdx[1])];
         }
+        //console.log(posPlaneIdx);
         // do barycentric interpolation to find height
         let a = vec2.fromValues(0, 0);
         let b: vec2;

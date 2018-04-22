@@ -225,7 +225,7 @@ function main() {
 
     const player = new Player(camera, camera.position, camera.direction);
 
-    const terrain = new Terrain(vec3.fromValues(0, 0, 0), 4, 25, 3, 3);
+    const terrain = new Terrain(vec3.fromValues(0, 0, 0), 4, 25, 4, 3);
 
     player.terrain = terrain;
 
