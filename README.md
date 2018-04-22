@@ -8,6 +8,7 @@
   - ~~Add buildings?~~
   - Snowmen
     - Make TerrainPlane take more things in constructor
+    - Snowman that "follows" you?
 - Maybe add jumping? Probably after adding collision w/ non-terrain entities
 - Investigate weird precision bug that causes crashes if Player spawns at X = 0 and moves forward
 - ~~Disable up/down movement~~
