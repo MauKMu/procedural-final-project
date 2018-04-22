@@ -119,13 +119,13 @@ class TerrainPlane extends Drawable {
                 let nor012 = vec3.create();
                 vec3.subtract(sideA, pos2, pos1);
                 vec3.subtract(sideB, pos0, pos1);
-                vec3.cross(nor012, sideA, sideB);
+                vec3.cross(nor012, sideB, sideA);
                 vec3.normalize(nor012, nor012);
 
                 let nor023 = vec3.create();
                 vec3.subtract(sideA, pos2, pos0);
                 vec3.subtract(sideB, pos3, pos0);
-                vec3.cross(nor023, sideA, sideB);
+                vec3.cross(nor023, sideB, sideA);
                 vec3.normalize(nor023, nor023);
 
                 for (let k = 0; k < 3; k++) {

@@ -24,11 +24,12 @@ uniform vec4 u_CamPos;
 const float CAMERA_TAN = tan(0.5 * 45.0 * 3.1415962 / 180.0);
 const float DEPTH_OFFSET = 0.0;
 
-const vec3 LIGHT_POS = vec3(0, 200, 100);
+const vec3 LIGHT_DIR = vec3(50, 120, 100);
 
 float getLambert(vec3 worldPos, vec3 normal) {
-    vec3 toLight = normalize(LIGHT_POS - worldPos);
-    return clamp(0.0, 1.0, dot(toLight, normal));
+    vec3 toLight = normalize(LIGHT_DIR);
+    float dotProd = clamp(0.0, 1.0, dot(toLight, normal));
+    return pow(dotProd, 5.0);
 }
 
 // noise helper functions
@@ -185,8 +186,8 @@ void main() {
         vec3 camPos = ndcPos * vec3(hori, vert, 1.0);
         // convert to world-space pos
         vec3 worldPos = vec3(inverse(u_View) * vec4(camPos, 1.0));
-        col = max(0.05, (0.2 + 0.8 * getLambert(worldPos, nor))) * albedo;
-        col = abs(nor) * 0.6;
+        col = max(0.05, (0.05 + 0.95 * getLambert(worldPos, nor))) * albedo;
+        //col = abs(nor) * 0.6;
     }
     col = mix(col, bgColor, fogFactor);
     col *= 5.0;
