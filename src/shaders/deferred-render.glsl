@@ -190,6 +190,10 @@ void main() {
         vec3 worldPos = vec3(inverse(u_View) * vec4(camPos, 1.0));
         col = max(0.05, (0.05 + 0.95 * getLambert(worldPos, nor))) * albedo;
         //col = abs(nor) * 0.6;
+        //vec3 someLight = vec3(15, 0, 15);
+        //float d = 0.000001 + distance(worldPos, someLight);
+        //float lightFactor = min(1.0, 0.1 / (d * d));
+        //col += vec3(0, 0, 100.0 + 300.0 * (cos(time * 100.0) * 0.5 + 0.5)) * lightFactor;
     }
     col = mix(col, bgColor, fogFactor);
     col *= 5.0;
