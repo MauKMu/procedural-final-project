@@ -21,10 +21,12 @@ class TerrainPlane extends Drawable {
     colliders: Array<Array<Array<Collider>>> = [];
     // huge colliders. believe me. biiiig colliders. biggest you'll ever see.
     bigColliders: Array<Collider> = [];
+    color: vec4;
 
     constructor(origin: vec3, tileDim: number, tileNum: number) {
         super(); // Call the constructor of the super class. This is required.
         this.origin = vec3.clone(origin);
+        this.color = vec4.fromValues(1.0, 1.0, 1.0, 1.0);
         //this.origin = vec4.fromValues(origin[0], origin[1], origin[2], 1);
         this.tileDim = tileDim;
         this.tileNum = tileNum;
@@ -52,6 +54,10 @@ class TerrainPlane extends Drawable {
                 this.colliders.push(collidersColumn);
             }
         }
+    }
+
+    setColor(color: vec4) {
+        vec4.copy(this.color, color);
     }
 
 
@@ -137,10 +143,10 @@ class TerrainPlane extends Drawable {
                 // indices ====================================================
                 for (let k = 0; k < 6; k++) {
                     idxTemp.push(absIdx * 6 + k);
-                    colTemp.push(1.0);
-                    colTemp.push(1.0);
-                    colTemp.push(1.0);
-                    colTemp.push(1.0);
+                    colTemp.push(this.color[0]);
+                    colTemp.push(this.color[1]);
+                    colTemp.push(this.color[2]);
+                    colTemp.push(this.color[3]);
                     uvsTemp.push(0.0);
                     uvsTemp.push(0.0);
                 }
