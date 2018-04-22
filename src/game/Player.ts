@@ -9,9 +9,10 @@ enum MovementFlags {
     BACKWARD = 1 << 1,
     RIGHT = 1 << 2,
     LEFT = 1 << 3,
-    UP = 1 << 4,
-    DOWN = 1 << 5,
-    ALL = (1 << 6) - 1,
+    ALL = (1 << 4) - 1,
+    //UP = 1 << 4,
+    //DOWN = 1 << 5,
+    //ALL = (1 << 6) - 1,
 }
 
 const UP = vec3.fromValues(0, 1, 0);
@@ -81,14 +82,14 @@ class Player {
             case "A":
                 this.movementFlags |= MovementFlags.LEFT;
                 break;
-            case "e":
-            case "E":
-                this.movementFlags |= MovementFlags.UP;
-                break;
-            case "q":
-            case "Q":
-                this.movementFlags |= MovementFlags.DOWN;
-                break;
+            //case "e":
+            //case "E":
+                //this.movementFlags |= MovementFlags.UP;
+                //break;
+            //case "q":
+            //case "Q":
+                //this.movementFlags |= MovementFlags.DOWN;
+                //break;
             default:
                 return;
         }
@@ -116,14 +117,14 @@ class Player {
             case "A":
                 this.movementFlags &= ~MovementFlags.LEFT;
                 break;
-            case "e":
-            case "E":
-                this.movementFlags &= ~MovementFlags.UP;
-                break;
-            case "q":
-            case "Q":
-                this.movementFlags &= ~MovementFlags.DOWN;
-                break;
+            //case "e":
+            //case "E":
+                //this.movementFlags &= ~MovementFlags.UP;
+                //break;
+            //case "q":
+            //case "Q":
+                //this.movementFlags &= ~MovementFlags.DOWN;
+                //break;
             default:
                 return;
         }
@@ -185,12 +186,12 @@ class Player {
         if (this.movementFlags & MovementFlags.LEFT) {
             vec3.scaleAndAdd(movDir, movDir, this.right, -1);
         }
-        if (this.movementFlags & MovementFlags.UP) {
-            vec3.add(movDir, movDir, UP);
-        }
-        if (this.movementFlags & MovementFlags.DOWN) {
-            vec3.scaleAndAdd(movDir, movDir, UP, -1);
-        }
+        //if (this.movementFlags & MovementFlags.UP) {
+            //vec3.add(movDir, movDir, UP);
+        //}
+        //if (this.movementFlags & MovementFlags.DOWN) {
+            //vec3.scaleAndAdd(movDir, movDir, UP, -1);
+        //}
 
         vec3.normalize(movDir, movDir);
 
