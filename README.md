@@ -7,6 +7,7 @@
   - ~~Add tile-based "acceleration structure"~~
   - ~~Add buildings?~~
   - Snowmen
+    - Integrate Mesh and LSystem
     - Make TerrainPlane take more things in constructor
     - Snowman that "follows" you?
     - Can do this with model matrix on separate VBO
