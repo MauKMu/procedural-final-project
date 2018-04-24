@@ -100,7 +100,7 @@ class Decoration extends Drawable {
     }
 
     // add mesh loaded by OBJ loader
-    addDecoration(mesh: any, transform: mat4) {
+    addMesh(mesh: any, transform: mat4) {
         // set up =============================================
         let idxStart = this.stagedPositions.length / 4;
 
@@ -601,6 +601,99 @@ class Decoration extends Drawable {
         }
 
     }
+
+    /*
+    addPolysphere(transform: mat4, sides: number) {
+        // set up =============================================
+        let idxStart = this.stagedPositions.length / 4;
+
+        // get the inverse transpose for normals
+        let invTr = mat3.create();
+        mat3.fromMat4(invTr, transform);
+        mat3.invert(invTr, invTr);
+        mat3.transpose(invTr, invTr);
+
+        // add one "slice"
+        // subdivs has to be even
+        let subdivs = 16;
+        let yMin = 0.0;
+        let yRange = 0.2;
+        let ps: Array<vec4> = [];
+        let angle = 0.0;
+        for (let i = 0; i < subdivs; i++) {
+            let y = yMin + (((i % 2) == 0) ? 0 : 1) * yRange;
+            let xzScale = Math.sqrt(1.0 - y * y);
+            let p = vec4.fromValues(Math.cos(angle) * xzScale, y, Math.sin(angle) * xzScale, 1.0);
+            vec4.normalize(p, p);
+            vec4.scale(p, p, 12.0);
+            p[3] = 1.0;
+            ps.push(p);
+            angle += 2.0 * Math.PI / (subdivs + 1);
+        }
+        let n = vec3.create();
+        for (let i = 0; i < ps.length; i++) {
+            let a = vec4.clone(ps[(i + 0) % ps.length]);
+            let b = vec4.clone(ps[(i + 1) % ps.length]);
+            let c = vec4.clone(ps[(i + 2) % ps.length]);
+            vec4.transformMat4(a, a, transform);
+            vec4.transformMat4(b, b, transform);
+            vec4.transformMat4(c, c, transform);
+            appendVec4ToArray(this.stagedPositions, a);
+            appendVec4ToArray(this.stagedPositions, b);
+            appendVec4ToArray(this.stagedPositions, c);
+            for (let j = 0; j < 3; j++) {
+                appendVec4ToArray(this.stagedColors, this.currColor);
+                appendVec2ToArray(this.stagedUVs, vec2.fromValues(-1, -1));
+            }
+            let ab = vec3.fromValues(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
+            let cb = vec3.fromValues(c[0] - b[0], c[1] - b[1], c[2] - b[2]);
+            vec3.cross(n, ab, cb);
+            vec3.normalize(n, n);
+            for (let i = 0; i < 3; i++) {
+                appendNormalToArray(this.stagedNormals, n);
+            }
+            appendTri(this.stagedIndices, idxStart + (i * 3), idxStart + (i * 3) + 1, idxStart + (i * 3) + 2);
+        }
+        yMin = 0.2;
+        let oldPs = ps.slice();
+        ps = [];
+        angle = 0.0;
+        for (let i = 0; i < subdivs; i++) {
+            let y = yMin + (((i % 2) == 1) ? 0 : 1) * yRange;
+            let xzScale = Math.sqrt(1.0 - y * y);
+            let p = vec4.fromValues(Math.cos(angle) * xzScale, y, Math.sin(angle) * xzScale, 1.0);
+            vec4.normalize(p, p);
+            vec4.scale(p, p, 12.0);
+            p[3] = 1.0;
+            ps.push(p);
+            angle += 2.0 * Math.PI / (subdivs + 1);
+        }
+        idxStart = this.stagedPositions.length / 4;
+        for (let i = 0; i < ps.length; i++) {
+            let a = vec4.clone(ps[(i + 0) % ps.length]);
+            let b = vec4.clone(ps[(i + 1) % ps.length]);
+            let c = vec4.clone(ps[(i + 2) % ps.length]);
+            vec4.transformMat4(a, a, transform);
+            vec4.transformMat4(b, b, transform);
+            vec4.transformMat4(c, c, transform);
+            appendVec4ToArray(this.stagedPositions, a);
+            appendVec4ToArray(this.stagedPositions, b);
+            appendVec4ToArray(this.stagedPositions, c);
+            for (let j = 0; j < 3; j++) {
+                appendVec4ToArray(this.stagedColors, this.currColor);
+                appendVec2ToArray(this.stagedUVs, vec2.fromValues(-1, -1));
+            }
+            let ab = vec3.fromValues(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
+            let cb = vec3.fromValues(c[0] - b[0], c[1] - b[1], c[2] - b[2]);
+            vec3.cross(n, ab, cb);
+            vec3.normalize(n, n);
+            for (let i = 0; i < 3; i++) {
+                appendNormalToArray(this.stagedNormals, n);
+            }
+            appendTri(this.stagedIndices, idxStart + (i * 3), idxStart + (i * 3) + 1, idxStart + (i * 3) + 2);
+        }
+    }
+    */
 
     create() {
         this.indices = new Uint32Array(this.stagedIndices);
