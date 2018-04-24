@@ -23,3 +23,26 @@ export function readTextFile(file: string): string
     rawFile.send(null);
     return text;
 }
+
+export function readTextFileSync(file: string): string
+{
+    var text = "";
+    var rawFile = new XMLHttpRequest();
+    rawFile.open("GET", file, false);
+    var isFinished = false;
+    rawFile.onreadystatechange = function ()
+    {
+        if(rawFile.readyState === 4)
+        {
+            if(rawFile.status === 200 || rawFile.status == 0)
+            {
+                var allText = rawFile.responseText;
+                text = allText;
+            }
+            isFinished = true;
+        }
+    }
+    rawFile.send(null);
+    while (!isFinished);
+    return text;
+}
