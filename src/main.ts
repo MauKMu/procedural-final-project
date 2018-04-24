@@ -112,34 +112,22 @@ function loadScene() {
     square && square.destroy();
     mesh0 && mesh0.destroy();
     mesh1 && mesh1.destroy();
-    if (tps) {
-        for (let i = 0; i < tps.length; i++) {
-            tps[i].destroy();
-        }
-    }
     tps = [];
 
     square = new Square(vec3.fromValues(0, 0, 0));
     square.create();
 
-    mesh0 = new Mesh(obj0, vec3.fromValues(0, 0, 0));
-    mat4.identity(mesh0.modelMatrix);
-    mat4.scale(mesh0.modelMatrix, mesh0.modelMatrix, vec3.fromValues(scale, scale, scale));
-    mesh0.create();
+    //mesh0 = new Mesh(obj0, vec3.fromValues(0, 0, 0));
+    //mat4.identity(mesh0.modelMatrix);
+    //mat4.translate(mesh0.modelMatrix, mesh0.modelMatrix, vec3.fromValues(5, 3, 5));
+    //mat4.scale(mesh0.modelMatrix, mesh0.modelMatrix, vec3.fromValues(3, 3, 3));
+    //mesh0.create();
 
-    mesh1 = new Mesh(obj0, vec3.fromValues(0, 0, 0));
-    mat4.fromTranslation(mesh1.modelMatrix, vec3.fromValues(0, 0, translate));
-    mat4.rotate(mesh1.modelMatrix, mesh1.modelMatrix, 0.75, vec3.fromValues(0, 1, 0));
-    mat4.scale(mesh1.modelMatrix, mesh1.modelMatrix, vec3.fromValues(scale, scale, scale));
-    mesh1.create();
-
-    for (let i = 0; i < 9; i++) {
-        let x = i % 3;
-        let z = Math.floor(i / 3);
-        let tp = new TerrainPlane(vec3.fromValues(x * 40, 0, z * 40), 4, 10);
-        tp.create()
-        tps.push(tp);
-    }
+    //mesh1 = new Mesh(obj0, vec3.fromValues(0, 0, 0));
+    //mat4.fromTranslation(mesh1.modelMatrix, vec3.fromValues(0, 0, translate));
+    //mat4.rotate(mesh1.modelMatrix, mesh1.modelMatrix, 0.75, vec3.fromValues(0, 1, 0));
+    //mat4.scale(mesh1.modelMatrix, mesh1.modelMatrix, vec3.fromValues(scale, scale, scale));
+    //mesh1.create();
 
     //tex0 = new Texture('../resources/textures/lapras.png');
 }
@@ -149,8 +137,7 @@ let translate = -10.0;
 
 function loadModel(model: Model) {
     if (model == Model.WAHOO) {
-        loadOBJText('resources/obj/wahoo.obj');
-        tex0 = new Texture('resources/textures/wahoo.bmp');
+        loadOBJText('res/models/polysphere.obj');
         scale = 1.0;
         translate = -10.0;
     }
@@ -218,8 +205,8 @@ function main() {
     gl.cullFace(gl.BACK);
 
     // Initial call to load scene
-    //loadScene();
-    loadModel(controls[LOADED_MODEL]);
+    loadScene();
+    //loadModel(Model.WAHOO);
 
     const camera = new Camera(vec3.fromValues(1, 2, 5), vec3.fromValues(1, 0, 0));
 
@@ -228,6 +215,8 @@ function main() {
     const terrain = new Terrain(vec3.fromValues(0, 0, 0), 4, 25, 4, 3);
 
     player.terrain = terrain;
+
+    //terrain.drawables.push(mesh0);
 
     const renderer = new OpenGLRenderer(canvas);
     renderer.updateShaderFlags(shaderFlags);
@@ -259,7 +248,7 @@ function main() {
         //renderer.updateBrushNoise(controls[PAINT_BRUSH_NOISE]);
         renderer.updateTime(timer.deltaTime, timer.currentTime);
 
-        standardDeferred.bindTexToUnit("tex_Color", tex0, 0);
+        //standardDeferred.bindTexToUnit("tex_Color", tex0, 0);
 
         renderer.clear();
         renderer.clearGB();
