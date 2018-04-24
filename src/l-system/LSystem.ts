@@ -66,34 +66,13 @@ class LSystem {
         this.decoration.addNormalCorrectPrism(trans, this.prismSides, turtle.scaleBottom, turtle.scaleTop, scaleHeight);
     }
 
-    addPearAtTurtle(turtle: Turtle, pearMesh: any) {
+    addMeshAtTurtle(turtle: Turtle, scale: vec3, mesh: any) {
         if (!this.decoration.isSafeToGrow()) {
             return;
         }
-        // refuse to draw overly tiny pears
-        if (turtle.depth > 5) {
-            return;
-        }
-        // extract only translation from turtle
-        let turtlePos = turtle.position;
-        let trans = mat4.create();
-        mat4.fromTranslation(trans, turtlePos);
-        let toOrigin = mat4.create();
-        let m = mat4.create();
-        let q = quat.create();
-        quat.fromEuler(q, 0, lRandom.getNext() * 360, 0);
-        //quat.fromEuler(q, 90, 0, 0); // angles in degrees, for some reason...
-        //let PEAR_SCALE = 0.25 * turtle.scaleBottom;
-        let PEAR_SCALE = 0.25 * turtle.scaleBottom;
-        let BANANA_SCALE = 6.0 * turtle.scaleBottom;
-        // move pear down so stalk is more visible
-        //mat4.fromRotationTranslationScale(toOrigin, q, vec3.fromValues(0, 0, 0), vec3.fromValues(PEAR_SCALE, PEAR_SCALE, PEAR_SCALE));
-        mat4.fromRotationTranslationScale(toOrigin, q, vec3.fromValues(0, -1, -1), vec3.fromValues(BANANA_SCALE, BANANA_SCALE, BANANA_SCALE));
-        //mat4.fromTranslation(m, vec3.fromValues(0, 0, 15));
-        mat4.fromTranslation(m, vec3.fromValues(0, -1, 0));
-        mat4.multiply(toOrigin, toOrigin, m);
-        mat4.multiply(trans, trans, toOrigin);
-        this.decoration.addDecoration(pearMesh, trans);
+        let trans = turtle.getTransformationToTurtle();
+        mat4.scale(trans, trans, scale);
+        this.decoration.addMesh(mesh, trans);
     }
 
     initAlphabet() {
