@@ -217,14 +217,15 @@ function main() {
     const snowTerrain = new Terrain(vec3.fromValues(0, 0, 0), 4, 25, 4, 3, Level.SNOW);
     const spookyTerrain = new Terrain(vec3.fromValues(0, 0, 0), 4, 25, 4, 3, Level.SPOOKY);
 
-    player.terrain = desertTerrain;
-
     //terrain.drawables.push(mesh0);
 
     const renderer = new OpenGLRenderer(canvas);
     renderer.updateShaderFlags(shaderFlags);
     renderer.setClearColor(0, 0, 0, 1);
     gl.enable(gl.DEPTH_TEST);
+
+    player.terrain = spookyTerrain;
+    renderer.setDeferredShader(Level.SPOOKY);
 
     const standardDeferred = new ShaderProgram([
         new Shader(gl.VERTEX_SHADER, require('./shaders/standard-vert.glsl')),
@@ -240,11 +241,25 @@ function main() {
         //player.move(timer.deltaTime);
         //vec3.copy(player.position, terrain.collide(player.position));
         //terrain.updatePlanes(player.position);
-        if (timer.currentTime > 5.0) {
-            player.terrain = spookyTerrain;
-            renderer.setDeferredShader(Level.SPOOKY);
-        }
         player.update(timer.deltaTime);
+        if (player.terrain.shouldExit) {
+            console.log("exit!!");
+            player.terrain.shouldExit = false;
+            switch (player.terrain.level) {
+                case Level.DESERT:
+                    player.terrain = snowTerrain;
+                    renderer.setDeferredShader(Level.SNOW);
+                    break;
+                case Level.SNOW:
+                    player.terrain = spookyTerrain;
+                    renderer.setDeferredShader(Level.SPOOKY);
+                    this.buildLevel2();
+                case Level.SPOOKY:
+                    player.terrain = desertTerrain;
+                    renderer.setDeferredShader(Level.DESERT);
+                    break;
+            }
+        }
         //camera.update();
         stats.begin();
         gl.viewport(0, 0, window.innerWidth, window.innerHeight);

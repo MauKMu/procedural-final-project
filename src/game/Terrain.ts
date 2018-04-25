@@ -239,7 +239,7 @@ class Terrain {
 
             let xzAngle = Math.random() * 2.0 * Math.PI;
             vec3.copy(ghost.playerOffset, vec3.fromValues(Math.cos(xzAngle), 0, Math.sin(xzAngle)));
-            vec3.scale(ghost.playerOffset, ghost.playerOffset, 30.0);
+            vec3.scale(ghost.playerOffset, ghost.playerOffset, 50.0 + Math.random() * 10.0);
 
             ghostDecorations.create();
             this.drawables.push(ghostDecorations);
