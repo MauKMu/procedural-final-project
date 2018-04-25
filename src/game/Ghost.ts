@@ -26,6 +26,8 @@ class Ghost extends LSystem {
     seed: number;
     rotation: mat3;
     playerOffset: vec3;
+    bobValue: number;
+    bobFrequency: number;
 
     constructor(decoration: Decoration, seed: number) {
         super();
@@ -42,6 +44,8 @@ class Ghost extends LSystem {
         let oldSeed = lRandom.state;
         lRandom.setSeed(this.seed);
         let xzAngle = lRandom.getNext() * Math.PI * 2.0;
+        this.bobValue = lRandom.getNext() * Math.PI;
+        this.bobFrequency = 3.0 + 5.0 * lRandom.getNext();
         lRandom.setSeed(oldSeed);
         // compute matrix
         let rotMat4 = mat4.create();

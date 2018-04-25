@@ -737,7 +737,6 @@ class Terrain {
         for (let g = 0; g < this.ghosts.length; g++) {
             let ghost = this.ghosts[g];
             // O(n^2)... O(nn)oo...
-
             for (let otherG = g + 1; otherG < this.ghosts.length; otherG++) {
                 let otherGhost = this.ghosts[otherG];
                 let avoidDir = vec3.create();
@@ -763,6 +762,9 @@ class Terrain {
             // find actual ghost position
             let ghostPos = vec3.create();
             vec3.add(ghostPos, playerPos, ghost.playerOffset);
+            // make ghost bob
+            ghostPos[1] += 0.5 + 0.5 * Math.cos(ghost.bobValue * ghost.bobFrequency);
+            ghost.bobValue += deltaTime;
             let ghostMat = mat4.create();
             mat4.translate(ghostMat, ghostMat, ghostPos);
             ghost.setModelMatrix(ghostMat);
