@@ -29,7 +29,7 @@ const vec3 LIGHT_DIR = vec3(50, 120, 100);
 float getLambert(vec3 worldPos, vec3 normal) {
     vec3 toLight = normalize(LIGHT_DIR);
     float dotProd = clamp(dot(toLight, normal), 0.0, 1.0);
-    return pow(dotProd, 1.5);
+    return pow(dotProd, 0.75);
 }
 
 // noise helper functions
