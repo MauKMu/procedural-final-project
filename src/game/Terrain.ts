@@ -621,6 +621,21 @@ class Terrain {
         return vec3.dot(weights, heights);
     }
 
+    getHeightFromRawPos(pos: vec3): number {
+        let posVec2 = vec2.fromValues(pos[0], pos[2]);
+        // position after "looping" around terrain
+        let posLooped = this.getLoopedPositionVec2(posVec2);
+        // XZ "indices" of plane where player is
+        let posPlaneIdx = vec2.create();
+        let posInPlane = modfVec2(posLooped, this.planeDim, posPlaneIdx);
+        // XZ "indices" of tile within plane
+        let posTileIdx = vec2.create();
+        let posInTile = modfVec2(posInPlane, this.tileDim, posTileIdx);
+        // get plane
+        let tp = this.terrainPlanes[this.getAbsIdx(posPlaneIdx[0], posPlaneIdx[1])];
+        return this.getHeight(posInTile, posTileIdx, tp);
+    }
+
     // takes in Player's "target" position (where they would move
     // if terrain was flat) and returns target position shifted to
     // height coherent with terrain

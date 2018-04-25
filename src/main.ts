@@ -225,6 +225,7 @@ function main() {
     gl.enable(gl.DEPTH_TEST);
 
     player.terrain = spookyTerrain;
+    player.forceCorrectHeight();
     renderer.setDeferredShader(Level.SPOOKY);
     renderer.updateFadeInTime(0.0);
     renderer.updateFadeOutTime(0.0);
@@ -260,12 +261,12 @@ function main() {
         if (exiting) {
             exitTime += timer.deltaTime * 0.8;
             if (exitTime > 1.0) {
-                // actually exit level
+                // update state
                 exitTime = 1.0;
                 enterTime = 0.0;
                 entering = true;
                 exiting = false;
-                console.log(["switching...", player.terrain.level]);
+                // actually exit level
                 switch (player.terrain.level) {
                     case Level.DESERT:
                         player.terrain = snowTerrain;
@@ -280,6 +281,7 @@ function main() {
                         renderer.setDeferredShader(Level.DESERT);
                         break;
                 }
+                player.forceCorrectHeight();
                 // update new shader
                 renderer.updateFadeInTime(0.0);
                 renderer.updateFadeOutTime(0.0);

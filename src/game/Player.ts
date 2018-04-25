@@ -166,6 +166,11 @@ class Player {
         // camera direction just used to compute lookAt target
     }
 
+    // forces height to match height field without more collision checks
+    forceCorrectHeight() {
+        this.position[1] = this.terrain.getHeightFromRawPos(this.position);
+    }
+
     move(deltaTime: number) {
         if (this.movementFlags == MovementFlags.NONE || this.movementFlags == MovementFlags.ALL) {
             return;
