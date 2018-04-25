@@ -28,8 +28,8 @@ const vec3 LIGHT_DIR = vec3(50, 120, 100);
 
 float getLambert(vec3 worldPos, vec3 normal) {
     vec3 toLight = normalize(LIGHT_DIR);
-    float dotProd = clamp(0.0, 1.0, dot(toLight, normal));
-    return pow(dotProd, 5.0);
+    float dotProd = clamp(dot(toLight, normal), 0.0, 1.0);
+    return pow(dotProd, 1.5);
 }
 
 // noise helper functions
@@ -75,7 +75,7 @@ float PerlinNoise(vec2 uv)
 
 
 float normalizedPerlinNoise(vec2 v) {
-    return clamp(0.0, 1.0, PerlinNoise(v) + 0.5);
+    return clamp(PerlinNoise(v) + 0.5, 0.0, 1.0);
 }
 
 /* FBM (uses Perlin) */

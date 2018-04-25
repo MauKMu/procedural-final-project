@@ -28,7 +28,7 @@ const vec3 LIGHT_DIR = vec3(50, 120, 100);
 
 float getLambert(vec3 worldPos, vec3 normal) {
     vec3 toLight = normalize(LIGHT_DIR);
-    float dotProd = clamp(0.0, 1.0, dot(toLight, normal));
+    float dotProd = clamp(dot(toLight, normal), 0.0, 1.0);
     return pow(dotProd, 5.0);
 }
 
@@ -75,7 +75,7 @@ float PerlinNoise(vec2 uv)
 
 
 float normalizedPerlinNoise(vec2 v) {
-    return clamp(0.0, 1.0, PerlinNoise(v) + 0.5);
+    return clamp(PerlinNoise(v) + 0.5, 0.0, 1.0);
 }
 
 /* FBM (uses Perlin) */
@@ -190,7 +190,7 @@ void main() {
         vec3 worldPos = vec3(inverse(u_View) * vec4(camPos, 1.0));
         //vec3 lookDir = normalize(vec3(inverse(u_View) * vec4(0, 0, 1, 0)));
         //vec3 halfDir = normalize(lookDir + normalize(LIGHT_DIR));
-        //float blinn = pow(clamp(0.0, 1.0, dot(halfDir, nor)), 8.0);
+        //float blinn = pow(clamp(dot(halfDir, nor), 0.0, 1.0), 8.0);
         //col = max(0.05, (0.05 + 0.95 * getLambert(worldPos, nor))) * albedo + vec3(0.02 * blinn);
         col = max(0.05, (0.05 + 0.95 * getLambert(worldPos, nor))) * albedo;
         //col = abs(nor) * 0.6;

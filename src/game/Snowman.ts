@@ -7,6 +7,7 @@ import {PRISM_HEIGHT} from '../geometry/Decoration';
 import LString from '../l-system/LString';
 import {lRandom, LRANDOM_DETERMINISTIC} from '../l-system/LRandom';
 import {readTextFileSync} from '../globals';
+import {normalizeRGB} from '../Utils';
 import * as Loader from 'webgl-obj-loader';
 
 // ""static"" variables (I love JS. It's so bad.)
@@ -15,6 +16,10 @@ let polySphere60: any = null;
 const TWIG_SCALE = 0.1;
 const FINGER_SCALE = 0.05;
 const NOSE_SCALE = 0.075;
+
+const SNOW_COLOR = normalizeRGB(200, 200, 255);
+const WOOD_COLOR = normalizeRGB(60, 17, 0);
+const NOSE_COLOR = normalizeRGB(455, 83, 30);
 
 class Snowman extends LSystem {
 
@@ -57,15 +62,8 @@ class Snowman extends LSystem {
         this.alphabet = [];
         // do this to avoid "this" issues
         let snowmanRotation = this.rotation;
-        // forward
-        let F = new LSymbol("F", function (lsys: LSystem) {
-            let turtle = lsys.getTopTurtle();
-            lsys.addMeshAtTurtle(turtle, vec3.fromValues(1, 1, 1), polySphere60);
-            //lsys.addScaledPrismAtTurtleNoShrink(turtle, 0.8);
-            turtle.moveForward(PRISM_HEIGHT * 0.6);
-        });
-        this.alphabet.push(F);
         let upFunction = function (lsys: LSystem) {
+            lsys.useColor(SNOW_COLOR);
             let turtle = lsys.getTopTurtle();
             // rotate mesh
             // just want a random direction, so this is enough
@@ -127,6 +125,7 @@ class Snowman extends LSystem {
         this.alphabet.push(beginRightArm);
         // actual arm -- "twig"
         let T = new LSymbol("T", function (lsys: LSystem) {
+            lsys.useColor(WOOD_COLOR);
             let turtle = lsys.getTopTurtle();
             // add twig
             let bot = turtle.scaleBottom;
@@ -155,6 +154,7 @@ class Snowman extends LSystem {
         this.alphabet.push(T);
         // hand
         let H = new LSymbol("H", function (lsys: LSystem) {
+            lsys.useColor(WOOD_COLOR);
             let turtle = lsys.getTopTurtle();
             // add twig
             let bot = turtle.scaleBottom;
@@ -193,6 +193,7 @@ class Snowman extends LSystem {
         this.alphabet.push(H);
         // nose
         let N = new LSymbol("N", function (lsys: LSystem) {
+            lsys.useColor(NOSE_COLOR);
             let turtle = lsys.getTopTurtle();
             // find face's direction
             let faceDirection = vec3.fromValues(0, 0, 1);
