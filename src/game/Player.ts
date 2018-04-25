@@ -214,7 +214,7 @@ class Player {
 
     update(deltaTime: number) {
         this.move(deltaTime);
-        this.terrain.updatePlanes(this.position);
+        this.terrain.updatePlanes(this.position, deltaTime);
         // update camera position, target, direction
         vec3.add(this.eye, this.position, EYE_OFFSET);
         vec3.copy(this.camera.position, this.eye);

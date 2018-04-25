@@ -3,6 +3,7 @@ import TerrainPlane from '../geometry/TerrainPlane';
 import Decoration from '../geometry/Decoration';
 import BasicTree from './BasicTree';
 import Snowman from './Snowman';
+import Ghost from './Ghost';
 import Collider from './Collider';
 import SquareCollider from './SquareCollider';
 import {clamp, mod, modfVec2, baryInterp, normalizeRGB, perlinGain} from '../Utils';
@@ -33,6 +34,8 @@ class Terrain {
     planeNumZ: number;
     totalDimX: number;
     totalDimZ: number;
+
+    ghost: Ghost = null;
 
     constructor(origin: vec3, tileDim: number, tileNum: number, planeNumX: number, planeNumZ: number) {
         this.origin = vec3.clone(origin);
@@ -194,9 +197,21 @@ class Terrain {
             }
         }
 
+        let ghostDecorations = new Decoration();
+        this.ghost = new Ghost(ghostDecorations, Math.floor(Math.random() * 512));
+        this.ghost.initAlphabet();
+        this.ghost.resetTurtleStack(vec3.fromValues(0, 1, 0));
+        this.ghost.expandString();
+        this.ghost.expandString();
+        this.ghost.executeString();
+
+        vec3.copy(this.ghost.playerOffset, vec3.fromValues(10, 0, 10));
 
         decorations.create();
+        ghostDecorations.create();
+
         this.drawables.push(decorations);
+        this.drawables.push(ghostDecorations);
     }
 
 
@@ -697,15 +712,23 @@ class Terrain {
         vec3.subtract(movDir, newTarget, startPos);
         // skip speed adjustment if unnecessary
         if (collided && vec3.length(movDir) <= targetSpeed) {
+            // tell ghost about player movement
+            if (this.ghost) {
+                vec3.scaleAndAdd(this.ghost.playerOffset, this.ghost.playerOffset, movDir, -1);
+            }
             return newTarget;
         }
         vec3.normalize(movDir, movDir);
         vec3.scaleAndAdd(newTarget, startPos, movDir, targetSpeed);
+        // tell ghost about player movement
+        if (this.ghost) {
+            vec3.scaleAndAdd(this.ghost.playerOffset, this.ghost.playerOffset, movDir, -targetSpeed);
+        }
         return newTarget;
     }
 
     // makes planes active or not depending on player's position
-    updatePlanes(playerPos: vec3) {
+    updatePlanes(playerPos: vec3, deltaTime: number) {
         // position after "looping" around terrain
         // already looped in collide()
         //let posLooped = vec2.fromValues(mod(playerPos[0], this.totalDimX), mod(playerPos[2], this.totalDimZ));
@@ -753,7 +776,18 @@ class Terrain {
                 mat4.fromTranslation(this.terrainPlanes[xIdx * this.planeNumZ + zIdx].modelMatrix, vec3.fromValues(xTranslate, 0, zTranslate));
             }
         }
-        let posInPlane = vec2.fromValues(mod(playerPos[0], this.tileDim), mod(playerPos[2], this.tileDim));
+        // check for ghost collision
+        if (this.ghost) {
+            let ghostPos = vec3.clone(playerPos);
+            // move ghost towards player
+            let toPlayer = vec3.clone(this.ghost.playerOffset);
+            vec3.normalize(toPlayer, toPlayer);
+            vec3.scaleAndAdd(this.ghost.playerOffset, this.ghost.playerOffset, toPlayer, -deltaTime * 4.0);
+            vec3.add(ghostPos, ghostPos, this.ghost.playerOffset);
+            let ghostMat = mat4.create();
+            mat4.translate(ghostMat, ghostMat, ghostPos);
+            this.ghost.setModelMatrix(ghostMat);
+        }
     }
 
 };

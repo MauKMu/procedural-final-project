@@ -1,4 +1,4 @@
-import {vec2, vec4, mat4} from 'gl-matrix';
+import {vec2, vec4, mat3, mat4} from 'gl-matrix';
 import Drawable from './Drawable';
 import Texture from './Texture';
 import {gl} from '../../globals';
@@ -111,10 +111,11 @@ class ShaderProgram {
     }
 
     if (this.unifModelInvTr !== -1) {
-      let modelinvtr: mat4 = mat4.create();
-      mat4.transpose(modelinvtr, model);
-      mat4.invert(modelinvtr, modelinvtr);
-      gl.uniformMatrix4fv(this.unifModelInvTr, false, modelinvtr);
+      let modelMat3: mat3 = mat3.create();
+      mat3.fromMat4(modelMat3, model);
+      mat3.transpose(modelMat3, modelMat3);
+      mat3.invert(modelMat3, modelMat3);
+      gl.uniformMatrix3fv(this.unifModelInvTr, false, modelMat3);
     }
   }
 

@@ -2,7 +2,7 @@
 precision highp float;
 
 uniform mat4 u_Model;
-uniform mat4 u_ModelInvTr;  
+uniform mat3 u_ModelInvTr;  
 
 uniform mat4 u_View;   
 uniform mat4 u_Proj; 
@@ -26,10 +26,10 @@ void main()
     fs_UV.y = 1.0 - fs_UV.y;
 
     // fragment info is in view space
-    mat3 invTranspose = mat3(u_ModelInvTr);
+    //mat3 invTranspose = mat3(u_ModelInvTr);
     mat3 view = mat3(u_View);
     //fs_Nor = vec4(view * invTranspose * vec3(vs_Nor), 0);
-    fs_Nor = vec4(invTranspose * vec3(vs_Nor), 0);
+    fs_Nor = vec4(u_ModelInvTr * vec3(vs_Nor), 0);
     //fs_Pos = u_Model * vs_Pos;
     fs_Pos = u_View * u_Model * vs_Pos;
     //fs_WorldPos = u_Model * vs_Pos;
