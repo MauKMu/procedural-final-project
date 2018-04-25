@@ -1,5 +1,19 @@
 import {vec2, vec3, vec4} from 'gl-matrix';
 
+// http://demofox.org/biasgain.html
+export function perlinBias(time: number, bias: number): number {
+    return (time / ((((1.0 / bias) - 2.0) * (1.0 - time)) + 1.0));
+}
+
+export function perlinGain(time: number, gain: number): number {
+    if (time < 0.5) {
+        return perlinBias(time * 2.0, gain) / 2.0;
+    }
+    else {
+        return perlinBias(time * 2.0 - 1.0, 1.0 - gain) / 2.0 + 0.5;
+    }
+}
+
 // converts RGB in [0, 255]^3 to [0, 1]^3 and adds 4th coordinate = 1
 export function normalizeRGB(r: number, g: number, b: number): vec4 {
     return vec4.fromValues(r / 255.0, g / 255.0, b / 255.0, 1.0);
