@@ -23,6 +23,8 @@ const PYRAMID_COLOR = normalizeRGB(255, 140, 0);
 
 const SNOW_COLOR = normalizeRGB(200, 200, 255);
 
+const NUM_GHOSTS = 3;
+
 class Terrain {
     drawables: Array<Drawable>;
     terrainPlanes: Array<TerrainPlane>;
@@ -35,7 +37,7 @@ class Terrain {
     totalDimX: number;
     totalDimZ: number;
 
-    ghost: Ghost = null;
+    ghosts: Array<Ghost>;
 
     constructor(origin: vec3, tileDim: number, tileNum: number, planeNumX: number, planeNumZ: number) {
         this.origin = vec3.clone(origin);
@@ -49,6 +51,7 @@ class Terrain {
 
         this.terrainPlanes = [];
         this.drawables = [];
+        this.ghosts = [];
 
         this.buildLevel3();
     }
@@ -197,21 +200,28 @@ class Terrain {
             }
         }
 
-        let ghostDecorations = new Decoration();
-        this.ghost = new Ghost(ghostDecorations, Math.floor(Math.random() * 512));
-        this.ghost.initAlphabet();
-        this.ghost.resetTurtleStack(vec3.fromValues(0, 1, 0));
-        this.ghost.expandString();
-        this.ghost.expandString();
-        this.ghost.executeString();
-
-        vec3.copy(this.ghost.playerOffset, vec3.fromValues(10, 0, 10));
-
         decorations.create();
-        ghostDecorations.create();
-
         this.drawables.push(decorations);
-        this.drawables.push(ghostDecorations);
+
+        for (let i = 0; i < NUM_GHOSTS; i++) {
+            let ghostDecorations = new Decoration();
+
+            let ghost = new Ghost(ghostDecorations, Math.floor(Math.random() * 512));
+            ghost.initAlphabet();
+            ghost.resetTurtleStack(vec3.fromValues(0, 1, 0));
+            ghost.expandString();
+            ghost.expandString();
+            ghost.executeString();
+
+            let xzAngle = Math.random() * 2.0 * Math.PI;
+            vec3.copy(ghost.playerOffset, vec3.fromValues(Math.cos(xzAngle) * 20, 0, Math.sin(xzAngle) * 20));
+
+            ghostDecorations.create();
+            this.drawables.push(ghostDecorations);
+
+            this.ghosts.push(ghost);
+        }
+
     }
 
 
@@ -653,16 +663,18 @@ class Terrain {
         // skip speed adjustment if unnecessary
         if (collided && vec3.length(movDir) <= targetSpeed) {
             // tell ghost about player movement
-            if (this.ghost) {
-                vec3.scaleAndAdd(this.ghost.playerOffset, this.ghost.playerOffset, movDir, -1);
+            for (let g = 0; g < this.ghosts.length; g++) {
+                let ghost = this.ghosts[g];
+                vec3.scaleAndAdd(ghost.playerOffset, ghost.playerOffset, movDir, -1);
             }
             return newTarget;
         }
         vec3.normalize(movDir, movDir);
         vec3.scaleAndAdd(newTarget, startPos, movDir, targetSpeed);
         // tell ghost about player movement
-        if (this.ghost) {
-            vec3.scaleAndAdd(this.ghost.playerOffset, this.ghost.playerOffset, movDir, -targetSpeed);
+        for (let g = 0; g < this.ghosts.length; g++) {
+            let ghost = this.ghosts[g];
+            vec3.scaleAndAdd(ghost.playerOffset, ghost.playerOffset, movDir, -targetSpeed);
         }
         return newTarget;
     }
@@ -717,16 +729,18 @@ class Terrain {
             }
         }
         // check for ghost collision
-        if (this.ghost) {
-            let ghostPos = vec3.clone(playerPos);
+        for (let g = 0; g < this.ghosts.length; g++) {
+            let ghost = this.ghosts[g];
             // move ghost towards player
-            let toPlayer = vec3.clone(this.ghost.playerOffset);
+            let toPlayer = vec3.clone(ghost.playerOffset);
             vec3.normalize(toPlayer, toPlayer);
-            vec3.scaleAndAdd(this.ghost.playerOffset, this.ghost.playerOffset, toPlayer, -deltaTime * 4.0);
-            vec3.add(ghostPos, ghostPos, this.ghost.playerOffset);
+            vec3.scaleAndAdd(ghost.playerOffset, ghost.playerOffset, toPlayer, -deltaTime * 4.0);
+            // find actual ghost position
+            let ghostPos = vec3.create();
+            vec3.add(ghostPos, playerPos, ghost.playerOffset);
             let ghostMat = mat4.create();
             mat4.translate(ghostMat, ghostMat, ghostPos);
-            this.ghost.setModelMatrix(ghostMat);
+            ghost.setModelMatrix(ghostMat);
         }
     }
 
