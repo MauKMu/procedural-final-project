@@ -171,7 +171,7 @@ void main() {
     //float fbm = getFBMFromRawPosition(fs_UV + vec2(-8.88 + cos(time * 5.0), 7.22 + time * 1.5), 1.0 + 0.5 * sin(time * 2.0));
     //vec3 bgColor = getBGColor(fbm);
     //vec3 bgColor = vec3(0.1, 0.1, 1.99);
-    vec3 bgColor = vec3(0.39, 0.39, 1.99);
+    vec3 bgColor = vec3(1.99, 0.1, 0.0);
     float fogFactor = getFogFactor(-depth);
     // background
     if (depth >= -DEPTH_OFFSET) {
