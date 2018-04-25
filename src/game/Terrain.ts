@@ -9,6 +9,12 @@ import SquareCollider from './SquareCollider';
 import {clamp, mod, modfVec2, baryInterp, normalizeRGB, perlinGain} from '../Utils';
 import {vec2, vec3, mat4, quat} from 'gl-matrix';
 
+export enum Level {
+    DESERT = 1,
+    SNOW,
+    SPOOKY,
+}
+
 const TERRAIN_COLOR = normalizeRGB(201, 142, 14);
 const TREE_COLORS = [
     normalizeRGB(4, 221, 15),

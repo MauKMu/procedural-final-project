@@ -6,7 +6,7 @@ import Mesh from './geometry/Mesh';
 import TerrainPlane from './geometry/TerrainPlane';
 import Terrain from './game/Terrain';
 import OpenGLRenderer from './rendering/gl/OpenGLRenderer';
-import {DeferredShader} from './rendering/gl/OpenGLRenderer';
+import {Level} from './game/Terrain';
 import Camera from './Camera';
 import Player from './game/Player';
 import {setGL} from './globals';
@@ -248,9 +248,6 @@ function main() {
         //renderer.updateBrushSize(controls[PAINT_BRUSH_SIZE]);
         //renderer.updateBrushNoise(controls[PAINT_BRUSH_NOISE]);
         renderer.updateTime(timer.deltaTime, timer.currentTime);
-        if (timer.currentTime > 5.0) {
-            renderer.setDeferredShader(DeferredShader.SPOOKY);
-        }
 
         //standardDeferred.bindTexToUnit("tex_Color", tex0, 0);
 

@@ -5,13 +5,8 @@ import {gl} from '../../globals';
 import ShaderProgram, {Shader} from './ShaderProgram';
 import PostProcess from './PostProcess'
 import Square from '../../geometry/Square';
+import {Level} from '../../game/Terrain';
 import ShaderFlags from './ShaderFlags';
-
-export enum DeferredShader {
-    DESERT = 1,
-    SNOW,
-    SPOOKY,
-}
 
 class OpenGLRenderer {
     gBuffer: WebGLFramebuffer; // framebuffer for deferred rendering
@@ -207,18 +202,18 @@ class OpenGLRenderer {
             console.error("FLOAT color buffer not available");
         }
 
-        this.setDeferredShader(DeferredShader.DESERT);
+        this.setDeferredShader(Level.DESERT);
     }
 
-    setDeferredShader(which: DeferredShader) {
+    setDeferredShader(which: Level) {
         switch (which) {
-            case DeferredShader.DESERT:
+            case Level.DESERT:
                 this.deferredShader = this.deferredShaderDesert;
                 break;
-            case DeferredShader.SNOW:
+            case Level.SNOW:
                 this.deferredShader = this.deferredShaderSnow;
                 break;
-            case DeferredShader.SPOOKY:
+            case Level.SPOOKY:
                 this.deferredShader = this.deferredShaderSpooky;
                 break;
         }
