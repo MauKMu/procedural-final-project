@@ -1,4 +1,13 @@
-import {vec2, vec3, vec4} from 'gl-matrix';
+import {vec2, vec3, vec4, mat3, mat4} from 'gl-matrix';
+
+export function mat3ToMat4(m3: mat3): mat4 {
+    return mat4.fromValues(
+        m3[0], m3[1], m3[2], 0,
+        m3[3], m3[4], m3[5], 0,
+        m3[6], m3[7], m3[8], 0,
+        0, 0, 0, 1
+    );
+}
 
 // http://demofox.org/biasgain.html
 export function perlinBias(time: number, bias: number): number {

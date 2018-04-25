@@ -75,6 +75,16 @@ class LSystem {
         this.decoration.addMesh(mesh, trans);
     }
 
+    addMeshAtTurtleRotation(turtle: Turtle, scale: vec3, rot: mat4, mesh: any) {
+        if (!this.decoration.isSafeToGrow()) {
+            return;
+        }
+        let trans = turtle.getTransformationToTurtle();
+        mat4.multiply(trans, trans, rot);
+        mat4.scale(trans, trans, scale);
+        this.decoration.addMesh(mesh, trans);
+    }
+
     initAlphabet() {
         let A = new LSymbol("A", function (lsys: LSystem) { });
         let B = new LSymbol("B", function (lsys: LSystem) { });

@@ -7,11 +7,12 @@ import {PRISM_HEIGHT} from '../geometry/Decoration';
 import LString from '../l-system/LString';
 import {lRandom, LRANDOM_DETERMINISTIC} from '../l-system/LRandom';
 import {readTextFileSync} from '../globals';
-import {normalizeRGB} from '../Utils';
+import {normalizeRGB, mat3ToMat4} from '../Utils';
 import * as Loader from 'webgl-obj-loader';
 
 // ""static"" variables (I love JS. It's so bad.)
 let polySphere60: any = null;
+let scarf: any = null;
 
 const TWIG_SCALE = 0.1;
 const FINGER_SCALE = 0.05;
@@ -20,17 +21,23 @@ const NOSE_SCALE = 0.075;
 const SNOW_COLOR = normalizeRGB(200, 200, 255);
 const WOOD_COLOR = normalizeRGB(60, 17, 0);
 const NOSE_COLOR = normalizeRGB(455, 83, 30);
+const SCARF_COLOR = normalizeRGB(20, 300, 300);
 
 class Snowman extends LSystem {
 
     seed: number;
     rotation: mat3;
+    isSpecial: boolean;
 
-    constructor(decoration: Decoration, seed: number) {
+    constructor(decoration: Decoration, seed: number, isSpecial: boolean) {
         super();
         if (polySphere60 == null) {
             let objString = readTextFileSync("res/models/polySphere60.obj");
             polySphere60 = new Loader.Mesh(objString);
+        }
+        if (scarf == null) {
+            let objString = readTextFileSync("res/models/scarf.obj");
+            scarf = new Loader.Mesh(objString);
         }
         this.decoration = decoration;
         this.prismSides = 5;
@@ -47,13 +54,21 @@ class Snowman extends LSystem {
         mat4.fromYRotation(rotMat4, xzAngle);
         this.rotation = mat3.create();
         mat3.fromMat4(this.rotation, rotMat4);
+
+        this.isSpecial = isSpecial;
     }
 
     resetTurtleStack(pos: vec3) {
         let t = new Turtle();
         vec3.copy(t.position, pos);
-        t.scaleBottom = 1.5;
-        t.scaleTop = 1.5;
+        if (this.isSpecial) {
+            t.scaleBottom = 15;
+            t.scaleTop = 15;
+         }
+        else {
+            t.scaleBottom = 1.5;
+            t.scaleTop = 1.5;
+        }
         this.turtleStack = [t];
     }
 
@@ -208,6 +223,17 @@ class Snowman extends LSystem {
             turtle.scaleBottom = bot;
         });
         this.alphabet.push(H);
+        // scarf
+        let S = new LSymbol("S", function (lsys: LSystem) {
+            lsys.useColor(SCARF_COLOR);
+            let turtle = lsys.getTopTurtle();
+            // temporarily move down a little
+            let oldY = turtle.position[1];
+            turtle.position[1] -= turtle.scaleBottom * 0.5;
+            lsys.addMeshAtTurtleRotation(turtle, vec3.fromValues(turtle.scaleBottom, turtle.scaleBottom, turtle.scaleBottom), mat3ToMat4(snowmanRotation), scarf);
+            turtle.position[1] = oldY;
+        });
+        this.alphabet.push(S);
         // push
         let push = new LSymbol("[", function (lsys: LSystem) {
             let turtle = lsys.getTopTurtle();
@@ -222,6 +248,11 @@ class Snowman extends LSystem {
         });
         this.alphabet.push(pop);
 
+        // nop
+        let nop = new LSymbol("0", function (lsys: LSystem) {
+        });
+        this.alphabet.push(nop);
+
         // set expansion rules
         U.setExpansionRules([
             new ExpansionRule(4, [U]),
@@ -230,11 +261,19 @@ class Snowman extends LSystem {
             new ExpansionRule(2, [terminalU, terminalU])
         ]);
 
+        // make scarf rare on non-special snowmen
+        if (!this.isSpecial) {
+            S.setExpansionRules([
+                new ExpansionRule(1, [S]),
+                new ExpansionRule(2, [nop]),
+            ]);
+        }
+
         this.setAxiom([
             U,
             push, beginLeftArm, T, T, H, pop, push, beginRightArm, T, T, H, pop,
             terminalU,
-            N,
+            S, N,
             terminalU,
         ]);
     }
