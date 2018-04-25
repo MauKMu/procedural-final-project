@@ -75,7 +75,7 @@ class Terrain {
                 this.buildLevel2();
                 break;
             case Level.SPOOKY:
-                this.buildLevel2();
+                this.buildLevel3();
                 break;
         }
     }

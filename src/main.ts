@@ -226,7 +226,7 @@ function main() {
 
     player.terrain = spookyTerrain;
     player.forceCorrectHeight();
-    renderer.setDeferredShader(Level.SNOW);
+    renderer.setDeferredShader(Level.SPOOKY);
     renderer.updateFadeInTime(0.0);
     renderer.updateFadeOutTime(0.0);
 
