@@ -23,7 +23,7 @@ class TerrainPlane extends Drawable {
     bigColliders: Array<Collider> = [];
     color: vec4;
 
-    constructor(origin: vec3, tileDim: number, tileNum: number, heightModifier: (height: number) => number) {
+    constructor(origin: vec3, tileDim: number, tileNum: number, frequency: number, heightModifier: (height: number) => number) {
         super(); // Call the constructor of the super class. This is required.
         this.origin = vec3.clone(origin);
         this.color = vec4.fromValues(1.0, 1.0, 1.0, 1.0);
@@ -37,6 +37,7 @@ class TerrainPlane extends Drawable {
 
         // populate height field (indices refer to each tile, starting from origin)
         let xzOrigin = vec2.fromValues(this.origin[0], this.origin[2]);
+        vec2.scale(xzOrigin, xzOrigin, frequency);
         vec2.add(xzOrigin, xzOrigin, NOISE_OFFSET);
         let xzOffset = vec2.create();
         let xzPoint = vec2.create();
@@ -45,7 +46,7 @@ class TerrainPlane extends Drawable {
             let collidersColumn: Array<Array<Collider>> = [];
             for (let j = 0; j < this.tileNum + 1; j++) {
                 vec2.set(xzOffset, i, j);
-                vec2.scaleAndAdd(xzPoint, xzOrigin, xzOffset, this.tileDim);
+                vec2.scaleAndAdd(xzPoint, xzOrigin, xzOffset, this.tileDim * frequency);
                 heights.push(heightModifier(smoothNoise(xzPoint)));
                 collidersColumn.push([]);
             }

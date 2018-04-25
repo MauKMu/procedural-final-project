@@ -5,7 +5,7 @@ import BasicTree from './BasicTree';
 import Snowman from './Snowman';
 import Collider from './Collider';
 import SquareCollider from './SquareCollider';
-import {clamp, mod, modfVec2, baryInterp, normalizeRGB} from '../Utils';
+import {clamp, mod, modfVec2, baryInterp, normalizeRGB, perlinGain} from '../Utils';
 import {vec2, vec3, mat4} from 'gl-matrix';
 
 const TERRAIN_COLOR = normalizeRGB(201, 142, 14);
@@ -57,9 +57,9 @@ class Terrain {
                 vec3.scaleAndAdd(planeOrigin, this.origin, planeOffset, this.planeDim);
                 // constructor will generate height fields
                 let heightModifier = function (height: number): number {
-                    return height * 5.0;
+                    return perlinGain(clamp(height + 0.2, 0.0, 1.0), 0.12) * 5.0;
                 }
-                let tp = new TerrainPlane(planeOrigin, this.tileDim, this.tileNum, heightModifier);
+                let tp = new TerrainPlane(planeOrigin, this.tileDim, this.tileNum, 0.1, heightModifier);
                 tp.setColor(TERRAIN_COLOR);
                 //tp.create();
                 // planes inactive at first; made active when updated
@@ -72,19 +72,22 @@ class Terrain {
         for (let z = 0; z < this.planeNumZ; z++) {
             let tpA = this.terrainPlanes[this.getAbsIdx(0, z)];
             let tpB = this.terrainPlanes[this.getAbsIdx(this.planeNumX - 1, z)];
-            // just copy one subset of height field to the other
+            // average heights
             for (let j = 0; j < this.tileNum + 1; j++) {
-                tpB.heightField[this.tileNum][j] = tpA.heightField[0][j];
+                let avgHeight = (tpB.heightField[this.tileNum][j] + tpA.heightField[0][j]) * 0.5;
+                tpB.heightField[this.tileNum][j] = avgHeight;
+                tpA.heightField[0][j] = avgHeight;
             }
         }
         // Z border: 0, planeNumZ - 1
         for (let x = 0; x < this.planeNumX; x++) {
             let tpA = this.terrainPlanes[this.getAbsIdx(x, 0)];
             let tpB = this.terrainPlanes[this.getAbsIdx(x, this.planeNumZ - 1)];
-            // just copy one subset of height field to the other
-            // could try something else, like averaging, but this seems to work
+            // average heights
             for (let j = 0; j < this.tileNum + 1; j++) {
-                tpB.heightField[j][this.tileNum] = tpA.heightField[j][0];
+                let avgHeight = (tpB.heightField[j][this.tileNum] + tpA.heightField[j][0]) * 0.5;
+                tpB.heightField[j][this.tileNum] = avgHeight;
+                tpA.heightField[j][0] = avgHeight;
             }
         }
 
@@ -205,7 +208,7 @@ class Terrain {
                 let heightModifier = function (height: number): number {
                     return height * 5.0;
                 }
-                let tp = new TerrainPlane(planeOrigin, this.tileDim, this.tileNum, heightModifier);
+                let tp = new TerrainPlane(planeOrigin, this.tileDim, this.tileNum, 1.0, heightModifier);
                 tp.setColor(TERRAIN_COLOR);
                 //tp.create();
                 // planes inactive at first; made active when updated
