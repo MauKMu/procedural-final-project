@@ -47,6 +47,9 @@ class Terrain {
 
     ghosts: Array<Ghost>;
 
+    level: Level;
+    shouldExit: boolean;
+
     constructor(origin: vec3, tileDim: number, tileNum: number, planeNumX: number, planeNumZ: number, level: Level) {
         this.origin = vec3.clone(origin);
         this.tileDim = tileDim;
@@ -61,7 +64,10 @@ class Terrain {
         this.drawables = [];
         this.ghosts = [];
 
-        switch (level) {
+        this.level = level;
+        this.shouldExit = false;
+
+        switch (this.level) {
             case Level.DESERT:
                 this.buildLevel();
                 break;
@@ -651,10 +657,8 @@ class Terrain {
             if (collision == null) {
                 continue;
             }
-            //console.log("coll");
             collided = true;
             posAfterCollision = collision;
-            //posLooped = this.getLoopedPosition(startPos);
         }
         if (!collided) {
             posAfterCollision = targetVec2;
@@ -793,6 +797,10 @@ class Terrain {
             mat4.fromRotationTranslation(ghostMat, q, ghostPos);
             //mat4.translate(ghostMat, ghostMat, ghostPos);
             ghost.setModelMatrix(ghostMat);
+            // treat collision with ghost as reason to exit
+            if (vec3.length(ghost.playerOffset) < 1.6) {
+                this.shouldExit = true;
+            }
         }
     }
 

@@ -215,6 +215,10 @@ class Player {
     update(deltaTime: number) {
         this.move(deltaTime);
         this.terrain.updatePlanes(this.position, deltaTime);
+        if (this.terrain.shouldExit) {
+            console.log("exit!!");
+            this.terrain.shouldExit = false;
+        }
         // update camera position, target, direction
         vec3.add(this.eye, this.position, EYE_OFFSET);
         vec3.copy(this.camera.position, this.eye);
