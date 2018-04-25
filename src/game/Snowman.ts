@@ -220,16 +220,11 @@ class Snowman extends LSystem {
             lsys.turtleStack.pop();
         });
         this.alphabet.push(pop);
-        // nop
-        let nop = new LSymbol("0", function (lsys: LSystem) {
-        });
-        this.alphabet.push(nop);
 
         // set expansion rules
         U.setExpansionRules([
             new ExpansionRule(4, [U]),
             new ExpansionRule(1, [U, terminalU]),
-            new ExpansionRule(2, [nop]),
             new ExpansionRule(2, [terminalU]),
             new ExpansionRule(2, [terminalU, terminalU])
         ]);

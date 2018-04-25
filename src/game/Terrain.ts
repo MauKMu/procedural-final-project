@@ -110,6 +110,12 @@ class Terrain {
                     vec3.set(treeOrigin, Math.cos(angle), 0, Math.sin(angle));
                     vec3.scaleAndAdd(posInPlane, baseInPlane, treeOrigin, 1.6 * this.tileDim);
                     vec3.scaleAndAdd(treeOrigin, planeOrigin, treeOrigin, 1.6 * this.tileDim);
+                    // find tile information
+                    let posTileIdx = vec2.create();
+                    let posInTile = modfVec2(vec2.fromValues(posInPlane[0], posInPlane[2]), this.tileDim, posTileIdx);
+                    // find and use height
+                    let height = this.getHeight(posInTile, posTileIdx, tp);
+                    treeOrigin[1] = this.origin[1] + height - 1.0;
                     //let tree = new BasicTree(decorations);
                     let tree = new Snowman(decorations, Math.floor(Math.random() * 2048));
                     tree.initAlphabet();
@@ -120,7 +126,6 @@ class Terrain {
 
                     // add collider
                     let collider = new Collider(vec2.fromValues(treeOrigin[0], treeOrigin[2]), 1.0);
-                    let posTileIdx = vec2.fromValues(Math.floor(posInPlane[0] / this.tileDim), Math.floor(posInPlane[2] / this.tileDim));
                     let xMin = Math.max(0, posTileIdx[0] - 1);
                     let xMax = Math.min(this.tileNum - 1, posTileIdx[0] + 1);
                     let zMin = Math.max(0, posTileIdx[1] - 1);
