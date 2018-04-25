@@ -436,6 +436,35 @@ class Terrain {
         return vec2.fromValues(mod(pos[0], this.totalDimX), mod(pos[1], this.totalDimZ));
     }
 
+    getHeight(posInTile: vec2, posTileIdx: vec2, tp: TerrainPlane): number {
+        // do barycentric interpolation to find height
+        let a = vec2.fromValues(0, 0);
+        let b: vec2;
+        let c = vec2.fromValues(this.tileDim, this.tileDim);
+        let heights: vec3;
+        // which triangle are we in? 012 or 023? (see TerrainPlane)
+        if (posInTile[0] > posInTile[1]) {
+            // triangle is 012
+            b = vec2.fromValues(this.tileDim, 0);
+            heights = vec3.fromValues(
+                tp.heightField[posTileIdx[0]][posTileIdx[1]],
+                tp.heightField[posTileIdx[0] + 1][posTileIdx[1]],
+                tp.heightField[posTileIdx[0] + 1][posTileIdx[1] + 1]
+            );
+        }
+        else {
+            // triangle is 023
+            b = vec2.fromValues(0, this.tileDim);
+            heights = vec3.fromValues(
+                tp.heightField[posTileIdx[0]][posTileIdx[1]],
+                tp.heightField[posTileIdx[0]][posTileIdx[1] + 1],
+                tp.heightField[posTileIdx[0] + 1][posTileIdx[1] + 1]
+            );
+        }
+        let weights = baryInterp(a, b, c, posInTile);
+        return vec3.dot(weights, heights);
+    }
+
     // takes in Player's "target" position (where they would move
     // if terrain was flat) and returns target position shifted to
     // height coherent with terrain
@@ -492,32 +521,7 @@ class Terrain {
             tp = this.terrainPlanes[this.getAbsIdx(posPlaneIdx[0], posPlaneIdx[1])];
         }
         //console.log(posPlaneIdx);
-        // do barycentric interpolation to find height
-        let a = vec2.fromValues(0, 0);
-        let b: vec2;
-        let c = vec2.fromValues(this.tileDim, this.tileDim);
-        let heights: vec3;
-        // which triangle are we in? 012 or 023? (see TerrainPlane)
-        if (posInTile[0] > posInTile[1]) {
-            // triangle is 012
-            b = vec2.fromValues(this.tileDim, 0);
-            heights = vec3.fromValues(
-                tp.heightField[posTileIdx[0]][posTileIdx[1]],
-                tp.heightField[posTileIdx[0] + 1][posTileIdx[1]],
-                tp.heightField[posTileIdx[0] + 1][posTileIdx[1] + 1]
-            );
-        }
-        else {
-            // triangle is 023
-            b = vec2.fromValues(0, this.tileDim);
-            heights = vec3.fromValues(
-                tp.heightField[posTileIdx[0]][posTileIdx[1]],
-                tp.heightField[posTileIdx[0]][posTileIdx[1] + 1],
-                tp.heightField[posTileIdx[0] + 1][posTileIdx[1] + 1]
-            );
-        }
-        let weights = baryInterp(a, b, c, posInTile);
-        let height = vec3.dot(weights, heights);
+        let height = this.getHeight(posInTile, posTileIdx, tp);
         let newTarget = vec3.fromValues(posAfterCollision[0], this.origin[1] + height, posAfterCollision[1]);
         // find direction towards terrain-aware target, adjust its length
         // NOTE: this may not work if tiles are too small relative to step size
