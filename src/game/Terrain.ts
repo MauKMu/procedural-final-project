@@ -214,7 +214,8 @@ class Terrain {
             ghost.executeString();
 
             let xzAngle = Math.random() * 2.0 * Math.PI;
-            vec3.copy(ghost.playerOffset, vec3.fromValues(Math.cos(xzAngle) * 20, 0, Math.sin(xzAngle) * 20));
+            vec3.copy(ghost.playerOffset, vec3.fromValues(Math.cos(xzAngle), 0, Math.sin(xzAngle)));
+            vec3.scale(ghost.playerOffset, ghost.playerOffset, 30.0);
 
             ghostDecorations.create();
             this.drawables.push(ghostDecorations);
@@ -729,12 +730,36 @@ class Terrain {
             }
         }
         // check for ghost collision
+        let avoidDirs: Array<vec3> = new Array<vec3>(this.ghosts.length); // directions used for ghosts to avoid each other
+        for (let g = 0; g < this.ghosts.length; g++) {
+            avoidDirs[g] = vec3.fromValues(0, 0, 0);
+        }
         for (let g = 0; g < this.ghosts.length; g++) {
             let ghost = this.ghosts[g];
+            // O(n^2)... O(nn)oo...
+
+            for (let otherG = g + 1; otherG < this.ghosts.length; otherG++) {
+                let otherGhost = this.ghosts[otherG];
+                let avoidDir = vec3.create();
+                vec3.subtract(avoidDir, ghost.playerOffset, otherGhost.playerOffset);
+                let lenSqr = vec3.dot(avoidDir, avoidDir);
+                vec3.normalize(avoidDir, avoidDir);
+                // compute dot product to see how close to parallel they are
+                let normPlayerOffset = vec3.clone(ghost.playerOffset);
+                vec3.normalize(normPlayerOffset, normPlayerOffset);
+                let dot = vec3.dot(avoidDir, normPlayerOffset);
+                // if very parallel, decrease effect
+                // if very far, decrease effect
+                let scale = (1.0 - Math.abs(dot)) / lenSqr;
+                vec3.scaleAndAdd(avoidDirs[g], avoidDirs[g], avoidDir, scale);
+                vec3.scaleAndAdd(avoidDirs[otherG], avoidDirs[otherG], avoidDir, -scale);
+            }
             // move ghost towards player
             let toPlayer = vec3.clone(ghost.playerOffset);
             vec3.normalize(toPlayer, toPlayer);
             vec3.scaleAndAdd(ghost.playerOffset, ghost.playerOffset, toPlayer, -deltaTime * 4.0);
+            // move ghost away from other ghosts
+            vec3.add(ghost.playerOffset, ghost.playerOffset, avoidDirs[g]);
             // find actual ghost position
             let ghostPos = vec3.create();
             vec3.add(ghostPos, playerPos, ghost.playerOffset);
