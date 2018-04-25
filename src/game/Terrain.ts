@@ -56,7 +56,10 @@ class Terrain {
                 vec3.set(planeOffset, x, 0, z);
                 vec3.scaleAndAdd(planeOrigin, this.origin, planeOffset, this.planeDim);
                 // constructor will generate height fields
-                let tp = new TerrainPlane(planeOrigin, this.tileDim, this.tileNum);
+                let heightModifier = function (height: number): number {
+                    return height * 5.0;
+                }
+                let tp = new TerrainPlane(planeOrigin, this.tileDim, this.tileNum, heightModifier);
                 tp.setColor(TERRAIN_COLOR);
                 //tp.create();
                 // planes inactive at first; made active when updated
@@ -199,7 +202,10 @@ class Terrain {
                 vec3.set(planeOffset, x, 0, z);
                 vec3.scaleAndAdd(planeOrigin, this.origin, planeOffset, this.planeDim);
                 // constructor will generate height fields
-                let tp = new TerrainPlane(planeOrigin, this.tileDim, this.tileNum);
+                let heightModifier = function (height: number): number {
+                    return height * 5.0;
+                }
+                let tp = new TerrainPlane(planeOrigin, this.tileDim, this.tileNum, heightModifier);
                 tp.setColor(TERRAIN_COLOR);
                 //tp.create();
                 // planes inactive at first; made active when updated
