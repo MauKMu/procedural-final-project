@@ -139,6 +139,14 @@ class OpenGLRenderer {
         }
     }
 
+    updateFadeInTime(fadeInTime: number) {
+        this.deferredShader.setFadeInTime(fadeInTime);
+    }
+
+    updateFadeOutTime(fadeOutTime: number) {
+        this.deferredShader.setFadeOutTime(fadeOutTime);
+    }
+
     constructor(public canvas: HTMLCanvasElement) {
         this.currentTime = 0.0;
         this.gbTargets = [undefined, undefined, undefined];

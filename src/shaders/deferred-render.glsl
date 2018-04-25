@@ -18,6 +18,9 @@ uniform sampler2D u_gb2;
 uniform float u_Time;
 uniform float u_AspectRatio;
 
+uniform float u_FadeInTime;
+uniform float u_FadeOutTime;
+
 uniform mat4 u_View;
 uniform vec4 u_CamPos;   
 
@@ -25,6 +28,8 @@ const float CAMERA_TAN = tan(0.5 * 45.0 * 3.1415962 / 180.0);
 const float DEPTH_OFFSET = 0.0;
 
 const vec3 LIGHT_DIR = vec3(50, 120, 100);
+
+const vec3 NEXT_BG_COLOR = vec3(1.99, 0.1, 0.0);
 
 float getLambert(vec3 worldPos, vec3 normal) {
     vec3 toLight = normalize(LIGHT_DIR);
@@ -200,6 +205,8 @@ void main() {
         //col += vec3(0, 0, 100.0 + 300.0 * (cos(time * 100.0) * 0.5 + 0.5)) * lightFactor;
     }
     col = mix(col, bgColor, fogFactor);
+    col = mix(bgColor, col, u_FadeInTime); // fade in from this BG color
+    col = mix(col, NEXT_BG_COLOR, u_FadeOutTime); // fade out into "next" BG color
     col *= 5.0;
 	out_Col = vec4(col, 1.0);
 }

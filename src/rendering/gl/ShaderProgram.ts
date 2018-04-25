@@ -39,6 +39,9 @@ class ShaderProgram {
   unifCoherence: WebGLUniformLocation;
   unifBrushSize: WebGLUniformLocation;
   unifBrushNoise: WebGLUniformLocation;
+    
+  unifFadeInTime: WebGLUniformLocation;
+  unifFadeOutTime: WebGLUniformLocation;
 
   unifTexUnits: Map<string, WebGLUniformLocation>;
 
@@ -69,6 +72,8 @@ class ShaderProgram {
     this.unifCoherence = gl.getUniformLocation(this.prog, "u_Coherence");
     this.unifBrushSize = gl.getUniformLocation(this.prog, "u_BrushSize");
     this.unifBrushNoise = gl.getUniformLocation(this.prog, "u_BrushNoise");
+    this.unifFadeInTime = gl.getUniformLocation(this.prog, "u_FadeInTime");
+    this.unifFadeOutTime = gl.getUniformLocation(this.prog, "u_FadeOutTime");
 
     this.unifTexUnits = new Map<string, WebGLUniformLocation>();
   }
@@ -186,6 +191,20 @@ class ShaderProgram {
     this.use();
     if (this.unifBrushNoise !== -1) {
       gl.uniform1f(this.unifBrushNoise, brushNoise);
+    }
+  }
+
+  setFadeInTime(fadeInTime: number) {
+    this.use();
+    if (this.unifFadeInTime !== -1) {
+      gl.uniform1f(this.unifFadeInTime, fadeInTime);
+    }
+  }
+
+  setFadeOutTime(fadeOutTime: number) {
+    this.use();
+    if (this.unifFadeOutTime !== -1) {
+      gl.uniform1f(this.unifFadeOutTime, fadeOutTime);
     }
   }
 

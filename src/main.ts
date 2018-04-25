@@ -269,6 +269,10 @@ function main() {
         //renderer.updateBrushSize(controls[PAINT_BRUSH_SIZE]);
         //renderer.updateBrushNoise(controls[PAINT_BRUSH_NOISE]);
         renderer.updateTime(timer.deltaTime, timer.currentTime);
+        let t = timer.currentTime * 0.4;
+        t = (t > 1.0) ? 1.0 : t;
+        renderer.updateFadeInTime(t);
+        renderer.updateFadeOutTime(0.0);
 
         //standardDeferred.bindTexToUnit("tex_Color", tex0, 0);
 
