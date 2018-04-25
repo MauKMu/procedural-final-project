@@ -13,14 +13,22 @@ import * as Loader from 'webgl-obj-loader';
 // ""static"" variables (I love JS. It's so bad.)
 let ghostBody: any = null;
 let roundEyes: any = null;
+let sadEyes: any = null;
+let angryEyes: any = null;
 
 const TWIG_SCALE = 0.1;
 const FINGER_SCALE = 0.05;
 const NOSE_SCALE = 0.075;
 
-const BODY_COLOR = normalizeRGB(200, 200, 255);
-const EYE_COLOR = normalizeRGB(60, 17, 0);
+const EYE_COLOR = normalizeRGB(200, 200, 255);
+const BODY_COLOR = normalizeRGB(17, 17, 17);
 const NOSE_COLOR = normalizeRGB(455, 83, 30);
+const NICE_COLOR = normalizeRGB(20, 140, 225);
+
+export enum GhostType {
+    EVIL = 1,
+    NICE, // is it really a dichotomy, tho. hm. :thinking:
+}
 
 class Ghost extends LSystem {
 
@@ -29,9 +37,11 @@ class Ghost extends LSystem {
     playerOffset: vec3;
     bobValue: number;
     bobFrequency: number;
+    type: GhostType;
 
-    constructor(decoration: Decoration, seed: number) {
+    constructor(decoration: Decoration, seed: number, type: GhostType) {
         super();
+        this.type = type;
         if (ghostBody == null) {
             let objString = readTextFileSync("res/models/ghostBody.obj");
             ghostBody = new Loader.Mesh(objString);
@@ -39,6 +49,14 @@ class Ghost extends LSystem {
         if (roundEyes == null) {
             let objString = readTextFileSync("res/models/roundEyes.obj");
             roundEyes = new Loader.Mesh(objString);
+        }
+        if (sadEyes == null) {
+            let objString = readTextFileSync("res/models/sadEyes.obj");
+            sadEyes = new Loader.Mesh(objString);
+        }
+        if (angryEyes == null) {
+            let objString = readTextFileSync("res/models/angryEyes.obj");
+            angryEyes = new Loader.Mesh(objString);
         }
         this.decoration = decoration;
         this.prismSides = 5;
@@ -74,20 +92,34 @@ class Ghost extends LSystem {
         this.alphabet = [];
         // do this to avoid "this" issues
         let snowmanRotation = this.rotation;
+        let bodyColor = (this.type == GhostType.EVIL) ? BODY_COLOR : NICE_COLOR;
+        let eyeColor = (this.type == GhostType.EVIL) ? EYE_COLOR : BODY_COLOR;
         // body
         let B = new LSymbol("B", function (lsys: LSystem) {
-            lsys.useColor(BODY_COLOR);
+            lsys.useColor(bodyColor);
             let turtle = lsys.getTopTurtle();
             lsys.addMeshAtTurtleRotation(turtle, vec3.fromValues(turtle.scaleBottom, turtle.scaleBottom, turtle.scaleBottom), mat3ToMat4(snowmanRotation), ghostBody);
         });
         this.alphabet.push(B);
         // eyes
-        let E = new LSymbol("E", function (lsys: LSystem) {
-            lsys.useColor(EYE_COLOR);
+        let neutral = new LSymbol("(00)", function (lsys: LSystem) {
+            lsys.useColor(eyeColor);
             let turtle = lsys.getTopTurtle();
             lsys.addMeshAtTurtleRotation(turtle, vec3.fromValues(turtle.scaleBottom, turtle.scaleBottom, turtle.scaleBottom), mat3ToMat4(snowmanRotation), roundEyes);
         });
-        this.alphabet.push(B);
+        this.alphabet.push(neutral);
+        let sad = new LSymbol("(/\\)", function (lsys: LSystem) {
+            lsys.useColor(eyeColor);
+            let turtle = lsys.getTopTurtle();
+            lsys.addMeshAtTurtleRotation(turtle, vec3.fromValues(turtle.scaleBottom, turtle.scaleBottom, turtle.scaleBottom), mat3ToMat4(snowmanRotation), sadEyes);
+        });
+        this.alphabet.push(sad);
+        let angry = new LSymbol("(\\/)", function (lsys: LSystem) {
+            lsys.useColor(eyeColor);
+            let turtle = lsys.getTopTurtle();
+            lsys.addMeshAtTurtleRotation(turtle, vec3.fromValues(turtle.scaleBottom, turtle.scaleBottom, turtle.scaleBottom), mat3ToMat4(snowmanRotation), angryEyes);
+        });
+        this.alphabet.push(angry);
         // push
         let push = new LSymbol("[", function (lsys: LSystem) {
             let turtle = lsys.getTopTurtle();
@@ -105,7 +137,7 @@ class Ghost extends LSystem {
         // set expansion rules
 
         this.setAxiom([
-            B, E,
+            B, neutral,
             //U,
             //push, beginLeftArm, T, T, H, pop, push, beginRightArm, T, T, H, pop,
             //terminalU,

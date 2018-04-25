@@ -4,6 +4,7 @@ import Decoration from '../geometry/Decoration';
 import BasicTree from './BasicTree';
 import Snowman from './Snowman';
 import Ghost from './Ghost';
+import {GhostType} from './Ghost';
 import Collider from './Collider';
 import SquareCollider from './SquareCollider';
 import {clamp, mod, modfVec2, baryInterp, normalizeRGB, perlinGain} from '../Utils';
@@ -29,7 +30,7 @@ const PYRAMID_COLOR = normalizeRGB(255, 140, 0);
 
 const SNOW_COLOR = normalizeRGB(200, 200, 255);
 
-const SPOOKY_COLOR = normalizeRGB(3, 10, 3);
+const SPOOKY_COLOR = normalizeRGB(3, 4, 3);
 
 const NUM_GHOSTS = 3;
 
@@ -230,7 +231,7 @@ class Terrain {
         for (let i = 0; i < NUM_GHOSTS; i++) {
             let ghostDecorations = new Decoration();
 
-            let ghost = new Ghost(ghostDecorations, Math.floor(Math.random() * 512));
+            let ghost = new Ghost(ghostDecorations, Math.floor(Math.random() * 512), GhostType.NICE);
             ghost.initAlphabet();
             ghost.resetTurtleStack(vec3.fromValues(0, 1, 0));
             ghost.expandString();
