@@ -20,6 +20,8 @@ const TREE_COLORS = [
 ];
 const PYRAMID_COLOR = normalizeRGB(255, 140, 0);
 
+const SNOW_COLOR = normalizeRGB(200, 200, 255);
+
 class Terrain {
     drawables: Array<Drawable>;
     terrainPlanes: Array<TerrainPlane>;
@@ -60,7 +62,7 @@ class Terrain {
                     return perlinGain(clamp(height + 0.2, 0.0, 1.0), 0.12) * 5.0;
                 }
                 let tp = new TerrainPlane(planeOrigin, this.tileDim, this.tileNum, 0.1, heightModifier);
-                tp.setColor(TERRAIN_COLOR);
+                tp.setColor(SNOW_COLOR);
                 //tp.create();
                 // planes inactive at first; made active when updated
                 tp.isActive = false;
@@ -111,7 +113,7 @@ class Terrain {
                 let angleIncrement = 2.0 * Math.PI / treesInCluster;
                 let posInPlane = vec3.create();
                 for (let i = 0; i < treesInCluster; i++) {
-                    decorations.useColor(TREE_COLORS[Math.floor(Math.random() * TREE_COLORS.length * 0.999)]);
+                    decorations.useColor(SNOW_COLOR);
                     angle += angleIncrement;
                     vec3.set(treeOrigin, Math.cos(angle), 0, Math.sin(angle));
                     vec3.scaleAndAdd(posInPlane, baseInPlane, treeOrigin, 1.6 * this.tileDim);
