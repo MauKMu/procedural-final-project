@@ -23,6 +23,8 @@ const PYRAMID_COLOR = normalizeRGB(255, 140, 0);
 
 const SNOW_COLOR = normalizeRGB(200, 200, 255);
 
+const SPOOKY_COLOR = normalizeRGB(3, 10, 3);
+
 const NUM_GHOSTS = 3;
 
 class Terrain {
@@ -68,7 +70,7 @@ class Terrain {
                     return Math.pow(height, 0.25) * 5.0;
                 }
                 let tp = new TerrainPlane(planeOrigin, this.tileDim, this.tileNum, 0.2, heightModifier);
-                tp.setColor(SNOW_COLOR);
+                tp.setColor(SPOOKY_COLOR);
                 //tp.create();
                 // planes inactive at first; made active when updated
                 tp.isActive = false;

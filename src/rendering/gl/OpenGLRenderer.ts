@@ -49,7 +49,7 @@ class OpenGLRenderer {
 
     // the shader that renders from the gbuffers into the postbuffers
     deferredShader: PostProcess = new PostProcess(
-        new Shader(gl.FRAGMENT_SHADER, require('../../shaders/deferred-render-desert.glsl'))
+        new Shader(gl.FRAGMENT_SHADER, require('../../shaders/deferred-render.glsl'))
     );
 
     // shader that maps 32-bit color to 8-bit color
