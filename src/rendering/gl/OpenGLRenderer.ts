@@ -7,6 +7,12 @@ import PostProcess from './PostProcess'
 import Square from '../../geometry/Square';
 import ShaderFlags from './ShaderFlags';
 
+export enum DeferredShader {
+    DESERT = 1,
+    SNOW,
+    SPOOKY,
+}
+
 class OpenGLRenderer {
     gBuffer: WebGLFramebuffer; // framebuffer for deferred rendering
 
@@ -48,9 +54,16 @@ class OpenGLRenderer {
     ]);
 
     // the shader that renders from the gbuffers into the postbuffers
-    deferredShader: PostProcess = new PostProcess(
+    deferredShaderDesert: PostProcess = new PostProcess(
+        new Shader(gl.FRAGMENT_SHADER, require('../../shaders/deferred-render-desert.glsl'))
+    );
+    deferredShaderSnow: PostProcess = new PostProcess(
+        new Shader(gl.FRAGMENT_SHADER, require('../../shaders/deferred-render-snow.glsl'))
+    );
+    deferredShaderSpooky: PostProcess = new PostProcess(
         new Shader(gl.FRAGMENT_SHADER, require('../../shaders/deferred-render.glsl'))
     );
+    deferredShader: PostProcess;
 
     // shader that maps 32-bit color to 8-bit color
     tonemapPass: PostProcess = new PostProcess(
@@ -185,26 +198,6 @@ class OpenGLRenderer {
             ];
             OpenGLRenderer.compiledShaders.set(ShaderFlags.VAPORWAVE, arr);
         }
-        // TODO: these are placeholder post shaders, replace them with something good
-        //this.add8BitPass(new PostProcess(new Shader(gl.FRAGMENT_SHADER, require('../../shaders/examplePost-frag.glsl'))));
-        //this.add8BitPass(new PostProcess(new Shader(gl.FRAGMENT_SHADER, require('../../shaders/examplePost2-frag.glsl'))));
-
-        //this.add32BitPass(new PostProcess(new Shader(gl.FRAGMENT_SHADER, require('../../shaders/examplePost3-frag.glsl'))));
-        /*
-        this.add32BitPrePass(new PostProcess(new Shader(gl.FRAGMENT_SHADER, require('../../shaders/bloomHigh-frag.glsl'))));
-        for (let i = 0; i < 2; i++) {
-            this.add32BitPrePass(new PostProcess(new Shader(gl.FRAGMENT_SHADER, require('../../shaders/blurX-frag.glsl'))));
-            this.add32BitPrePass(new PostProcess(new Shader(gl.FRAGMENT_SHADER, require('../../shaders/blurY-frag.glsl'))));
-        }
-
-        this.add32BitPass(new PostProcess(new Shader(gl.FRAGMENT_SHADER, require('../../shaders/bloomAdd-frag.glsl'))));
-        this.add32BitPass(new PostProcess(new Shader(gl.FRAGMENT_SHADER, require('../../shaders/dofBlurX-frag.glsl'))));
-        this.add32BitPass(new PostProcess(new Shader(gl.FRAGMENT_SHADER, require('../../shaders/dofBlurY-frag.glsl'))));
-        this.add32BitPass(new PostProcess(new Shader(gl.FRAGMENT_SHADER, require('../../shaders/pointilism-frag.glsl'))));
-        */
-        //this.add32BitPrePass(new PostProcess(new Shader(gl.FRAGMENT_SHADER, require('../../shaders/curl-frag.glsl'))));
-        //this.add32BitPass(new PostProcess(new Shader(gl.FRAGMENT_SHADER, require('../../shaders/paint-frag.glsl'))));
-        //this.add8BitPass(new PostProcess(new Shader(gl.FRAGMENT_SHADER, require('../../shaders/vaporwave-frag.glsl'))));
 
         if (!gl.getExtension("OES_texture_float_linear")) {
             console.error("OES_texture_float_linear not available");
@@ -212,6 +205,22 @@ class OpenGLRenderer {
 
         if (!gl.getExtension("EXT_color_buffer_float")) {
             console.error("FLOAT color buffer not available");
+        }
+
+        this.setDeferredShader(DeferredShader.DESERT);
+    }
+
+    setDeferredShader(which: DeferredShader) {
+        switch (which) {
+            case DeferredShader.DESERT:
+                this.deferredShader = this.deferredShaderDesert;
+                break;
+            case DeferredShader.SNOW:
+                this.deferredShader = this.deferredShaderSnow;
+                break;
+            case DeferredShader.SPOOKY:
+                this.deferredShader = this.deferredShaderSpooky;
+                break;
         }
 
         var gb0loc = gl.getUniformLocation(this.deferredShader.prog, "u_gb0");
@@ -223,7 +232,6 @@ class OpenGLRenderer {
         gl.uniform1i(gb1loc, 1);
         gl.uniform1i(gb2loc, 2);
     }
-
 
     setClearColor(r: number, g: number, b: number, a: number) {
         gl.clearColor(r, g, b, a);
