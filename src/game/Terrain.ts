@@ -47,7 +47,7 @@ class Terrain {
 
     ghosts: Array<Ghost>;
 
-    constructor(origin: vec3, tileDim: number, tileNum: number, planeNumX: number, planeNumZ: number) {
+    constructor(origin: vec3, tileDim: number, tileNum: number, planeNumX: number, planeNumZ: number, level: Level) {
         this.origin = vec3.clone(origin);
         this.tileDim = tileDim;
         this.tileNum = tileNum;
@@ -61,7 +61,17 @@ class Terrain {
         this.drawables = [];
         this.ghosts = [];
 
-        this.buildLevel3();
+        switch (level) {
+            case Level.DESERT:
+                this.buildLevel();
+                break;
+            case Level.SNOW:
+                this.buildLevel2();
+                break;
+            case Level.SPOOKY:
+                this.buildLevel3();
+                break;
+        }
     }
 
     buildLevel3() {

@@ -213,9 +213,11 @@ function main() {
 
     const player = new Player(camera, camera.position, camera.direction);
 
-    const terrain = new Terrain(vec3.fromValues(0, 0, 0), 4, 25, 4, 3);
+    const desertTerrain = new Terrain(vec3.fromValues(0, 0, 0), 4, 25, 4, 3, Level.DESERT);
+    const snowTerrain = new Terrain(vec3.fromValues(0, 0, 0), 4, 25, 4, 3, Level.SNOW);
+    const spookyTerrain = new Terrain(vec3.fromValues(0, 0, 0), 4, 25, 4, 3, Level.SPOOKY);
 
-    player.terrain = terrain;
+    player.terrain = desertTerrain;
 
     //terrain.drawables.push(mesh0);
 
@@ -238,6 +240,10 @@ function main() {
         //player.move(timer.deltaTime);
         //vec3.copy(player.position, terrain.collide(player.position));
         //terrain.updatePlanes(player.position);
+        if (timer.currentTime > 5.0) {
+            player.terrain = spookyTerrain;
+            renderer.setDeferredShader(Level.SPOOKY);
+        }
         player.update(timer.deltaTime);
         //camera.update();
         stats.begin();
@@ -256,7 +262,7 @@ function main() {
 
         // TODO: pass any arguments you may need for shader passes
         // forward render mesh info into gbuffers
-        renderer.renderToGBuffer(camera, standardDeferred, terrain.drawables);
+        renderer.renderToGBuffer(camera, standardDeferred, player.terrain.drawables);
         //renderer.renderToGBuffer(camera, standardDeferred, [mesh0, mesh1, tp]);
         // render from gbuffers into 32-bit color buffer
         renderer.renderFromGBuffer(camera);
