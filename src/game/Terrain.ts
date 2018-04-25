@@ -819,6 +819,16 @@ class Terrain {
         }
     }
 
+    // move ghosts away from player
+    resetGhosts() {
+        for (let i = 0; i < this.ghosts.length; i++) {
+            let ghost = this.ghosts[i];
+            let xzAngle = Math.random() * 2.0 * Math.PI;
+            vec3.copy(ghost.playerOffset, vec3.fromValues(Math.cos(xzAngle), 0, Math.sin(xzAngle)));
+            vec3.scale(ghost.playerOffset, ghost.playerOffset, 50.0 + Math.random() * 10.0);
+        }
+    }
+
 };
 
 export default Terrain;

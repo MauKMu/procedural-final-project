@@ -282,6 +282,8 @@ function main() {
                         break;
                 }
                 player.forceCorrectHeight();
+                player.terrain.resetGhosts();
+                player.terrain.shouldExit = false;
                 // update new shader
                 renderer.updateFadeInTime(0.0);
                 renderer.updateFadeOutTime(0.0);
