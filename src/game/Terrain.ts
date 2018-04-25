@@ -7,7 +7,7 @@ import Ghost from './Ghost';
 import Collider from './Collider';
 import SquareCollider from './SquareCollider';
 import {clamp, mod, modfVec2, baryInterp, normalizeRGB, perlinGain} from '../Utils';
-import {vec2, vec3, mat4} from 'gl-matrix';
+import {vec2, vec3, mat4, quat} from 'gl-matrix';
 
 const TERRAIN_COLOR = normalizeRGB(201, 142, 14);
 const TREE_COLORS = [
@@ -765,8 +765,15 @@ class Terrain {
             // make ghost bob
             ghostPos[1] += 0.5 + 0.5 * Math.cos(ghost.bobValue * ghost.bobFrequency);
             ghost.bobValue += deltaTime;
+            // make ghost face player
+            vec3.scale(toPlayer, toPlayer, -1);
+            toPlayer[1] = 0;
+            vec3.normalize(toPlayer, toPlayer);
+            let q = quat.create();
+            quat.rotationTo(q, vec3.fromValues(0, 0, 1), toPlayer);
             let ghostMat = mat4.create();
-            mat4.translate(ghostMat, ghostMat, ghostPos);
+            mat4.fromRotationTranslation(ghostMat, q, ghostPos);
+            //mat4.translate(ghostMat, ghostMat, ghostPos);
             ghost.setModelMatrix(ghostMat);
         }
     }
