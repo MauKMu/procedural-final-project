@@ -7,18 +7,19 @@ import {PRISM_HEIGHT} from '../geometry/Decoration';
 import LString from '../l-system/LString';
 import {lRandom, LRANDOM_DETERMINISTIC} from '../l-system/LRandom';
 import {readTextFileSync} from '../globals';
-import {normalizeRGB} from '../Utils';
+import {normalizeRGB, mat3ToMat4} from '../Utils';
 import * as Loader from 'webgl-obj-loader';
 
 // ""static"" variables (I love JS. It's so bad.)
-let polySphere60: any = null;
+let ghostBody: any = null;
+let roundEyes: any = null;
 
 const TWIG_SCALE = 0.1;
 const FINGER_SCALE = 0.05;
 const NOSE_SCALE = 0.075;
 
-const SNOW_COLOR = normalizeRGB(200, 200, 255);
-const WOOD_COLOR = normalizeRGB(60, 17, 0);
+const BODY_COLOR = normalizeRGB(200, 200, 255);
+const EYE_COLOR = normalizeRGB(60, 17, 0);
 const NOSE_COLOR = normalizeRGB(455, 83, 30);
 
 class Ghost extends LSystem {
@@ -31,9 +32,13 @@ class Ghost extends LSystem {
 
     constructor(decoration: Decoration, seed: number) {
         super();
-        if (polySphere60 == null) {
-            let objString = readTextFileSync("res/models/polySphere60.obj");
-            polySphere60 = new Loader.Mesh(objString);
+        if (ghostBody == null) {
+            let objString = readTextFileSync("res/models/ghostBody.obj");
+            ghostBody = new Loader.Mesh(objString);
+        }
+        if (roundEyes == null) {
+            let objString = readTextFileSync("res/models/roundEyes.obj");
+            roundEyes = new Loader.Mesh(objString);
         }
         this.decoration = decoration;
         this.prismSides = 5;
@@ -69,152 +74,20 @@ class Ghost extends LSystem {
         this.alphabet = [];
         // do this to avoid "this" issues
         let snowmanRotation = this.rotation;
-        let upFunction = function (lsys: LSystem) {
-            lsys.useColor(SNOW_COLOR);
+        // body
+        let B = new LSymbol("B", function (lsys: LSystem) {
+            lsys.useColor(BODY_COLOR);
             let turtle = lsys.getTopTurtle();
-            // rotate mesh
-            // just want a random direction, so this is enough
-            // OK to overwrite orientation -- we generate a new one later
-            vec3.set(turtle.orientation, 
-                lRandom.getNext() * 2.0 - 1.0,
-                lRandom.getNext() * 2.0 - 1.0,
-                lRandom.getNext() * 2.0 - 1.0
-            );
-            vec3.normalize(turtle.orientation, turtle.orientation);
-            // add mesh
-            lsys.addMeshAtTurtle(turtle, vec3.fromValues(turtle.scaleBottom, turtle.scaleBottom, turtle.scaleBottom), polySphere60);
-            // move turtle up, but not exactly up
-            vec3.set(turtle.orientation, 
-                lRandom.getNext() * 2.0 - 1.0,
-                5.0, // big Y component to make direction close to up
-                lRandom.getNext() * 2.0 - 1.0
-            );
-            vec3.normalize(turtle.orientation, turtle.orientation);
-            turtle.moveForward(turtle.scaleBottom * 1.2);
-            // shrink next mesh
-            turtle.scaleBottom *= 0.7 + lRandom.getNext() * 0.15;
-        };
-        // up
-        let U = new LSymbol("U", upFunction);
-        this.alphabet.push(U);
-        // terminal up
-        let terminalU = new LSymbol("u", upFunction);
-        this.alphabet.push(terminalU);
-        // arm setup -- set turtle orientation to something useful for arms
-        let beginLeftArm = new LSymbol("(LA)", function (lsys: LSystem) {
-            let turtle = lsys.getTopTurtle();
-            vec3.set(turtle.orientation, 
-                lRandom.getNext() * 0.4 + 0.6, // big positive X
-                lRandom.getNext() * 0.8 - 0.2, // medium Y
-                lRandom.getNext() * 0.2 - 0.1  // small Z
-            );
-            // account for snowman's rotation
-            vec3.transformMat3(turtle.orientation, turtle.orientation, snowmanRotation);
-            vec3.normalize(turtle.orientation, turtle.orientation);
-            // move turtle so we're closer to the outside of the snowball
-            turtle.moveForward(turtle.scaleBottom * 0.8);
+            lsys.addMeshAtTurtleRotation(turtle, vec3.fromValues(turtle.scaleBottom, turtle.scaleBottom, turtle.scaleBottom), mat3ToMat4(snowmanRotation), ghostBody);
         });
-        this.alphabet.push(beginLeftArm);
-
-        let beginRightArm = new LSymbol("(RA)", function (lsys: LSystem) {
+        this.alphabet.push(B);
+        // eyes
+        let E = new LSymbol("E", function (lsys: LSystem) {
+            lsys.useColor(EYE_COLOR);
             let turtle = lsys.getTopTurtle();
-            vec3.set(turtle.orientation, 
-                -(lRandom.getNext() * 0.4 + 0.6), // big negative X
-                lRandom.getNext() * 0.8 - 0.2, // medium Y
-                lRandom.getNext() * 0.2 - 0.1  // small Z
-            );
-            // account for snowman's rotation
-            vec3.transformMat3(turtle.orientation, turtle.orientation, snowmanRotation);
-            vec3.normalize(turtle.orientation, turtle.orientation);
-            // move turtle so we're closer to the outside of the snowball
-            turtle.moveForward(turtle.scaleBottom * 0.8);
+            lsys.addMeshAtTurtleRotation(turtle, vec3.fromValues(turtle.scaleBottom, turtle.scaleBottom, turtle.scaleBottom), mat3ToMat4(snowmanRotation), roundEyes);
         });
-        this.alphabet.push(beginRightArm);
-        // actual arm -- "twig"
-        let T = new LSymbol("T", function (lsys: LSystem) {
-            lsys.useColor(WOOD_COLOR);
-            let turtle = lsys.getTopTurtle();
-            // add twig
-            let bot = turtle.scaleBottom;
-            // overwrite scaleBottom and scaleTop to make twig thin
-            turtle.scaleBottom = TWIG_SCALE * bot;
-            turtle.scaleTop = TWIG_SCALE * bot;
-            lsys.addScaledPrismAtTurtleNoShrink(turtle, bot * 0.1);
-            // move forward
-            turtle.moveForward(bot * 1.05);
-            // add mesh to connect with next part
-            turtle.scaleBottom *= 1.1;
-            lsys.addMeshAtTurtle(turtle, vec3.fromValues(turtle.scaleBottom, turtle.scaleBottom, turtle.scaleBottom), polySphere60);
-            // restore scaleBottom
-            turtle.scaleBottom = bot * 0.85;
-            // tweak direction upwards, with a bit of Z randomness
-            let tweak = vec3.fromValues(
-                0,
-                lRandom.getNext() * 0.3 + 0.4,
-                lRandom.getNext() * 0.8 - 0.4
-            );
-            // account for snowman's rotation
-            vec3.transformMat3(tweak, tweak, snowmanRotation);
-            vec3.add(turtle.orientation, turtle.orientation, tweak);
-            vec3.normalize(turtle.orientation, turtle.orientation);
-        });
-        this.alphabet.push(T);
-        // hand
-        let H = new LSymbol("H", function (lsys: LSystem) {
-            lsys.useColor(WOOD_COLOR);
-            let turtle = lsys.getTopTurtle();
-            // add twig
-            let bot = turtle.scaleBottom;
-            // add 3 fingers. for each finger, pick a direction and draw prism
-            // overwrite scaleBottom and scaleTop to make twig thin
-            turtle.scaleBottom = TWIG_SCALE * bot * 0.5;
-            turtle.scaleTop = turtle.scaleBottom * 0.3;
-            // middle finger -- pick direction
-            let originalDir = vec3.clone(turtle.orientation);
-            let tweak = vec3.fromValues(
-                0,
-                lRandom.getNext() * 0.9 - 0.45,
-                0
-            );
-            let tweakRotated = vec3.create();
-            vec3.transformMat3(tweakRotated, tweak, snowmanRotation);
-            vec3.add(turtle.orientation, originalDir, tweakRotated);
-            vec3.normalize(turtle.orientation, turtle.orientation);
-            lsys.addScaledPrismAtTurtleNoShrink(turtle, bot * 0.05);
-            // left finger -- pick direction
-            tweak[2] = lRandom.getNext() * 1.5; // add strong Z component
-            if (tweak[2] < 0.75) {
-                tweak[2] *= 2.0;
-            }
-            vec3.transformMat3(tweakRotated, tweak, snowmanRotation);
-            vec3.add(turtle.orientation, originalDir, tweakRotated);
-            vec3.normalize(turtle.orientation, turtle.orientation);
-            lsys.addScaledPrismAtTurtleNoShrink(turtle, bot * 0.05);
-            // right finger -- pick direction
-            tweak[2] *= -1.0; // go opposite direction of left finger
-            vec3.transformMat3(tweakRotated, tweak, snowmanRotation);
-            vec3.add(turtle.orientation, originalDir, tweakRotated);
-            vec3.normalize(turtle.orientation, turtle.orientation);
-            lsys.addScaledPrismAtTurtleNoShrink(turtle, bot * 0.05);
-        });
-        this.alphabet.push(H);
-        // nose
-        let N = new LSymbol("N", function (lsys: LSystem) {
-            lsys.useColor(NOSE_COLOR);
-            let turtle = lsys.getTopTurtle();
-            // find face's direction
-            let faceDirection = vec3.fromValues(0, 0, 1);
-            vec3.transformMat3(faceDirection, faceDirection, snowmanRotation);
-            vec3.normalize(faceDirection, faceDirection);
-            // add nose ("cone")
-            vec3.copy(turtle.orientation, faceDirection);
-            let bot = turtle.scaleBottom;
-            turtle.scaleBottom = NOSE_SCALE * bot * 2.0;
-            turtle.scaleTop = turtle.scaleBottom * 0.2;
-            lsys.addScaledPrismAtTurtleNoShrink(turtle, bot * 0.2);
-            turtle.scaleBottom = bot;
-        });
-        this.alphabet.push(H);
+        this.alphabet.push(B);
         // push
         let push = new LSymbol("[", function (lsys: LSystem) {
             let turtle = lsys.getTopTurtle();
@@ -230,19 +103,14 @@ class Ghost extends LSystem {
         this.alphabet.push(pop);
 
         // set expansion rules
-        U.setExpansionRules([
-            new ExpansionRule(4, [U]),
-            new ExpansionRule(1, [U, terminalU]),
-            new ExpansionRule(2, [terminalU]),
-            new ExpansionRule(2, [terminalU, terminalU])
-        ]);
 
         this.setAxiom([
-            U,
-            push, beginLeftArm, T, T, H, pop, push, beginRightArm, T, T, H, pop,
-            terminalU,
-            N,
-            terminalU,
+            B, E,
+            //U,
+            //push, beginLeftArm, T, T, H, pop, push, beginRightArm, T, T, H, pop,
+            //terminalU,
+            //N,
+            //terminalU,
         ]);
     }
 
