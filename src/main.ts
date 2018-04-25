@@ -226,6 +226,8 @@ function main() {
 
     player.terrain = spookyTerrain;
     renderer.setDeferredShader(Level.SPOOKY);
+    renderer.updateFadeInTime(0.0);
+    renderer.updateFadeOutTime(0.0);
 
     const standardDeferred = new ShaderProgram([
         new Shader(gl.VERTEX_SHADER, require('./shaders/standard-vert.glsl')),
@@ -233,6 +235,12 @@ function main() {
     ]);
 
     standardDeferred.setupTexUnits(["tex_Color"]);
+
+    let exiting = false;
+    let exitTime = 0.0;
+
+    let entering = true;
+    let enterTime = 0.0;
 
     console.time("render");
     function tick() {
@@ -242,23 +250,51 @@ function main() {
         //vec3.copy(player.position, terrain.collide(player.position));
         //terrain.updatePlanes(player.position);
         player.update(timer.deltaTime);
-        if (player.terrain.shouldExit) {
-            console.log("exit!!");
+        // update entering/exiting state
+        if (player.terrain.shouldExit && !exiting && !entering) {
+            exiting = true;
+            exitTime = 0.0;
+            // TODO: disable player controls?
             player.terrain.shouldExit = false;
-            switch (player.terrain.level) {
-                case Level.DESERT:
-                    player.terrain = snowTerrain;
-                    renderer.setDeferredShader(Level.SNOW);
-                    break;
-                case Level.SNOW:
-                    player.terrain = spookyTerrain;
-                    renderer.setDeferredShader(Level.SPOOKY);
-                    this.buildLevel2();
-                case Level.SPOOKY:
-                    player.terrain = desertTerrain;
-                    renderer.setDeferredShader(Level.DESERT);
-                    break;
+        }
+        if (exiting) {
+            exitTime += timer.deltaTime * 0.8;
+            if (exitTime > 1.0) {
+                // actually exit level
+                exitTime = 1.0;
+                enterTime = 0.0;
+                entering = true;
+                exiting = false;
+                console.log(["switching...", player.terrain.level]);
+                switch (player.terrain.level) {
+                    case Level.DESERT:
+                        player.terrain = snowTerrain;
+                        renderer.setDeferredShader(Level.SNOW);
+                        break;
+                    case Level.SNOW:
+                        player.terrain = spookyTerrain;
+                        renderer.setDeferredShader(Level.SPOOKY);
+                        break;
+                    case Level.SPOOKY:
+                        player.terrain = desertTerrain;
+                        renderer.setDeferredShader(Level.DESERT);
+                        break;
+                }
+                // update new shader
+                renderer.updateFadeInTime(0.0);
+                renderer.updateFadeOutTime(0.0);
             }
+            else {
+                renderer.updateFadeOutTime(exitTime);
+            }
+        }
+        else if (entering) {
+            enterTime += timer.deltaTime * 0.4;
+            if (enterTime > 1.0) {
+                enterTime = 1.0;
+                entering = false;
+            }
+            renderer.updateFadeInTime(enterTime);
         }
         //camera.update();
         stats.begin();
@@ -269,10 +305,6 @@ function main() {
         //renderer.updateBrushSize(controls[PAINT_BRUSH_SIZE]);
         //renderer.updateBrushNoise(controls[PAINT_BRUSH_NOISE]);
         renderer.updateTime(timer.deltaTime, timer.currentTime);
-        let t = timer.currentTime * 0.4;
-        t = (t > 1.0) ? 1.0 : t;
-        renderer.updateFadeInTime(t);
-        renderer.updateFadeOutTime(0.0);
 
         //standardDeferred.bindTexToUnit("tex_Color", tex0, 0);
 

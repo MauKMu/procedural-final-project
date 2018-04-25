@@ -69,10 +69,10 @@ class Terrain {
 
         switch (this.level) {
             case Level.DESERT:
-                this.buildLevel();
+                this.buildLevel3();
                 break;
             case Level.SNOW:
-                this.buildLevel2();
+                this.buildLevel3();
                 break;
             case Level.SPOOKY:
                 this.buildLevel3();

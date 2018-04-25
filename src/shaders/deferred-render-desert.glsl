@@ -29,7 +29,7 @@ const float DEPTH_OFFSET = 0.0;
 
 const vec3 LIGHT_DIR = vec3(50, 120, 100);
   
-const vec3 NEXT_BG_COLOR = vec3(1.99, 0.1, 0.0);
+const vec3 NEXT_BG_COLOR = vec3(0.39, 0.39, 1.99);
 
 float getLambert(vec3 worldPos, vec3 normal) {
     vec3 toLight = normalize(LIGHT_DIR);
