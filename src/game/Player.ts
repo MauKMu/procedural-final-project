@@ -166,6 +166,10 @@ class Player {
         // camera direction just used to compute lookAt target
     }
 
+    handleMouseClick(event: MouseEvent) {
+        console.log(this.terrain.raymarchBigColliders(this.position, this.forward));
+    }
+
     // forces height to match height field without more collision checks
     forceCorrectHeight() {
         this.position[1] = this.terrain.getHeightFromRawPos(this.position);

@@ -344,13 +344,19 @@ function main() {
         player.handleMouseMovement(event);
     }
 
+    function handleMouseClick(event: MouseEvent) {
+        player.handleMouseClick(event);
+    }
+
     function lockChangeAlert() {
         if (document.pointerLockElement === canvas) {
             console.log('The pointer lock status is now locked');
             document.addEventListener("mousemove", handleMouseMovement, false);
+            document.addEventListener("click", handleMouseClick, false);
         } else {
             console.log('The pointer lock status is now unlocked');
             document.removeEventListener("mousemove", handleMouseMovement, false);
+            document.removeEventListener("click", handleMouseClick, false);
         }
     }
 

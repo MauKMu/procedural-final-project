@@ -69,10 +69,10 @@ class Terrain {
 
         switch (this.level) {
             case Level.DESERT:
-                this.buildLevel3();
+                this.buildLevel();
                 break;
             case Level.SNOW:
-                this.buildLevel3();
+                this.buildLevel2();
                 break;
             case Level.SPOOKY:
                 this.buildLevel3();
@@ -827,6 +827,35 @@ class Terrain {
             vec3.copy(ghost.playerOffset, vec3.fromValues(Math.cos(xzAngle), 0, Math.sin(xzAngle)));
             vec3.scale(ghost.playerOffset, ghost.playerOffset, 50.0 + Math.random() * 10.0);
         }
+    }
+
+    // returns whether ray hits a "big collider"
+    raymarchBigColliders(origin: vec3, direction: vec3): boolean {
+        let originVec2 = vec2.fromValues(origin[0], origin[2]);
+        // position after "looping" around terrain
+        let posLooped = this.getLoopedPositionVec2(originVec2);
+        // XZ "indices" of plane where player is
+        let posPlaneIdx = vec2.create();
+        let posInPlane = modfVec2(posLooped, this.planeDim, posPlaneIdx);
+        // XZ "indices" of tile within plane
+        let posTileIdx = vec2.create();
+        let posInTile = modfVec2(posInPlane, this.tileDim, posTileIdx);
+        // get plane
+        let tp = this.terrainPlanes[this.getAbsIdx(posPlaneIdx[0], posPlaneIdx[1])];
+        for (let bc = 0; bc < tp.bigColliders.length; bc++) {
+            let collider = tp.bigColliders[bc];
+            let t = 0.0;
+            let p = vec3.create();
+            for (let i = 0; i < 5; i++) {
+                vec3.scaleAndAdd(p, origin, direction, t);
+                if (collider.collide(vec2.fromValues(p[0], p[2]), 0.1) !== null) {
+                    this.shouldExit = true;
+                    return true;
+                }
+                t += this.tileDim * 0.3;
+            }
+        }
+        return false;
     }
 
 };
