@@ -6,13 +6,24 @@ import Decoration from '../geometry/Decoration';
 import {PRISM_HEIGHT} from '../geometry/Decoration';
 import LString from '../l-system/LString';
 import {lRandom, LRANDOM_DETERMINISTIC} from '../l-system/LRandom';
+import {normalizeRGB} from '../Utils';
+
+const HAUNTED_COLOR = normalizeRGB(17, 17, 17);
+
+export enum BasicTreeType {
+    NORMAL = 1,
+    HAUNTED,
+}
 
 class BasicTree extends LSystem {
 
-    constructor(decoration: Decoration) {
+    type: BasicTreeType;
+
+    constructor(decoration: Decoration, type: BasicTreeType) {
         super();
         this.decoration = decoration;
         this.prismSides = 5;
+        this.type = type;
     }
 
     resetTurtleStack(pos: vec3) {
@@ -25,8 +36,12 @@ class BasicTree extends LSystem {
 
     initAlphabet() {
         this.alphabet = [];
+        let isHaunted = this.type == BasicTreeType.HAUNTED;
         // forward
         let F = new LSymbol("F", function (lsys: LSystem) {
+            if (isHaunted) {
+                lsys.useColor(HAUNTED_COLOR);
+            }
             let turtle = lsys.getTopTurtle();
             lsys.addScaledPrismAtTurtleNoShrink(turtle, 0.8);
             turtle.moveForward(PRISM_HEIGHT * 0.6);
@@ -35,6 +50,9 @@ class BasicTree extends LSystem {
         // turn
         // make turtle face in a mostly vertical direction that's not up
         let T = new LSymbol("T", function (lsys: LSystem) {
+            if (isHaunted) {
+                lsys.useColor(HAUNTED_COLOR);
+            }
             let turtle = lsys.getTopTurtle();
             let angle = lRandom.getNext() * 2.0 * Math.PI;
             let y = lRandom.getNext() * 0.5 + 0.25;
@@ -56,6 +74,9 @@ class BasicTree extends LSystem {
         // straighten
         // make turtle face up again
         let S = new LSymbol("S", function (lsys: LSystem) {
+            if (isHaunted) {
+                lsys.useColor(HAUNTED_COLOR);
+            }
             let turtle = lsys.getTopTurtle();
             let angle = lRandom.getNext() * 2.0 * Math.PI;
             let y = lRandom.getNext() * 0.3 + 0.45;
