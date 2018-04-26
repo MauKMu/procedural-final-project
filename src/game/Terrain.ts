@@ -134,7 +134,7 @@ class Terrain {
         }
 
         function addTrees(xClone: number, zClone: number, tp: TerrainPlane) {
-            let numClusters = Math.floor(Math.random() * 2.0 + 1.01);
+            let numClusters = Math.floor(Math.random() * 5.0 + 1.01);
             for (let cluster = 0; cluster < numClusters; cluster++) {
                 vec3.scaleAndAdd(planeOrigin, this.origin, planeOffset, this.planeDim);
                 let baseInPlane = vec3.fromValues((Math.random() * 0.65 + 0.15) * this.planeDim, 0, (Math.random() * 0.65 + 0.15) * this.planeDim);
@@ -200,13 +200,13 @@ class Terrain {
         }
 
         function addSnowmen(xClone: number, zClone: number, tp: TerrainPlane) {
-            let numClusters = Math.floor(Math.random() * 3.0 + 1.01);
+            let numClusters = Math.floor(Math.random() * 5.0 + 1.01);
             for (let cluster = 0; cluster < numClusters; cluster++) {
                 vec3.scaleAndAdd(planeOrigin, this.origin, planeOffset, this.planeDim);
                 let baseInPlane = vec3.fromValues((Math.random() * 0.65 + 0.15) * this.planeDim, 0, (Math.random() * 0.65 + 0.15) * this.planeDim);
                 planeOrigin[0] += baseInPlane[0];
                 planeOrigin[2] += baseInPlane[2];
-                let treesInCluster = Math.floor(Math.random() * 4.0 + 1.01);
+                let treesInCluster = Math.floor(Math.random() * 3.0 + 1.01);
                 let treeOrigin = vec3.create();
                 let angle = Math.random() * Math.PI;
                 let angleIncrement = 2.0 * Math.PI / treesInCluster;
