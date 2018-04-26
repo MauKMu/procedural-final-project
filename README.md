@@ -1,4 +1,4 @@
-## CIS566 Final Project
+# CIS566 Final Project
 
 Click below for the live demo!
 
@@ -14,24 +14,24 @@ Click below for the live demo!
     - There are **4** levels to see in total.
 
 
-### Student Info
+## Student Info
 
 - Name: Mauricio Mutai
 - PennKey: `mmutai`
 
-### Design Document
+## Design Document
 
-#### Introduction
+### Introduction
 
 - I would like to create a game similar to Yume Nikki (“Dream Diary” in Japanese), an indie RPG from 2004. Yume Nikki is a very unconventional RPG: it does not have a combat system, dialogue, or an obvious end goal (although it does have an “ending”). Instead, the appeal of Yume Nikki is in the large and interconnected worlds that the player can explore in the game. As the game’s title suggests, exploring these worlds is supposed to feel like dreaming.
 - More importantly, although the worlds are fixed and the same in every playthrough, they still have a somewhat procedural feel to them. Based on this observation, I would like to create a similar “exploratory” game that focuses more on creating interesting environments the player can walk around, rather than following a more traditional game design strategy.
 
-#### Goal
+### Goal
 
 - The end goal would be a game that allows the player to explore multiple worlds. In the vein of Yume Nikki, each world will have one general aesthetic theme (e.g. “snow”, “geometric”), but will be at least partially procedurally generated.
 - Ideally, these worlds would be interconnected, such that the player could truly get “lost” in them (a common experience in Yume Nikki).
 
-#### Inspiration/reference
+### Inspiration/reference
 
 - Below are some images showing some of Yume Nikki’s worlds:
 
@@ -44,7 +44,7 @@ Click below for the live demo!
 ![](res/img/yn3.png)
 
  
-#### Specification
+### Specification
 
 - Main features:
   - At least 3 procedurally generated worlds that can be explored
@@ -59,7 +59,7 @@ Click below for the live demo!
   - Collectible items
     - The original Yume Nikki has several items that the player can collect. This can be added to make this project more “game-like”
 
-#### Techniques
+### Techniques
 
 - Some of the main procedural techniques I plan on using are:
   - Maze generation
@@ -73,35 +73,74 @@ Click below for the live demo!
 - Adam has also mentioned I may not want to make the levels 100% procedurally, but rather use procedural techniques to generate the levels, then tweak them, since some “human intervention” can improve the level designs. Although I think this makes sense, I want to see how well “purely” procedural levels work before following this approach.
 - Although I have not found any specific articles for reference, I think the lecture slides will be a good starting point. If necessary, I plan on looking up more detailed papers and such.
 
-#### Design
+### Design
 
 - Below is a diagram illustrating the general design of the program:
 
 ![](res/img/design-diagram.png)
 
-#### Timeline
+### Timeline
 
 - 04/15: Basic game framework working (e.g. controls allow for basic movement), partial progress on first world.
 - 04/22: Finish first and second worlds.
 - 04/26: Finish third world and possibly more worlds or extra features like collectible items.
 
-### Results
+## Results
 
 - I built four levels in total (with some "shared assets"). Below are screenshots of each of them.
 
-#### The Desert
+### The Desert
 
 ![](res/img/desert.png)
 
-#### The Snowmen's Land
+### The Snowmen's Land
 
 ![](res/img/snow.png)
 
-#### The Nightmare
+### The Nightmare
 
 ![](res/img/spooky.png)
 
-#### The Dream
+### The Dream
 
 ![](res/img/nice.png)
+
+## Evalutation
+
+### Overall Results
+
+- I believe I got reasonably close to my original goals. I built a game that emulates some of Yume Nikki's key features, while also featuring several procedural techniques to make each playthrough slightly different and unpredictable.
+
+- I do think the game could overall be more procedural. (See more below.)
+
+### Aesthetics
+
+- From the beginning, I knew I wanted a low-poly aeshtetic for my game.
+  - I thought this would be a "safe" way of ensuring I could get real-time performance (at least on the GPU side).
+  - Since Yume Nikki is a bit of a retro game, I thought a retro-esque style would fit with the spirit of the project.
+  - I expected to create some models for this project. Given my limited experience with modeling, I thought the low-poly aesthetic would be more consistent with any models I ended up making.
+    - I did make a few models in the end, using Blender's Decimate modifier to make them look extra low-poly.
+  - I also just like low-poly models in general.
+
+- Fog is very prevalent in this game.
+  - The technical reason for this is that my terrain loops, and I use the fog to hide the terrain that would otherwise "pop in" as the player moves.
+  - In Yume Nikki, you have a relatively limited view of the world around you. I think the fog helps in replicating this feeling in this game.
+  - I think the fog gives the worlds a more dream-like appearance.
+
+- Color had a big role in each level's design.
+
+### Proceduralism
+
+#### Terrain
+
+- The terrain is generated by sampling a noise function. The samples are made smooth by sampling the noise at different frequencies and amplitudes (FBM).
+- The height field is not just the direct result of this sample function. In each level, we can "process" the noise in order to achieve a certain type of terrain. For example, the snow level uses a Perlin gain function that maps the height field like so:
+![](res/img/perlin-gain.png)
+This gives the snow level a flatter top than, say, the desert level, but still with some troughs.
+- As mentioned above, the player loops over this procedural terrain if they walk too far. While it is certainly possible to generate an "infinite" amount of terrain (at least within our computers' physical limitations), I thought looped terrain would be better because:
+  - In Yume Nikki, most levels also loop. This is actually a good decision if we consider how much emphasis Yume Nikki places on exploration -- it's already easy to get disoriented in some of Yume Nikki's larger levels, and if they extended infinitely, there would be very little sense of progress. Looping the level allows the player to walk by certain "landmarks" twice and realizing they're been there before.
+  - This game has a few special objects the player can interact with. Although it is also possible to place copies of these objects on an infinitely expanding terrain, these objects are supposed to be unique.  If we placed only copy of each object (to respect the game's "lore") on infinite terrain, the player could potentially miss the object and never walk towards it. With looping terrain, the distance between the player and special objects is always bounded.
+- Of course, looping terrain is not without its complications.
+  - The height field at the edges of the terrain has to be somehow "stitched" together, i.e. modified so there are no discontinuities.
+  - Collision detection is a bit more complicated than usual, since we have to essentially apply a modulo to the player's position on each frame. If we are not careful about **when** we apply the modulo, we may get horribly wrong results from the physics calculations.
 
