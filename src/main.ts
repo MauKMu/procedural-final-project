@@ -225,9 +225,9 @@ function main() {
     renderer.setClearColor(0, 0, 0, 1);
     gl.enable(gl.DEPTH_TEST);
 
-    player.terrain = niceTerrain;
+    player.terrain = spookyTerrain;
     player.forceCorrectHeight();
-    renderer.setDeferredShader(Level.NICE);
+    renderer.setDeferredShader(Level.SPOOKY);
     renderer.updateFadeInTime(0.0);
     renderer.updateFadeOutTime(0.0);
 
@@ -256,6 +256,7 @@ function main() {
         if (player.terrain.shouldExit && !exiting && !entering) {
             exiting = true;
             exitTime = 0.0;
+            renderer.setBadEnd(player.terrain.badEnd ? 1.0 : 0.0);
             // TODO: disable player controls?
             player.terrain.shouldExit = false;
         }

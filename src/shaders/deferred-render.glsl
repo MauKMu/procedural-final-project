@@ -20,6 +20,7 @@ uniform float u_AspectRatio;
 
 uniform float u_FadeInTime;
 uniform float u_FadeOutTime;
+uniform float u_BadEnd;
 
 uniform mat4 u_View;
 uniform vec4 u_CamPos;   
@@ -29,7 +30,8 @@ const float DEPTH_OFFSET = 0.0;
 
 const vec3 LIGHT_DIR = vec3(50, 120, 100);
 
-const vec3 NEXT_BG_COLOR = vec3(1.99, 0.1, 0.0);
+const vec3 NEXT_BG_COLOR_BAD_END = vec3(1.99, 0.1, 0.0);
+const vec3 NEXT_BG_COLOR = vec3(0.19, 0.89, 0.89);
 
 float getLambert(vec3 worldPos, vec3 normal) {
     vec3 toLight = normalize(LIGHT_DIR);
@@ -206,7 +208,8 @@ void main() {
     }
     col = mix(col, bgColor, fogFactor);
     col = mix(bgColor, col, u_FadeInTime); // fade in from this BG color
-    col = mix(col, NEXT_BG_COLOR, u_FadeOutTime); // fade out into "next" BG color
+    vec3 nextBGColor = mix(NEXT_BG_COLOR, NEXT_BG_COLOR_BAD_END, u_BadEnd);
+    col = mix(col, nextBGColor, u_FadeOutTime); // fade out into "next" BG color
     col *= 5.0;
 	out_Col = vec4(col, 1.0);
 }

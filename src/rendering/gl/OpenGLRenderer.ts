@@ -242,6 +242,10 @@ class OpenGLRenderer {
         gl.uniform1i(gb2loc, 2);
     }
 
+    setBadEnd(badEnd: number) {
+        this.deferredShader.setBadEnd(badEnd);
+    }
+
     setClearColor(r: number, g: number, b: number, a: number) {
         gl.clearColor(r, g, b, a);
     }
