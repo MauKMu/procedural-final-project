@@ -13,8 +13,8 @@ import * as Loader from 'webgl-obj-loader';
 // ""static"" variables (I love JS. It's so bad.)
 let ghostBody: any = null;
 let roundEyes: any = null;
-let sadEyes: any = null;
 let angryEyes: any = null;
+let scarf: any = null;
 
 const TWIG_SCALE = 0.1;
 const FINGER_SCALE = 0.05;
@@ -24,6 +24,7 @@ const EYE_COLOR = normalizeRGB(200, 200, 255);
 const BODY_COLOR = normalizeRGB(17, 17, 17);
 const NOSE_COLOR = normalizeRGB(455, 83, 30);
 const NICE_COLOR = normalizeRGB(20, 140, 225);
+const SCARF_COLOR = normalizeRGB(200, 200, 25);
 
 export enum GhostType {
     EVIL = 1,
@@ -50,9 +51,9 @@ class Ghost extends LSystem {
             let objString = readTextFileSync("res/models/roundEyes.obj");
             roundEyes = new Loader.Mesh(objString);
         }
-        if (sadEyes == null) {
-            let objString = readTextFileSync("res/models/sadEyes.obj");
-            sadEyes = new Loader.Mesh(objString);
+        if (scarf == null) {
+            let objString = readTextFileSync("res/models/scarf.obj");
+            scarf = new Loader.Mesh(objString);
         }
         if (angryEyes == null) {
             let objString = readTextFileSync("res/models/angryEyes.obj");
@@ -108,42 +109,34 @@ class Ghost extends LSystem {
             lsys.addMeshAtTurtleRotation(turtle, vec3.fromValues(turtle.scaleBottom, turtle.scaleBottom, turtle.scaleBottom), mat3ToMat4(snowmanRotation), roundEyes);
         });
         this.alphabet.push(neutral);
-        let sad = new LSymbol("(/\\)", function (lsys: LSystem) {
-            lsys.useColor(eyeColor);
-            let turtle = lsys.getTopTurtle();
-            lsys.addMeshAtTurtleRotation(turtle, vec3.fromValues(turtle.scaleBottom, turtle.scaleBottom, turtle.scaleBottom), mat3ToMat4(snowmanRotation), sadEyes);
-        });
-        this.alphabet.push(sad);
         let angry = new LSymbol("(\\/)", function (lsys: LSystem) {
             lsys.useColor(eyeColor);
             let turtle = lsys.getTopTurtle();
             lsys.addMeshAtTurtleRotation(turtle, vec3.fromValues(turtle.scaleBottom, turtle.scaleBottom, turtle.scaleBottom), mat3ToMat4(snowmanRotation), angryEyes);
         });
         this.alphabet.push(angry);
-        // push
-        let push = new LSymbol("[", function (lsys: LSystem) {
+        // scarf
+        let S = new LSymbol("S", function (lsys: LSystem) {
+            lsys.useColor(SCARF_COLOR);
             let turtle = lsys.getTopTurtle();
-            let copy = turtle.makeDeepCopy();
-            copy.depth++;
-            lsys.turtleStack.push(copy);
+            turtle.position[1] += 2.0;
+            lsys.addMeshAtTurtleRotation(turtle, vec3.fromValues(turtle.scaleBottom, turtle.scaleBottom, turtle.scaleBottom), mat3ToMat4(snowmanRotation), scarf);
+            turtle.position[1] -= 2.0;
         });
-        this.alphabet.push(push);
-        // pop
-        let pop = new LSymbol("]", function (lsys: LSystem) {
-            lsys.turtleStack.pop();
-        });
-        this.alphabet.push(pop);
+        this.alphabet.push(B);
 
         // set expansion rules
+        if (this.type == GhostType.EVIL) {
+            this.setAxiom([
+                B, neutral
+            ]);
+        }
+        else {
+            this.setAxiom([
+                B, neutral, S
+            ]);
+        }
 
-        this.setAxiom([
-            B, neutral,
-            //U,
-            //push, beginLeftArm, T, T, H, pop, push, beginRightArm, T, T, H, pop,
-            //terminalU,
-            //N,
-            //terminalU,
-        ]);
     }
 
     executeString() {
