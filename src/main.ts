@@ -225,9 +225,9 @@ function main() {
     renderer.setClearColor(0, 0, 0, 1);
     gl.enable(gl.DEPTH_TEST);
 
-    player.terrain = niceTerrain;
+    player.terrain = desertTerrain;
     player.forceCorrectHeight();
-    renderer.setDeferredShader(Level.NICE);
+    renderer.setDeferredShader(Level.DESERT);
     renderer.updateFadeInTime(0.0);
     renderer.updateFadeOutTime(0.0);
 
