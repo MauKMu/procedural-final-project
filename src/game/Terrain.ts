@@ -203,6 +203,44 @@ class Terrain {
             }
         }
 
+        function addPyramid(xClone: number, zClone: number, tp: TerrainPlane) {
+            // add just pyramid
+            vec3.scaleAndAdd(planeOrigin, this.origin, planeOffset, this.planeDim);
+            let baseInPlane = vec3.fromValues((Math.random() * 0.15 + 0.45) * this.planeDim, 0, (Math.random() * 0.15 + 0.45) * this.planeDim);
+            planeOrigin[0] += baseInPlane[0];
+            planeOrigin[1] += 5.0;
+            planeOrigin[2] += baseInPlane[2];
+
+            let tree = new Ghost(decorations, Math.floor(Math.random() * 2048), GhostType.NICE);
+            tree.initAlphabet();
+            tree.resetTurtleStack(planeOrigin);
+            tree.expandString();
+            tree.expandString();
+            tree.executeString();
+            // TODO: add pyramid collider
+            tp.bigColliders.push(new Collider(vec2.fromValues(planeOrigin[0], planeOrigin[2]), 1.9));
+            // add clones to maintain continuity when looping
+            if (xClone != 0) {
+                let cloneOrigin = vec3.clone(planeOrigin);
+                cloneOrigin[0] += xClone;
+                tree.resetTurtleStack(cloneOrigin);
+                tree.executeString();
+            }
+            if (zClone != 0) {
+                let cloneOrigin = vec3.clone(planeOrigin);
+                cloneOrigin[2] += zClone;
+                tree.resetTurtleStack(cloneOrigin);
+                tree.executeString();
+            }
+            if (xClone != 0 && zClone != 0) {
+                let cloneOrigin = vec3.clone(planeOrigin);
+                cloneOrigin[0] += xClone;
+                cloneOrigin[2] += zClone;
+                tree.resetTurtleStack(cloneOrigin);
+                tree.executeString();
+            }
+        }
+
         // add some decorations
         let decorations = new Decoration();
         let decorationMat = mat4.create();
@@ -221,7 +259,12 @@ class Terrain {
                 let tp = this.terrainPlanes[this.getAbsIdx(x, z)];
                 // compute position of decoration
                 vec3.set(planeOffset, x, 0, z);
-                addTrees.call(this, xClone, zClone, tp);
+                if (x == pyramidX && z == pyramidZ) {
+                    addPyramid.call(this, xClone, zClone, tp);
+                }
+                else {
+                    addTrees.call(this, xClone, zClone, tp);
+                }
             }
         }
 
@@ -231,7 +274,7 @@ class Terrain {
         for (let i = 0; i < NUM_GHOSTS; i++) {
             let ghostDecorations = new Decoration();
 
-            let ghost = new Ghost(ghostDecorations, Math.floor(Math.random() * 512), GhostType.NICE);
+            let ghost = new Ghost(ghostDecorations, Math.floor(Math.random() * 512), GhostType.EVIL);
             ghost.initAlphabet();
             ghost.resetTurtleStack(vec3.fromValues(0, 1, 0));
             ghost.expandString();
