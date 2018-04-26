@@ -129,6 +129,11 @@ Click below for the live demo!
 
 - Color had a big role in each level's design.
   - I spent a good amount of time thinking about how to color each asset in each level. Even the fog color is important, since it gets blended with any object that isn't right next to the player.
+  - Here are some pictures from older versions of the code:
+    - Coloring based on normal's coordinates
+    ![](res/img/normals.png)
+    - White terrain
+    ![](res/img/no-color.png)
 
 ### Proceduralism
 
