@@ -144,3 +144,6 @@ This gives the snow level a flatter top than, say, the desert level, but still w
   - The height field at the edges of the terrain has to be somehow "stitched" together, i.e. modified so there are no discontinuities.
   - Collision detection is a bit more complicated than usual, since we have to essentially apply a modulo to the player's position on each frame. If we are not careful about **when** we apply the modulo, we may get horribly wrong results from the physics calculations.
 
+#### Procedural Asset Generation
+
+- There are two assets in this game that are generated using L-systems: the cacti and the snowmen. They each use relatively simple L-systems. This keeps their sizes relatively well-bounded so collision detection can be made simpler. This also prevents their designs from getting too busy.
