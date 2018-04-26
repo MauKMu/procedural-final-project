@@ -4,7 +4,8 @@ import Collider from '../game/Collider';
 import {gl} from '../globals';
 import {smoothNoise} from '../Utils';
 
-const NOISE_OFFSET = vec2.fromValues(3.141, -5.965);
+//const NOISE_OFFSET = vec2.fromValues(3.141, -5.965);
+const NOISE_OFFSET = vec2.fromValues(Math.random() * 10.0, Math.random() * 10.0);
 
 class TerrainPlane extends Drawable {
     indices: Uint32Array;
