@@ -167,6 +167,8 @@ Click below for the live demo!
   - Essentially, in each tick, the ghosts move by a vector `P + A`, where `P` is the vector towards the player and `A` is the sum of vectors that move the ghost away from other ghosts.
   - `P` is scaled so that is larger when the ghosts are far away. Think rubberbanding in racing games.
   - `A` is used so the ghosts don't all bunch up into one (they are ghosts, so they *could* do it, but it doesn't look good).
+  - Here is a picture from when ghosts didn't avoid each other (and were actually snowmen):
+  ![](res/img/joined-ghosts.png)
 
 ## Future Work
 
