@@ -22,7 +22,8 @@ const SNOW_COLOR = normalizeRGB(200, 200, 255);
 const WOOD_COLOR = normalizeRGB(60, 17, 0);
 const NOSE_COLOR = normalizeRGB(455, 83, 30);
 const SCARF_COLOR = normalizeRGB(20, 300, 300);
-const HAUNTED_COLOR = normalizeRGB(17, 17, 17);
+const HAUNTED_SNOW_COLOR = normalizeRGB(27, 27, 27);
+const HAUNTED_COLOR = normalizeRGB(7, 8, 7);
 
 export enum SnowmanType {
     NORMAL = 1,
@@ -84,11 +85,12 @@ class Snowman extends LSystem {
         this.alphabet = [];
         // do this to avoid "this" issues
         let snowmanRotation = this.rotation;
+        let snowColor = (this.type == SnowmanType.HAUNTED) ? HAUNTED_SNOW_COLOR : SNOW_COLOR;
         let woodColor = (this.type == SnowmanType.HAUNTED) ? HAUNTED_COLOR : WOOD_COLOR;
         let scarfColor = (this.type == SnowmanType.HAUNTED) ? HAUNTED_COLOR : SCARF_COLOR;
         let noseColor = (this.type == SnowmanType.HAUNTED) ? HAUNTED_COLOR : NOSE_COLOR;
         let upFunction = function (lsys: LSystem) {
-            lsys.useColor(SNOW_COLOR);
+            lsys.useColor(snowColor);
             let turtle = lsys.getTopTurtle();
             // rotate mesh
             // just want a random direction, so this is enough

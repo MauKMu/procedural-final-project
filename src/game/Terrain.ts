@@ -222,7 +222,7 @@ class Terrain {
                     let posInTile = modfVec2(vec2.fromValues(posInPlane[0], posInPlane[2]), this.tileDim, posTileIdx);
                     // find and use height
                     let height = this.getHeight(posInTile, posTileIdx, tp);
-                    treeOrigin[1] = this.origin[1] + height - 1.0;
+                    treeOrigin[1] = this.origin[1] + height;
                     //let tree = new BasicTree(decorations);
                     let tree = new Snowman(decorations, Math.floor(Math.random() * 2048), SnowmanType.HAUNTED);
                     tree.initAlphabet();
