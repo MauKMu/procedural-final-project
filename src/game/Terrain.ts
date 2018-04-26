@@ -52,6 +52,7 @@ class Terrain {
     totalDimZ: number;
 
     ghosts: Array<Ghost>;
+    niceGhosts: Array<Ghost>;
 
     level: Level;
     shouldExit: boolean;
@@ -70,6 +71,7 @@ class Terrain {
         this.terrainPlanes = [];
         this.drawables = [];
         this.ghosts = [];
+        this.niceGhosts = [];
 
         this.level = level;
         this.shouldExit = false;
@@ -142,7 +144,7 @@ class Terrain {
         }
 
         function addTrees(xClone: number, zClone: number, tp: TerrainPlane) {
-            let numClusters = Math.floor(Math.random() * 5.0 + 1.01);
+            let numClusters = Math.floor(Math.random() * 6.0 + 1.01);
             for (let cluster = 0; cluster < numClusters; cluster++) {
                 vec3.scaleAndAdd(planeOrigin, this.origin, planeOffset, this.planeDim);
                 let baseInPlane = vec3.fromValues((Math.random() * 0.65 + 0.15) * this.planeDim, 0, (Math.random() * 0.65 + 0.15) * this.planeDim);
@@ -208,7 +210,7 @@ class Terrain {
         }
 
         function addSnowmen(xClone: number, zClone: number, tp: TerrainPlane) {
-            let numClusters = Math.floor(Math.random() * 5.0 + 1.01);
+            let numClusters = Math.floor(Math.random() * 6.0 + 1.01);
             for (let cluster = 0; cluster < numClusters; cluster++) {
                 vec3.scaleAndAdd(planeOrigin, this.origin, planeOffset, this.planeDim);
                 let baseInPlane = vec3.fromValues((Math.random() * 0.65 + 0.15) * this.planeDim, 0, (Math.random() * 0.65 + 0.15) * this.planeDim);
@@ -287,7 +289,9 @@ class Terrain {
             planeOrigin[1] += 5.0;
             planeOrigin[2] += baseInPlane[2];
 
-            let tree = new Ghost(decorations, Math.floor(Math.random() * 2048), GhostType.NICE);
+            let ghostDecorations = new Decoration();
+            let tree = new Ghost(ghostDecorations, Math.floor(Math.random() * 2048), GhostType.NICE);
+            this.niceGhosts.push(tree);
             tree.initAlphabet();
             tree.resetTurtleStack(planeOrigin);
             tree.expandString();
@@ -315,6 +319,8 @@ class Terrain {
                 tree.resetTurtleStack(cloneOrigin);
                 tree.executeString();
             }
+            ghostDecorations.create();
+            this.drawables.push(ghostDecorations);
         }
 
         // add some decorations
@@ -324,7 +330,6 @@ class Terrain {
         // pick a plane in which to place the pyramid
         let pyramidX = 0;
         let pyramidZ = Math.floor(Math.random() * this.planeNumZ * 0.999);
-        console.log(["pyramid: ", pyramidX, pyramidZ]);
 
         // add decorations on each terrain plane
         for (let x = 0; x < this.planeNumX; x++) {
@@ -335,13 +340,9 @@ class Terrain {
                 let tp = this.terrainPlanes[this.getAbsIdx(x, z)];
                 // compute position of decoration
                 vec3.set(planeOffset, x, 0, z);
-                if (x == pyramidX && z == pyramidZ) {
-                    addPyramid.call(this, xClone, zClone, tp);
-                }
-                else {
-                    addTrees.call(this, xClone, zClone, tp);
-                    addSnowmen.call(this, xClone, zClone, tp);
-                }
+                addPyramid.call(this, xClone, zClone, tp);
+                addTrees.call(this, xClone, zClone, tp);
+                addSnowmen.call(this, xClone, zClone, tp);
             }
         }
 
@@ -546,7 +547,9 @@ class Terrain {
             planeOrigin[1] += 5.0;
             planeOrigin[2] += baseInPlane[2];
 
-            let tree = new Ghost(decorations, Math.floor(Math.random() * 2048), GhostType.NICE);
+            let ghostDecorations = new Decoration();
+            let tree = new Ghost(ghostDecorations, Math.floor(Math.random() * 2048), GhostType.NICE);
+            this.niceGhosts.push(tree);
             tree.initAlphabet();
             tree.resetTurtleStack(planeOrigin);
             tree.expandString();
@@ -574,6 +577,8 @@ class Terrain {
                 tree.resetTurtleStack(cloneOrigin);
                 tree.executeString();
             }
+            ghostDecorations.create();
+            this.drawables.push(ghostDecorations);
         }
 
         // add some decorations
@@ -583,7 +588,6 @@ class Terrain {
         // pick a plane in which to place the pyramid
         let pyramidX = 0;
         let pyramidZ = Math.floor(Math.random() * this.planeNumZ * 0.999);
-        console.log(["pyramid: ", pyramidX, pyramidZ]);
 
         // add decorations on each terrain plane
         for (let x = 0; x < this.planeNumX; x++) {
@@ -800,7 +804,6 @@ class Terrain {
         // pick a plane in which to place the pyramid
         let pyramidX = 1;
         let pyramidZ = Math.floor(Math.random() * this.planeNumZ * 0.999);
-        console.log(["pyramid: ", pyramidX, pyramidZ]);
 
         // add decorations on each terrain plane
         for (let x = 0; x < this.planeNumX; x++) {
@@ -981,7 +984,6 @@ class Terrain {
         // pick a plane in which to place the pyramid
         let pyramidX = 2;
         let pyramidZ = Math.floor(Math.random() * this.planeNumZ * 0.999);
-        console.log(["pyramid: ", pyramidX, pyramidZ]);
 
         // add decorations on each terrain plane
         for (let x = 0; x < this.planeNumX; x++) {
@@ -1248,6 +1250,18 @@ class Terrain {
                 this.badEnd = true;
                 this.shouldExit = true;
             }
+        }
+        // animate nice ghosts
+        for (let g = 0; g < this.niceGhosts.length; g++) {
+            let ghost = this.niceGhosts[g];
+            let ghostPos = vec3.create();
+            // make ghost bob
+            ghostPos[1] += 0.5 + 0.5 * Math.cos(ghost.bobValue * ghost.bobFrequency);
+            ghost.bobValue += deltaTime;
+            let ghostMat = mat4.create();
+            mat4.fromTranslation(ghostMat, ghostPos);
+            //mat4.translate(ghostMat, ghostMat, ghostPos);
+            ghost.setModelMatrix(ghostMat);
         }
     }
 

@@ -71,11 +71,13 @@ class Ghost extends LSystem {
         this.bobValue = lRandom.getNext() * Math.PI;
         this.bobFrequency = 3.0 + 5.0 * lRandom.getNext();
         lRandom.setSeed(oldSeed);
-        // compute matrix
-        //let rotMat4 = mat4.create();
-        //mat4.fromYRotation(rotMat4, xzAngle);
+        // compute matrix, but only if nice ghost (override rotation otherwise)
         this.rotation = mat3.create();
-        //mat3.fromMat4(this.rotation, rotMat4);
+        if (this.type == GhostType.NICE) {
+            let rotMat4 = mat4.create();
+            mat4.fromYRotation(rotMat4, xzAngle);
+            mat3.fromMat4(this.rotation, rotMat4);
+        }
 
         this.playerOffset = vec3.create();
     }

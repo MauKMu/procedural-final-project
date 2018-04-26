@@ -225,9 +225,9 @@ function main() {
     renderer.setClearColor(0, 0, 0, 1);
     gl.enable(gl.DEPTH_TEST);
 
-    player.terrain = spookyTerrain;
+    player.terrain = niceTerrain;
     player.forceCorrectHeight();
-    renderer.setDeferredShader(Level.SPOOKY);
+    renderer.setDeferredShader(Level.NICE);
     renderer.updateFadeInTime(0.0);
     renderer.updateFadeOutTime(0.0);
 
