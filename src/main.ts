@@ -216,6 +216,7 @@ function main() {
     const desertTerrain = new Terrain(vec3.fromValues(0, 0, 0), 4, 25, 4, 3, Level.DESERT);
     const snowTerrain = new Terrain(vec3.fromValues(0, 0, 0), 4, 25, 4, 3, Level.SNOW);
     const spookyTerrain = new Terrain(vec3.fromValues(0, 0, 0), 4, 25, 4, 3, Level.SPOOKY);
+    const niceTerrain = new Terrain(vec3.fromValues(0, 0, 0), 4, 25, 4, 3, Level.NICE);
 
     //terrain.drawables.push(mesh0);
 
@@ -277,6 +278,13 @@ function main() {
                         renderer.setDeferredShader(Level.SPOOKY);
                         break;
                     case Level.SPOOKY:
+                        if (!player.terrain.badEnd) {
+                            player.terrain = niceTerrain;
+                            renderer.setDeferredShader(Level.SPOOKY);
+                            break;
+                        }
+                        // else, fall to case below
+                    case Level.NICE:
                         player.terrain = desertTerrain;
                         renderer.setDeferredShader(Level.DESERT);
                         break;
