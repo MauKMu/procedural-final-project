@@ -60,7 +60,7 @@
 /******/ 	__webpack_require__.p = "dist/";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 19);
+/******/ 	return __webpack_require__(__webpack_require__.s = 22);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -69,12 +69,12 @@
 
 "use strict";
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__gl_matrix_common_js__ = __webpack_require__(2);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__gl_matrix_mat2_js__ = __webpack_require__(20);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__gl_matrix_mat2d_js__ = __webpack_require__(21);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__gl_matrix_mat2_js__ = __webpack_require__(23);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__gl_matrix_mat2d_js__ = __webpack_require__(24);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__gl_matrix_mat3_js__ = __webpack_require__(12);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__gl_matrix_mat4_js__ = __webpack_require__(22);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__gl_matrix_quat_js__ = __webpack_require__(23);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__gl_matrix_vec2_js__ = __webpack_require__(24);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__gl_matrix_mat4_js__ = __webpack_require__(25);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__gl_matrix_quat_js__ = __webpack_require__(26);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__gl_matrix_vec2_js__ = __webpack_require__(27);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__gl_matrix_vec3_js__ = __webpack_require__(13);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__gl_matrix_vec4_js__ = __webpack_require__(14);
 /* unused harmony reexport glMatrix */
@@ -1275,15 +1275,18 @@ class Drawable {
 
 "use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return Level; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__geometry_TerrainPlane__ = __webpack_require__(26);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__geometry_TerrainPlane__ = __webpack_require__(29);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__geometry_Decoration__ = __webpack_require__(4);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__BasicTree__ = __webpack_require__(27);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__Snowman__ = __webpack_require__(29);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__Ghost__ = __webpack_require__(30);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__Collider__ = __webpack_require__(17);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__BasicTree__ = __webpack_require__(16);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__Snowman__ = __webpack_require__(17);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__Ghost__ = __webpack_require__(19);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__Collider__ = __webpack_require__(20);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__SquareCollider__ = __webpack_require__(31);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__Utils__ = __webpack_require__(3);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_8_gl_matrix__ = __webpack_require__(0);
+
+
+
 
 
 
@@ -1298,6 +1301,7 @@ var Level;
     Level[Level["DESERT"] = 1] = "DESERT";
     Level[Level["SNOW"] = 2] = "SNOW";
     Level[Level["SPOOKY"] = 3] = "SPOOKY";
+    Level[Level["NICE"] = 4] = "NICE";
 })(Level || (Level = {}));
 const TERRAIN_COLOR = Object(__WEBPACK_IMPORTED_MODULE_7__Utils__["h" /* normalizeRGB */])(201, 142, 14);
 const TREE_COLORS = [
@@ -1311,7 +1315,8 @@ const TREE_COLORS = [
 ];
 const PYRAMID_COLOR = Object(__WEBPACK_IMPORTED_MODULE_7__Utils__["h" /* normalizeRGB */])(255, 140, 0);
 const SNOW_COLOR = Object(__WEBPACK_IMPORTED_MODULE_7__Utils__["h" /* normalizeRGB */])(200, 200, 255);
-const SPOOKY_COLOR = Object(__WEBPACK_IMPORTED_MODULE_7__Utils__["h" /* normalizeRGB */])(3, 10, 3);
+const SPOOKY_COLOR = Object(__WEBPACK_IMPORTED_MODULE_7__Utils__["h" /* normalizeRGB */])(3, 4, 3);
+const NICE_COLOR = Object(__WEBPACK_IMPORTED_MODULE_7__Utils__["h" /* normalizeRGB */])(30, 230, 50);
 const NUM_GHOSTS = 3;
 class Terrain {
     constructor(origin, tileDim, tileNum, planeNumX, planeNumZ, level) {
@@ -1326,8 +1331,10 @@ class Terrain {
         this.terrainPlanes = [];
         this.drawables = [];
         this.ghosts = [];
+        this.niceGhosts = [];
         this.level = level;
         this.shouldExit = false;
+        this.badEnd = false;
         switch (this.level) {
             case Level.DESERT:
                 this.buildLevel();
@@ -1338,7 +1345,253 @@ class Terrain {
             case Level.SPOOKY:
                 this.buildLevel3();
                 break;
+            case Level.NICE:
+                this.buildLevel4();
+                break;
         }
+    }
+    buildLevel4() {
+        let planeOrigin = __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["e" /* vec3 */].create();
+        let planeOffset = __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["e" /* vec3 */].create();
+        for (let x = 0; x < this.planeNumX; x++) {
+            for (let z = 0; z < this.planeNumZ; z++) {
+                __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["e" /* vec3 */].set(planeOffset, x, 0, z);
+                __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["e" /* vec3 */].scaleAndAdd(planeOrigin, this.origin, planeOffset, this.planeDim);
+                // constructor will generate height fields
+                let heightModifier = function (height) {
+                    return Math.pow(height, 0.25) * 5.0;
+                };
+                let tp = new __WEBPACK_IMPORTED_MODULE_0__geometry_TerrainPlane__["a" /* default */](planeOrigin, this.tileDim, this.tileNum, 0.2, heightModifier);
+                tp.setColor(NICE_COLOR);
+                //tp.create();
+                // planes inactive at first; made active when updated
+                tp.isActive = false;
+                this.terrainPlanes.push(tp);
+            }
+        }
+        // "stitch" height fields at borders together
+        // X border: 0, planeNumX - 1
+        for (let z = 0; z < this.planeNumZ; z++) {
+            let tpA = this.terrainPlanes[this.getAbsIdx(0, z)];
+            let tpB = this.terrainPlanes[this.getAbsIdx(this.planeNumX - 1, z)];
+            // average heights
+            for (let j = 0; j < this.tileNum + 1; j++) {
+                let avgHeight = (tpB.heightField[this.tileNum][j] + tpA.heightField[0][j]) * 0.5;
+                tpB.heightField[this.tileNum][j] = avgHeight;
+                tpA.heightField[0][j] = avgHeight;
+            }
+        }
+        // Z border: 0, planeNumZ - 1
+        for (let x = 0; x < this.planeNumX; x++) {
+            let tpA = this.terrainPlanes[this.getAbsIdx(x, 0)];
+            let tpB = this.terrainPlanes[this.getAbsIdx(x, this.planeNumZ - 1)];
+            // average heights
+            for (let j = 0; j < this.tileNum + 1; j++) {
+                let avgHeight = (tpB.heightField[j][this.tileNum] + tpA.heightField[j][0]) * 0.5;
+                tpB.heightField[j][this.tileNum] = avgHeight;
+                tpA.heightField[j][0] = avgHeight;
+            }
+        }
+        // actually create planes' VBOs, now that stitching is done
+        // also copy over to drawables
+        for (let i = 0; i < this.terrainPlanes.length; i++) {
+            this.terrainPlanes[i].create();
+            this.drawables.push(this.terrainPlanes[i]);
+        }
+        function addTrees(xClone, zClone, tp) {
+            let numClusters = Math.floor(Math.random() * 6.0 + 1.01);
+            for (let cluster = 0; cluster < numClusters; cluster++) {
+                __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["e" /* vec3 */].scaleAndAdd(planeOrigin, this.origin, planeOffset, this.planeDim);
+                let baseInPlane = __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["e" /* vec3 */].fromValues((Math.random() * 0.65 + 0.15) * this.planeDim, 0, (Math.random() * 0.65 + 0.15) * this.planeDim);
+                planeOrigin[0] += baseInPlane[0];
+                planeOrigin[2] += baseInPlane[2];
+                let treesInCluster = Math.floor(Math.random() * 3.0 + 1.01);
+                let treeOrigin = __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["e" /* vec3 */].create();
+                let angle = Math.random() * Math.PI;
+                let angleIncrement = 2.0 * Math.PI / treesInCluster;
+                let posInPlane = __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["e" /* vec3 */].create();
+                for (let i = 0; i < treesInCluster; i++) {
+                    decorations.useColor(TREE_COLORS[Math.floor(Math.random() * TREE_COLORS.length * 0.999)]);
+                    angle += angleIncrement;
+                    __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["e" /* vec3 */].set(treeOrigin, Math.cos(angle), 0, Math.sin(angle));
+                    __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["e" /* vec3 */].scaleAndAdd(posInPlane, baseInPlane, treeOrigin, 1.6 * this.tileDim);
+                    __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["e" /* vec3 */].scaleAndAdd(treeOrigin, planeOrigin, treeOrigin, 1.6 * this.tileDim);
+                    let tree = new __WEBPACK_IMPORTED_MODULE_2__BasicTree__["b" /* default */](decorations, __WEBPACK_IMPORTED_MODULE_2__BasicTree__["a" /* BasicTreeType */].NORMAL);
+                    tree.initAlphabet();
+                    tree.resetTurtleStack(treeOrigin);
+                    tree.expandString();
+                    tree.expandString();
+                    tree.executeString();
+                    // add collider
+                    let collider = new __WEBPACK_IMPORTED_MODULE_5__Collider__["a" /* default */](__WEBPACK_IMPORTED_MODULE_8_gl_matrix__["d" /* vec2 */].fromValues(treeOrigin[0], treeOrigin[2]), 1.0);
+                    let posTileIdx = __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["d" /* vec2 */].fromValues(Math.floor(posInPlane[0] / this.tileDim), Math.floor(posInPlane[2] / this.tileDim));
+                    let xMin = Math.max(0, posTileIdx[0] - 1);
+                    let xMax = Math.min(this.tileNum - 1, posTileIdx[0] + 1);
+                    let zMin = Math.max(0, posTileIdx[1] - 1);
+                    let zMax = Math.min(this.tileNum - 1, posTileIdx[1] + 1);
+                    for (let tileX = xMin; tileX <= xMax; tileX++) {
+                        for (let tileZ = zMin; tileZ <= zMax; tileZ++) {
+                            // TODO: would be nice to check more precisely if
+                            // collider should go in this tile... but this
+                            // should help filter it a bit anyway
+                            tp.colliders[tileX][tileZ].push(collider);
+                        }
+                    }
+                    //this.colliders.push(new Collider(vec2.fromValues(treeOrigin[0], treeOrigin[2]), 1.0));
+                    // add clones to maintain continuity when looping
+                    if (xClone != 0) {
+                        let cloneOrigin = __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["e" /* vec3 */].clone(treeOrigin);
+                        cloneOrigin[0] += xClone;
+                        tree.resetTurtleStack(cloneOrigin);
+                        tree.executeString();
+                    }
+                    if (zClone != 0) {
+                        let cloneOrigin = __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["e" /* vec3 */].clone(treeOrigin);
+                        cloneOrigin[2] += zClone;
+                        tree.resetTurtleStack(cloneOrigin);
+                        tree.executeString();
+                    }
+                    if (xClone != 0 && zClone != 0) {
+                        let cloneOrigin = __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["e" /* vec3 */].clone(treeOrigin);
+                        cloneOrigin[0] += xClone;
+                        cloneOrigin[2] += zClone;
+                        tree.resetTurtleStack(cloneOrigin);
+                        tree.executeString();
+                    }
+                }
+            }
+        }
+        function addSnowmen(xClone, zClone, tp) {
+            let numClusters = Math.floor(Math.random() * 6.0 + 1.01);
+            for (let cluster = 0; cluster < numClusters; cluster++) {
+                __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["e" /* vec3 */].scaleAndAdd(planeOrigin, this.origin, planeOffset, this.planeDim);
+                let baseInPlane = __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["e" /* vec3 */].fromValues((Math.random() * 0.65 + 0.15) * this.planeDim, 0, (Math.random() * 0.65 + 0.15) * this.planeDim);
+                planeOrigin[0] += baseInPlane[0];
+                planeOrigin[2] += baseInPlane[2];
+                let treesInCluster = Math.floor(Math.random() * 3.0 + 1.01);
+                let treeOrigin = __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["e" /* vec3 */].create();
+                let angle = Math.random() * Math.PI;
+                let angleIncrement = 2.0 * Math.PI / treesInCluster;
+                let posInPlane = __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["e" /* vec3 */].create();
+                for (let i = 0; i < treesInCluster; i++) {
+                    decorations.useColor(SNOW_COLOR);
+                    angle += angleIncrement;
+                    __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["e" /* vec3 */].set(treeOrigin, Math.cos(angle), 0, Math.sin(angle));
+                    __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["e" /* vec3 */].scaleAndAdd(posInPlane, baseInPlane, treeOrigin, 1.6 * this.tileDim);
+                    __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["e" /* vec3 */].scaleAndAdd(treeOrigin, planeOrigin, treeOrigin, 1.6 * this.tileDim);
+                    // find tile information
+                    let posTileIdx = __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["d" /* vec2 */].create();
+                    let posInTile = Object(__WEBPACK_IMPORTED_MODULE_7__Utils__["g" /* modfVec2 */])(__WEBPACK_IMPORTED_MODULE_8_gl_matrix__["d" /* vec2 */].fromValues(posInPlane[0], posInPlane[2]), this.tileDim, posTileIdx);
+                    // find and use height
+                    let height = this.getHeight(posInTile, posTileIdx, tp);
+                    treeOrigin[1] = this.origin[1] + height;
+                    //let tree = new BasicTree(decorations);
+                    let tree = new __WEBPACK_IMPORTED_MODULE_3__Snowman__["b" /* default */](decorations, Math.floor(Math.random() * 2048), __WEBPACK_IMPORTED_MODULE_3__Snowman__["a" /* SnowmanType */].NORMAL);
+                    tree.initAlphabet();
+                    tree.resetTurtleStack(treeOrigin);
+                    tree.expandString();
+                    tree.expandString();
+                    tree.executeString();
+                    // add collider
+                    let collider = new __WEBPACK_IMPORTED_MODULE_5__Collider__["a" /* default */](__WEBPACK_IMPORTED_MODULE_8_gl_matrix__["d" /* vec2 */].fromValues(treeOrigin[0], treeOrigin[2]), 1.0);
+                    let xMin = Math.max(0, posTileIdx[0] - 1);
+                    let xMax = Math.min(this.tileNum - 1, posTileIdx[0] + 1);
+                    let zMin = Math.max(0, posTileIdx[1] - 1);
+                    let zMax = Math.min(this.tileNum - 1, posTileIdx[1] + 1);
+                    for (let tileX = xMin; tileX <= xMax; tileX++) {
+                        for (let tileZ = zMin; tileZ <= zMax; tileZ++) {
+                            // TODO: would be nice to check more precisely if
+                            // collider should go in this tile... but this
+                            // should help filter it a bit anyway
+                            tp.colliders[tileX][tileZ].push(collider);
+                        }
+                    }
+                    //this.colliders.push(new Collider(vec2.fromValues(treeOrigin[0], treeOrigin[2]), 1.0));
+                    // add clones to maintain continuity when looping
+                    if (xClone != 0) {
+                        let cloneOrigin = __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["e" /* vec3 */].clone(treeOrigin);
+                        cloneOrigin[0] += xClone;
+                        tree.resetTurtleStack(cloneOrigin);
+                        tree.executeString();
+                    }
+                    if (zClone != 0) {
+                        let cloneOrigin = __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["e" /* vec3 */].clone(treeOrigin);
+                        cloneOrigin[2] += zClone;
+                        tree.resetTurtleStack(cloneOrigin);
+                        tree.executeString();
+                    }
+                    if (xClone != 0 && zClone != 0) {
+                        let cloneOrigin = __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["e" /* vec3 */].clone(treeOrigin);
+                        cloneOrigin[0] += xClone;
+                        cloneOrigin[2] += zClone;
+                        tree.resetTurtleStack(cloneOrigin);
+                        tree.executeString();
+                    }
+                }
+            }
+        }
+        function addPyramid(xClone, zClone, tp) {
+            // add just pyramid
+            __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["e" /* vec3 */].scaleAndAdd(planeOrigin, this.origin, planeOffset, this.planeDim);
+            let baseInPlane = __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["e" /* vec3 */].fromValues((Math.random() * 0.15 + 0.45) * this.planeDim, 0, (Math.random() * 0.15 + 0.45) * this.planeDim);
+            planeOrigin[0] += baseInPlane[0];
+            planeOrigin[1] += 5.0;
+            planeOrigin[2] += baseInPlane[2];
+            let ghostDecorations = new __WEBPACK_IMPORTED_MODULE_1__geometry_Decoration__["c" /* default */]();
+            let tree = new __WEBPACK_IMPORTED_MODULE_4__Ghost__["b" /* default */](ghostDecorations, Math.floor(Math.random() * 2048), __WEBPACK_IMPORTED_MODULE_4__Ghost__["a" /* GhostType */].NICE);
+            this.niceGhosts.push(tree);
+            tree.initAlphabet();
+            tree.resetTurtleStack(planeOrigin);
+            tree.expandString();
+            tree.expandString();
+            tree.executeString();
+            // TODO: add pyramid collider
+            tp.bigColliders.push(new __WEBPACK_IMPORTED_MODULE_5__Collider__["a" /* default */](__WEBPACK_IMPORTED_MODULE_8_gl_matrix__["d" /* vec2 */].fromValues(planeOrigin[0], planeOrigin[2]), 1.9));
+            // add clones to maintain continuity when looping
+            if (xClone != 0) {
+                let cloneOrigin = __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["e" /* vec3 */].clone(planeOrigin);
+                cloneOrigin[0] += xClone;
+                tree.resetTurtleStack(cloneOrigin);
+                tree.executeString();
+            }
+            if (zClone != 0) {
+                let cloneOrigin = __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["e" /* vec3 */].clone(planeOrigin);
+                cloneOrigin[2] += zClone;
+                tree.resetTurtleStack(cloneOrigin);
+                tree.executeString();
+            }
+            if (xClone != 0 && zClone != 0) {
+                let cloneOrigin = __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["e" /* vec3 */].clone(planeOrigin);
+                cloneOrigin[0] += xClone;
+                cloneOrigin[2] += zClone;
+                tree.resetTurtleStack(cloneOrigin);
+                tree.executeString();
+            }
+            ghostDecorations.create();
+            this.drawables.push(ghostDecorations);
+        }
+        // add some decorations
+        let decorations = new __WEBPACK_IMPORTED_MODULE_1__geometry_Decoration__["c" /* default */]();
+        let decorationMat = __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["b" /* mat4 */].create();
+        // pick a plane in which to place the pyramid
+        let pyramidX = 0;
+        let pyramidZ = Math.floor(Math.random() * this.planeNumZ * 0.999);
+        // add decorations on each terrain plane
+        for (let x = 0; x < this.planeNumX; x++) {
+            let xClone = this.totalDimX * ((x == 0) ? 1 : (x == this.planeNumX - 1) ? -1 : 0);
+            for (let z = 0; z < this.planeNumZ; z++) {
+                let zClone = this.totalDimZ * ((z == 0) ? 1 : (z == this.planeNumZ - 1) ? -1 : 0);
+                // find terrain plane so we can add colliders
+                let tp = this.terrainPlanes[this.getAbsIdx(x, z)];
+                // compute position of decoration
+                __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["e" /* vec3 */].set(planeOffset, x, 0, z);
+                addPyramid.call(this, xClone, zClone, tp);
+                addTrees.call(this, xClone, zClone, tp);
+                addSnowmen.call(this, xClone, zClone, tp);
+            }
+        }
+        decorations.create();
+        this.drawables.push(decorations);
     }
     buildLevel3() {
         let planeOrigin = __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["e" /* vec3 */].create();
@@ -1389,13 +1642,76 @@ class Terrain {
             this.drawables.push(this.terrainPlanes[i]);
         }
         function addTrees(xClone, zClone, tp) {
-            let numClusters = Math.floor(Math.random() * 3.0 + 1.01);
+            let numClusters = Math.floor(Math.random() * 5.0 + 1.01);
             for (let cluster = 0; cluster < numClusters; cluster++) {
                 __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["e" /* vec3 */].scaleAndAdd(planeOrigin, this.origin, planeOffset, this.planeDim);
                 let baseInPlane = __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["e" /* vec3 */].fromValues((Math.random() * 0.65 + 0.15) * this.planeDim, 0, (Math.random() * 0.65 + 0.15) * this.planeDim);
                 planeOrigin[0] += baseInPlane[0];
                 planeOrigin[2] += baseInPlane[2];
-                let treesInCluster = Math.floor(Math.random() * 4.0 + 1.01);
+                let treesInCluster = Math.floor(Math.random() * 3.0 + 1.01);
+                let treeOrigin = __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["e" /* vec3 */].create();
+                let angle = Math.random() * Math.PI;
+                let angleIncrement = 2.0 * Math.PI / treesInCluster;
+                let posInPlane = __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["e" /* vec3 */].create();
+                for (let i = 0; i < treesInCluster; i++) {
+                    decorations.useColor(TREE_COLORS[Math.floor(Math.random() * TREE_COLORS.length * 0.999)]);
+                    angle += angleIncrement;
+                    __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["e" /* vec3 */].set(treeOrigin, Math.cos(angle), 0, Math.sin(angle));
+                    __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["e" /* vec3 */].scaleAndAdd(posInPlane, baseInPlane, treeOrigin, 1.6 * this.tileDim);
+                    __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["e" /* vec3 */].scaleAndAdd(treeOrigin, planeOrigin, treeOrigin, 1.6 * this.tileDim);
+                    let tree = new __WEBPACK_IMPORTED_MODULE_2__BasicTree__["b" /* default */](decorations, __WEBPACK_IMPORTED_MODULE_2__BasicTree__["a" /* BasicTreeType */].HAUNTED);
+                    tree.initAlphabet();
+                    tree.resetTurtleStack(treeOrigin);
+                    tree.expandString();
+                    tree.expandString();
+                    tree.executeString();
+                    // add collider
+                    let collider = new __WEBPACK_IMPORTED_MODULE_5__Collider__["a" /* default */](__WEBPACK_IMPORTED_MODULE_8_gl_matrix__["d" /* vec2 */].fromValues(treeOrigin[0], treeOrigin[2]), 1.0);
+                    let posTileIdx = __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["d" /* vec2 */].fromValues(Math.floor(posInPlane[0] / this.tileDim), Math.floor(posInPlane[2] / this.tileDim));
+                    let xMin = Math.max(0, posTileIdx[0] - 1);
+                    let xMax = Math.min(this.tileNum - 1, posTileIdx[0] + 1);
+                    let zMin = Math.max(0, posTileIdx[1] - 1);
+                    let zMax = Math.min(this.tileNum - 1, posTileIdx[1] + 1);
+                    for (let tileX = xMin; tileX <= xMax; tileX++) {
+                        for (let tileZ = zMin; tileZ <= zMax; tileZ++) {
+                            // TODO: would be nice to check more precisely if
+                            // collider should go in this tile... but this
+                            // should help filter it a bit anyway
+                            tp.colliders[tileX][tileZ].push(collider);
+                        }
+                    }
+                    //this.colliders.push(new Collider(vec2.fromValues(treeOrigin[0], treeOrigin[2]), 1.0));
+                    // add clones to maintain continuity when looping
+                    if (xClone != 0) {
+                        let cloneOrigin = __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["e" /* vec3 */].clone(treeOrigin);
+                        cloneOrigin[0] += xClone;
+                        tree.resetTurtleStack(cloneOrigin);
+                        tree.executeString();
+                    }
+                    if (zClone != 0) {
+                        let cloneOrigin = __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["e" /* vec3 */].clone(treeOrigin);
+                        cloneOrigin[2] += zClone;
+                        tree.resetTurtleStack(cloneOrigin);
+                        tree.executeString();
+                    }
+                    if (xClone != 0 && zClone != 0) {
+                        let cloneOrigin = __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["e" /* vec3 */].clone(treeOrigin);
+                        cloneOrigin[0] += xClone;
+                        cloneOrigin[2] += zClone;
+                        tree.resetTurtleStack(cloneOrigin);
+                        tree.executeString();
+                    }
+                }
+            }
+        }
+        function addSnowmen(xClone, zClone, tp) {
+            let numClusters = Math.floor(Math.random() * 5.0 + 1.01);
+            for (let cluster = 0; cluster < numClusters; cluster++) {
+                __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["e" /* vec3 */].scaleAndAdd(planeOrigin, this.origin, planeOffset, this.planeDim);
+                let baseInPlane = __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["e" /* vec3 */].fromValues((Math.random() * 0.65 + 0.15) * this.planeDim, 0, (Math.random() * 0.65 + 0.15) * this.planeDim);
+                planeOrigin[0] += baseInPlane[0];
+                planeOrigin[2] += baseInPlane[2];
+                let treesInCluster = Math.floor(Math.random() * 3.0 + 1.01);
                 let treeOrigin = __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["e" /* vec3 */].create();
                 let angle = Math.random() * Math.PI;
                 let angleIncrement = 2.0 * Math.PI / treesInCluster;
@@ -1411,9 +1727,9 @@ class Terrain {
                     let posInTile = Object(__WEBPACK_IMPORTED_MODULE_7__Utils__["g" /* modfVec2 */])(__WEBPACK_IMPORTED_MODULE_8_gl_matrix__["d" /* vec2 */].fromValues(posInPlane[0], posInPlane[2]), this.tileDim, posTileIdx);
                     // find and use height
                     let height = this.getHeight(posInTile, posTileIdx, tp);
-                    treeOrigin[1] = this.origin[1] + height - 1.0;
+                    treeOrigin[1] = this.origin[1] + height;
                     //let tree = new BasicTree(decorations);
-                    let tree = new __WEBPACK_IMPORTED_MODULE_3__Snowman__["a" /* default */](decorations, Math.floor(Math.random() * 2048), false);
+                    let tree = new __WEBPACK_IMPORTED_MODULE_3__Snowman__["b" /* default */](decorations, Math.floor(Math.random() * 2048), __WEBPACK_IMPORTED_MODULE_3__Snowman__["a" /* SnowmanType */].HAUNTED);
                     tree.initAlphabet();
                     tree.resetTurtleStack(treeOrigin);
                     tree.expandString();
@@ -1457,13 +1773,52 @@ class Terrain {
                 }
             }
         }
+        function addPyramid(xClone, zClone, tp) {
+            // add just pyramid
+            __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["e" /* vec3 */].scaleAndAdd(planeOrigin, this.origin, planeOffset, this.planeDim);
+            let baseInPlane = __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["e" /* vec3 */].fromValues((Math.random() * 0.15 + 0.45) * this.planeDim, 0, (Math.random() * 0.15 + 0.45) * this.planeDim);
+            planeOrigin[0] += baseInPlane[0];
+            planeOrigin[1] += 5.0;
+            planeOrigin[2] += baseInPlane[2];
+            let ghostDecorations = new __WEBPACK_IMPORTED_MODULE_1__geometry_Decoration__["c" /* default */]();
+            let tree = new __WEBPACK_IMPORTED_MODULE_4__Ghost__["b" /* default */](ghostDecorations, Math.floor(Math.random() * 2048), __WEBPACK_IMPORTED_MODULE_4__Ghost__["a" /* GhostType */].NICE);
+            this.niceGhosts.push(tree);
+            tree.initAlphabet();
+            tree.resetTurtleStack(planeOrigin);
+            tree.expandString();
+            tree.expandString();
+            tree.executeString();
+            // TODO: add pyramid collider
+            tp.bigColliders.push(new __WEBPACK_IMPORTED_MODULE_5__Collider__["a" /* default */](__WEBPACK_IMPORTED_MODULE_8_gl_matrix__["d" /* vec2 */].fromValues(planeOrigin[0], planeOrigin[2]), 1.9));
+            // add clones to maintain continuity when looping
+            if (xClone != 0) {
+                let cloneOrigin = __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["e" /* vec3 */].clone(planeOrigin);
+                cloneOrigin[0] += xClone;
+                tree.resetTurtleStack(cloneOrigin);
+                tree.executeString();
+            }
+            if (zClone != 0) {
+                let cloneOrigin = __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["e" /* vec3 */].clone(planeOrigin);
+                cloneOrigin[2] += zClone;
+                tree.resetTurtleStack(cloneOrigin);
+                tree.executeString();
+            }
+            if (xClone != 0 && zClone != 0) {
+                let cloneOrigin = __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["e" /* vec3 */].clone(planeOrigin);
+                cloneOrigin[0] += xClone;
+                cloneOrigin[2] += zClone;
+                tree.resetTurtleStack(cloneOrigin);
+                tree.executeString();
+            }
+            ghostDecorations.create();
+            this.drawables.push(ghostDecorations);
+        }
         // add some decorations
         let decorations = new __WEBPACK_IMPORTED_MODULE_1__geometry_Decoration__["c" /* default */]();
         let decorationMat = __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["b" /* mat4 */].create();
         // pick a plane in which to place the pyramid
-        let pyramidX = 2;
+        let pyramidX = 0;
         let pyramidZ = Math.floor(Math.random() * this.planeNumZ * 0.999);
-        console.log(["pyramid: ", pyramidX, pyramidZ]);
         // add decorations on each terrain plane
         for (let x = 0; x < this.planeNumX; x++) {
             let xClone = this.totalDimX * ((x == 0) ? 1 : (x == this.planeNumX - 1) ? -1 : 0);
@@ -1473,14 +1828,24 @@ class Terrain {
                 let tp = this.terrainPlanes[this.getAbsIdx(x, z)];
                 // compute position of decoration
                 __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["e" /* vec3 */].set(planeOffset, x, 0, z);
-                addTrees.call(this, xClone, zClone, tp);
+                if (x == pyramidX && z == pyramidZ) {
+                    addPyramid.call(this, xClone, zClone, tp);
+                }
+                else {
+                    if (Math.random() < 0.5) {
+                        addTrees.call(this, xClone, zClone, tp);
+                    }
+                    else {
+                        addSnowmen.call(this, xClone, zClone, tp);
+                    }
+                }
             }
         }
         decorations.create();
         this.drawables.push(decorations);
         for (let i = 0; i < NUM_GHOSTS; i++) {
             let ghostDecorations = new __WEBPACK_IMPORTED_MODULE_1__geometry_Decoration__["c" /* default */]();
-            let ghost = new __WEBPACK_IMPORTED_MODULE_4__Ghost__["a" /* default */](ghostDecorations, Math.floor(Math.random() * 512));
+            let ghost = new __WEBPACK_IMPORTED_MODULE_4__Ghost__["b" /* default */](ghostDecorations, Math.floor(Math.random() * 512), __WEBPACK_IMPORTED_MODULE_4__Ghost__["a" /* GhostType */].EVIL);
             ghost.initAlphabet();
             ghost.resetTurtleStack(__WEBPACK_IMPORTED_MODULE_8_gl_matrix__["e" /* vec3 */].fromValues(0, 1, 0));
             ghost.expandString();
@@ -1488,7 +1853,7 @@ class Terrain {
             ghost.executeString();
             let xzAngle = Math.random() * 2.0 * Math.PI;
             __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["e" /* vec3 */].copy(ghost.playerOffset, __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["e" /* vec3 */].fromValues(Math.cos(xzAngle), 0, Math.sin(xzAngle)));
-            __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["e" /* vec3 */].scale(ghost.playerOffset, ghost.playerOffset, 50.0 + Math.random() * 10.0);
+            __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["e" /* vec3 */].scale(ghost.playerOffset, ghost.playerOffset, 70.0 + Math.random() * 10.0);
             ghostDecorations.create();
             this.drawables.push(ghostDecorations);
             this.ghosts.push(ghost);
@@ -1567,7 +1932,7 @@ class Terrain {
                     let height = this.getHeight(posInTile, posTileIdx, tp);
                     treeOrigin[1] = this.origin[1] + height - 1.0;
                     //let tree = new BasicTree(decorations);
-                    let tree = new __WEBPACK_IMPORTED_MODULE_3__Snowman__["a" /* default */](decorations, Math.floor(Math.random() * 2048), false);
+                    let tree = new __WEBPACK_IMPORTED_MODULE_3__Snowman__["b" /* default */](decorations, Math.floor(Math.random() * 2048), __WEBPACK_IMPORTED_MODULE_3__Snowman__["a" /* SnowmanType */].NORMAL);
                     tree.initAlphabet();
                     tree.resetTurtleStack(treeOrigin);
                     tree.expandString();
@@ -1617,7 +1982,7 @@ class Terrain {
             let baseInPlane = __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["e" /* vec3 */].fromValues((Math.random() * 0.15 + 0.45) * this.planeDim, 0, (Math.random() * 0.15 + 0.45) * this.planeDim);
             planeOrigin[0] += baseInPlane[0];
             planeOrigin[2] += baseInPlane[2];
-            let tree = new __WEBPACK_IMPORTED_MODULE_3__Snowman__["a" /* default */](decorations, Math.floor(Math.random() * 2048), true);
+            let tree = new __WEBPACK_IMPORTED_MODULE_3__Snowman__["b" /* default */](decorations, Math.floor(Math.random() * 2048), __WEBPACK_IMPORTED_MODULE_3__Snowman__["a" /* SnowmanType */].BIG);
             tree.initAlphabet();
             tree.resetTurtleStack(planeOrigin);
             tree.expandString();
@@ -1650,9 +2015,8 @@ class Terrain {
         let decorations = new __WEBPACK_IMPORTED_MODULE_1__geometry_Decoration__["c" /* default */]();
         let decorationMat = __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["b" /* mat4 */].create();
         // pick a plane in which to place the pyramid
-        let pyramidX = 2;
+        let pyramidX = 1;
         let pyramidZ = Math.floor(Math.random() * this.planeNumZ * 0.999);
-        console.log(["pyramid: ", pyramidX, pyramidZ]);
         // add decorations on each terrain plane
         for (let x = 0; x < this.planeNumX; x++) {
             let xClone = this.totalDimX * ((x == 0) ? 1 : (x == this.planeNumX - 1) ? -1 : 0);
@@ -1736,7 +2100,7 @@ class Terrain {
                     __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["e" /* vec3 */].set(treeOrigin, Math.cos(angle), 0, Math.sin(angle));
                     __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["e" /* vec3 */].scaleAndAdd(posInPlane, baseInPlane, treeOrigin, 1.6 * this.tileDim);
                     __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["e" /* vec3 */].scaleAndAdd(treeOrigin, planeOrigin, treeOrigin, 1.6 * this.tileDim);
-                    let tree = new __WEBPACK_IMPORTED_MODULE_2__BasicTree__["a" /* default */](decorations);
+                    let tree = new __WEBPACK_IMPORTED_MODULE_2__BasicTree__["b" /* default */](decorations, __WEBPACK_IMPORTED_MODULE_2__BasicTree__["a" /* BasicTreeType */].NORMAL);
                     tree.initAlphabet();
                     tree.resetTurtleStack(treeOrigin);
                     tree.expandString();
@@ -1821,7 +2185,6 @@ class Terrain {
         // pick a plane in which to place the pyramid
         let pyramidX = 2;
         let pyramidZ = Math.floor(Math.random() * this.planeNumZ * 0.999);
-        console.log(["pyramid: ", pyramidX, pyramidZ]);
         // add decorations on each terrain plane
         for (let x = 0; x < this.planeNumX; x++) {
             let xClone = this.totalDimX * ((x == 0) ? 1 : (x == this.planeNumX - 1) ? -1 : 0);
@@ -2015,6 +2378,7 @@ class Terrain {
         let avoidDirs = new Array(this.ghosts.length); // directions used for ghosts to avoid each other
         for (let g = 0; g < this.ghosts.length; g++) {
             avoidDirs[g] = __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["e" /* vec3 */].fromValues(0, 0, 0);
+            this.ghosts[g].playerOffset[1] = 0.0;
         }
         for (let g = 0; g < this.ghosts.length; g++) {
             let ghost = this.ghosts[g];
@@ -2037,8 +2401,12 @@ class Terrain {
             }
             // move ghost towards player
             let toPlayer = __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["e" /* vec3 */].clone(ghost.playerOffset);
-            __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["e" /* vec3 */].normalize(toPlayer, toPlayer);
-            __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["e" /* vec3 */].scaleAndAdd(ghost.playerOffset, ghost.playerOffset, toPlayer, -deltaTime * 4.0);
+            // scale speed according to distance
+            let dist = __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["e" /* vec3 */].length(toPlayer);
+            __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["e" /* vec3 */].scale(toPlayer, toPlayer, 1.0 / dist); // normalize
+            dist -= this.tileDim * 6.0;
+            let speed = (dist < 0) ? 5.0 : Math.min(25.0, 4.0 + Math.pow(dist + 1.0, 2.0));
+            __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["e" /* vec3 */].scaleAndAdd(ghost.playerOffset, ghost.playerOffset, toPlayer, -deltaTime * speed);
             // move ghost away from other ghosts
             __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["e" /* vec3 */].add(ghost.playerOffset, ghost.playerOffset, avoidDirs[g]);
             // find actual ghost position
@@ -2059,17 +2427,31 @@ class Terrain {
             ghost.setModelMatrix(ghostMat);
             // treat collision with ghost as reason to exit
             if (__WEBPACK_IMPORTED_MODULE_8_gl_matrix__["e" /* vec3 */].length(ghost.playerOffset) < 1.6) {
+                this.badEnd = true;
                 this.shouldExit = true;
             }
+        }
+        // animate nice ghosts
+        for (let g = 0; g < this.niceGhosts.length; g++) {
+            let ghost = this.niceGhosts[g];
+            let ghostPos = __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["e" /* vec3 */].create();
+            // make ghost bob
+            ghostPos[1] += 0.5 + 0.5 * Math.cos(ghost.bobValue * ghost.bobFrequency);
+            ghost.bobValue += deltaTime;
+            let ghostMat = __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["b" /* mat4 */].create();
+            __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["b" /* mat4 */].fromTranslation(ghostMat, ghostPos);
+            //mat4.translate(ghostMat, ghostMat, ghostPos);
+            ghost.setModelMatrix(ghostMat);
         }
     }
     // move ghosts away from player
     resetGhosts() {
+        this.badEnd = false;
         for (let i = 0; i < this.ghosts.length; i++) {
             let ghost = this.ghosts[i];
             let xzAngle = Math.random() * 2.0 * Math.PI;
             __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["e" /* vec3 */].copy(ghost.playerOffset, __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["e" /* vec3 */].fromValues(Math.cos(xzAngle), 0, Math.sin(xzAngle)));
-            __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["e" /* vec3 */].scale(ghost.playerOffset, ghost.playerOffset, 50.0 + Math.random() * 10.0);
+            __WEBPACK_IMPORTED_MODULE_8_gl_matrix__["e" /* vec3 */].scale(ghost.playerOffset, ghost.playerOffset, 70.0 + Math.random() * 10.0);
         }
     }
     // returns whether ray hits a "big collider"
@@ -2114,7 +2496,7 @@ class Terrain {
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__Turtle__ = __webpack_require__(5);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__LSymbol__ = __webpack_require__(6);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__geometry_Decoration__ = __webpack_require__(4);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__LString__ = __webpack_require__(28);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__LString__ = __webpack_require__(30);
 
 
 
@@ -2279,6 +2661,7 @@ class ShaderProgram {
         this.unifBrushNoise = __WEBPACK_IMPORTED_MODULE_1__globals__["a" /* gl */].getUniformLocation(this.prog, "u_BrushNoise");
         this.unifFadeInTime = __WEBPACK_IMPORTED_MODULE_1__globals__["a" /* gl */].getUniformLocation(this.prog, "u_FadeInTime");
         this.unifFadeOutTime = __WEBPACK_IMPORTED_MODULE_1__globals__["a" /* gl */].getUniformLocation(this.prog, "u_FadeOutTime");
+        this.unifBadEnd = __WEBPACK_IMPORTED_MODULE_1__globals__["a" /* gl */].getUniformLocation(this.prog, "u_BadEnd");
         this.unifTexUnits = new Map();
     }
     setupTexUnits(handleNames) {
@@ -2394,6 +2777,12 @@ class ShaderProgram {
         this.use();
         if (this.unifFadeOutTime !== -1) {
             __WEBPACK_IMPORTED_MODULE_1__globals__["a" /* gl */].uniform1f(this.unifFadeOutTime, fadeOutTime);
+        }
+    }
+    setBadEnd(badEnd) {
+        this.use();
+        if (this.unifBadEnd !== -1) {
+            __WEBPACK_IMPORTED_MODULE_1__globals__["a" /* gl */].uniform1f(this.unifBadEnd, badEnd);
         }
     }
     draw(d) {
@@ -4802,12 +5191,585 @@ class Square extends __WEBPACK_IMPORTED_MODULE_1__rendering_gl_Drawable__["a" /*
 
 /***/ }),
 /* 16 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return BasicTreeType; });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_gl_matrix__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__l_system_Turtle__ = __webpack_require__(5);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__ = __webpack_require__(6);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__l_system_LSystem__ = __webpack_require__(10);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__geometry_Decoration__ = __webpack_require__(4);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__l_system_LRandom__ = __webpack_require__(7);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__Utils__ = __webpack_require__(3);
+
+
+
+
+
+
+
+const HAUNTED_COLOR = Object(__WEBPACK_IMPORTED_MODULE_6__Utils__["h" /* normalizeRGB */])(17, 17, 17);
+var BasicTreeType;
+(function (BasicTreeType) {
+    BasicTreeType[BasicTreeType["NORMAL"] = 1] = "NORMAL";
+    BasicTreeType[BasicTreeType["HAUNTED"] = 2] = "HAUNTED";
+})(BasicTreeType || (BasicTreeType = {}));
+class BasicTree extends __WEBPACK_IMPORTED_MODULE_3__l_system_LSystem__["a" /* default */] {
+    constructor(decoration, type) {
+        super();
+        this.decoration = decoration;
+        this.prismSides = 5;
+        this.type = type;
+    }
+    resetTurtleStack(pos) {
+        let t = new __WEBPACK_IMPORTED_MODULE_1__l_system_Turtle__["a" /* default */]();
+        __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].copy(t.position, pos);
+        t.scaleBottom = 0.75;
+        t.scaleTop = 0.75;
+        this.turtleStack = [t];
+    }
+    initAlphabet() {
+        this.alphabet = [];
+        let isHaunted = this.type == BasicTreeType.HAUNTED;
+        // forward
+        let F = new __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__["b" /* LSymbol */]("F", function (lsys) {
+            if (isHaunted) {
+                lsys.useColor(HAUNTED_COLOR);
+            }
+            let turtle = lsys.getTopTurtle();
+            lsys.addScaledPrismAtTurtleNoShrink(turtle, 0.8);
+            turtle.moveForward(__WEBPACK_IMPORTED_MODULE_4__geometry_Decoration__["b" /* PRISM_HEIGHT */] * 0.6);
+        });
+        this.alphabet.push(F);
+        // turn
+        // make turtle face in a mostly vertical direction that's not up
+        let T = new __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__["b" /* LSymbol */]("T", function (lsys) {
+            if (isHaunted) {
+                lsys.useColor(HAUNTED_COLOR);
+            }
+            let turtle = lsys.getTopTurtle();
+            let angle = __WEBPACK_IMPORTED_MODULE_5__l_system_LRandom__["b" /* lRandom */].getNext() * 2.0 * Math.PI;
+            let y = __WEBPACK_IMPORTED_MODULE_5__l_system_LRandom__["b" /* lRandom */].getNext() * 0.5 + 0.25;
+            __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].set(turtle.orientation, Math.cos(angle), y, Math.sin(angle));
+            __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].normalize(turtle.orientation, turtle.orientation);
+            // temporarily shrink top
+            let top = turtle.scaleTop;
+            let bot = turtle.scaleBottom;
+            turtle.scaleTop *= 0.75;
+            turtle.scaleBottom *= 0.9;
+            lsys.addScaledPrismAtTurtleNoShrink(turtle, 0.4);
+            turtle.scaleTop = top;
+            turtle.scaleBottom = bot;
+            turtle.moveForward(__WEBPACK_IMPORTED_MODULE_4__geometry_Decoration__["b" /* PRISM_HEIGHT */] * 0.35);
+            // make next prisms thinner so they "connect" better
+            turtle.scaleBottom *= 0.5;
+        });
+        this.alphabet.push(T);
+        // straighten
+        // make turtle face up again
+        let S = new __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__["b" /* LSymbol */]("S", function (lsys) {
+            if (isHaunted) {
+                lsys.useColor(HAUNTED_COLOR);
+            }
+            let turtle = lsys.getTopTurtle();
+            let angle = __WEBPACK_IMPORTED_MODULE_5__l_system_LRandom__["b" /* lRandom */].getNext() * 2.0 * Math.PI;
+            let y = __WEBPACK_IMPORTED_MODULE_5__l_system_LRandom__["b" /* lRandom */].getNext() * 0.3 + 0.45;
+            __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].set(turtle.orientation, 0, 1, 0);
+            lsys.addScaledPrismAtTurtleNoShrink(turtle, 0.8);
+            turtle.moveForward(__WEBPACK_IMPORTED_MODULE_4__geometry_Decoration__["b" /* PRISM_HEIGHT */] * 0.8);
+        });
+        this.alphabet.push(S);
+        // push
+        let push = new __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__["b" /* LSymbol */]("[", function (lsys) {
+            let turtle = lsys.getTopTurtle();
+            let copy = turtle.makeDeepCopy();
+            copy.depth++;
+            lsys.turtleStack.push(copy);
+        });
+        this.alphabet.push(push);
+        // pop
+        let pop = new __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__["b" /* LSymbol */]("]", function (lsys) {
+            lsys.turtleStack.pop();
+        });
+        this.alphabet.push(pop);
+        // set expansion rules
+        F.setExpansionRules([
+            new __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__["a" /* ExpansionRule */](4, [F]),
+            new __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__["a" /* ExpansionRule */](1, [F, push, T, S, pop, F, F]),
+            new __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__["a" /* ExpansionRule */](1, [F, F])
+        ]);
+        T.setExpansionRules([
+            new __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__["a" /* ExpansionRule */](1, [T]),
+            new __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__["a" /* ExpansionRule */](1, [push, T, S, pop, T])
+        ]);
+        S.setExpansionRules([
+            new __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__["a" /* ExpansionRule */](2, [S]),
+            new __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__["a" /* ExpansionRule */](1, [S, S])
+        ]);
+        this.setAxiom([
+            F, push, T, S, pop, push, T, S, pop
+        ]);
+    }
+    executeString() {
+        __WEBPACK_IMPORTED_MODULE_5__l_system_LRandom__["b" /* lRandom */].setMode(__WEBPACK_IMPORTED_MODULE_5__l_system_LRandom__["a" /* LRANDOM_DETERMINISTIC */]);
+        let seed = __WEBPACK_IMPORTED_MODULE_5__l_system_LRandom__["b" /* lRandom */].state;
+        __WEBPACK_IMPORTED_MODULE_5__l_system_LRandom__["b" /* lRandom */].setSeed(0);
+        super.executeString();
+        __WEBPACK_IMPORTED_MODULE_5__l_system_LRandom__["b" /* lRandom */].setSeed(seed);
+    }
+}
+;
+/* harmony default export */ __webpack_exports__["b"] = (BasicTree);
+
+
+/***/ }),
+/* 17 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return SnowmanType; });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_gl_matrix__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__l_system_Turtle__ = __webpack_require__(5);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__ = __webpack_require__(6);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__l_system_LSystem__ = __webpack_require__(10);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__ = __webpack_require__(7);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__globals__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__Utils__ = __webpack_require__(3);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7_webgl_obj_loader__ = __webpack_require__(18);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7_webgl_obj_loader___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_7_webgl_obj_loader__);
+
+
+
+
+
+
+
+
+// ""static"" variables (I love JS. It's so bad.)
+let polySphere60 = null;
+let scarf = null;
+const TWIG_SCALE = 0.1;
+const FINGER_SCALE = 0.05;
+const NOSE_SCALE = 0.075;
+const SNOW_COLOR = Object(__WEBPACK_IMPORTED_MODULE_6__Utils__["h" /* normalizeRGB */])(200, 200, 255);
+const WOOD_COLOR = Object(__WEBPACK_IMPORTED_MODULE_6__Utils__["h" /* normalizeRGB */])(60, 17, 0);
+const NOSE_COLOR = Object(__WEBPACK_IMPORTED_MODULE_6__Utils__["h" /* normalizeRGB */])(455, 83, 30);
+const SCARF_COLOR = Object(__WEBPACK_IMPORTED_MODULE_6__Utils__["h" /* normalizeRGB */])(20, 300, 300);
+const HAUNTED_SNOW_COLOR = Object(__WEBPACK_IMPORTED_MODULE_6__Utils__["h" /* normalizeRGB */])(27, 27, 27);
+const HAUNTED_COLOR = Object(__WEBPACK_IMPORTED_MODULE_6__Utils__["h" /* normalizeRGB */])(7, 8, 7);
+var SnowmanType;
+(function (SnowmanType) {
+    SnowmanType[SnowmanType["NORMAL"] = 1] = "NORMAL";
+    SnowmanType[SnowmanType["BIG"] = 2] = "BIG";
+    SnowmanType[SnowmanType["HAUNTED"] = 3] = "HAUNTED";
+})(SnowmanType || (SnowmanType = {}));
+class Snowman extends __WEBPACK_IMPORTED_MODULE_3__l_system_LSystem__["a" /* default */] {
+    constructor(decoration, seed, type) {
+        super();
+        if (polySphere60 == null) {
+            let objString = Object(__WEBPACK_IMPORTED_MODULE_5__globals__["c" /* readTextFileSync */])("res/models/polySphere60.obj");
+            polySphere60 = new __WEBPACK_IMPORTED_MODULE_7_webgl_obj_loader__["Mesh"](objString);
+        }
+        if (scarf == null) {
+            let objString = Object(__WEBPACK_IMPORTED_MODULE_5__globals__["c" /* readTextFileSync */])("res/models/scarf.obj");
+            scarf = new __WEBPACK_IMPORTED_MODULE_7_webgl_obj_loader__["Mesh"](objString);
+        }
+        this.decoration = decoration;
+        this.prismSides = 5;
+        this.seed = seed;
+        // compute this snowman's rotation about Y
+        // get deterministic direction
+        __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["b" /* lRandom */].setMode(__WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["a" /* LRANDOM_DETERMINISTIC */]);
+        let oldSeed = __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["b" /* lRandom */].state;
+        __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["b" /* lRandom */].setSeed(this.seed);
+        let xzAngle = __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["b" /* lRandom */].getNext() * Math.PI * 2.0;
+        __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["b" /* lRandom */].setSeed(oldSeed);
+        // compute matrix
+        let rotMat4 = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["b" /* mat4 */].create();
+        __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["b" /* mat4 */].fromYRotation(rotMat4, xzAngle);
+        this.rotation = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["a" /* mat3 */].create();
+        __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["a" /* mat3 */].fromMat4(this.rotation, rotMat4);
+        this.type = type;
+    }
+    resetTurtleStack(pos) {
+        let t = new __WEBPACK_IMPORTED_MODULE_1__l_system_Turtle__["a" /* default */]();
+        __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].copy(t.position, pos);
+        if (this.type == SnowmanType.BIG) {
+            t.scaleBottom = 15;
+            t.scaleTop = 15;
+        }
+        else {
+            t.scaleBottom = 1.5;
+            t.scaleTop = 1.5;
+        }
+        this.turtleStack = [t];
+    }
+    // TODO
+    initAlphabet() {
+        this.alphabet = [];
+        // do this to avoid "this" issues
+        let snowmanRotation = this.rotation;
+        let snowColor = (this.type == SnowmanType.HAUNTED) ? HAUNTED_SNOW_COLOR : SNOW_COLOR;
+        let woodColor = (this.type == SnowmanType.HAUNTED) ? HAUNTED_COLOR : WOOD_COLOR;
+        let scarfColor = (this.type == SnowmanType.HAUNTED) ? HAUNTED_COLOR : SCARF_COLOR;
+        let noseColor = (this.type == SnowmanType.HAUNTED) ? HAUNTED_COLOR : NOSE_COLOR;
+        let upFunction = function (lsys) {
+            lsys.useColor(snowColor);
+            let turtle = lsys.getTopTurtle();
+            // rotate mesh
+            // just want a random direction, so this is enough
+            // OK to overwrite orientation -- we generate a new one later
+            __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].set(turtle.orientation, __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["b" /* lRandom */].getNext() * 2.0 - 1.0, __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["b" /* lRandom */].getNext() * 2.0 - 1.0, __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["b" /* lRandom */].getNext() * 2.0 - 1.0);
+            __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].normalize(turtle.orientation, turtle.orientation);
+            // add mesh
+            lsys.addMeshAtTurtle(turtle, __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].fromValues(turtle.scaleBottom, turtle.scaleBottom, turtle.scaleBottom), polySphere60);
+            // move turtle up, but not exactly up
+            __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].set(turtle.orientation, __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["b" /* lRandom */].getNext() * 2.0 - 1.0, 5.0, // big Y component to make direction close to up
+            __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["b" /* lRandom */].getNext() * 2.0 - 1.0);
+            __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].normalize(turtle.orientation, turtle.orientation);
+            turtle.moveForward(turtle.scaleBottom * 1.2);
+            // shrink next mesh
+            turtle.scaleBottom *= 0.7 + __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["b" /* lRandom */].getNext() * 0.15;
+        };
+        // up
+        let U = new __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__["b" /* LSymbol */]("U", upFunction);
+        this.alphabet.push(U);
+        // terminal up
+        let terminalU = new __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__["b" /* LSymbol */]("u", upFunction);
+        this.alphabet.push(terminalU);
+        // arm setup -- set turtle orientation to something useful for arms
+        let beginLeftArm = new __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__["b" /* LSymbol */]("(LA)", function (lsys) {
+            let turtle = lsys.getTopTurtle();
+            __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].set(turtle.orientation, __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["b" /* lRandom */].getNext() * 0.4 + 0.6, // big positive X
+            __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["b" /* lRandom */].getNext() * 0.8 - 0.2, // medium Y
+            __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["b" /* lRandom */].getNext() * 0.2 - 0.1 // small Z
+            );
+            // account for snowman's rotation
+            __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].transformMat3(turtle.orientation, turtle.orientation, snowmanRotation);
+            __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].normalize(turtle.orientation, turtle.orientation);
+            // move turtle so we're closer to the outside of the snowball
+            turtle.moveForward(turtle.scaleBottom * 0.8);
+        });
+        this.alphabet.push(beginLeftArm);
+        let beginRightArm = new __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__["b" /* LSymbol */]("(RA)", function (lsys) {
+            let turtle = lsys.getTopTurtle();
+            __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].set(turtle.orientation, -(__WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["b" /* lRandom */].getNext() * 0.4 + 0.6), // big negative X
+            __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["b" /* lRandom */].getNext() * 0.8 - 0.2, // medium Y
+            __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["b" /* lRandom */].getNext() * 0.2 - 0.1 // small Z
+            );
+            // account for snowman's rotation
+            __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].transformMat3(turtle.orientation, turtle.orientation, snowmanRotation);
+            __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].normalize(turtle.orientation, turtle.orientation);
+            // move turtle so we're closer to the outside of the snowball
+            turtle.moveForward(turtle.scaleBottom * 0.8);
+        });
+        this.alphabet.push(beginRightArm);
+        // actual arm -- "twig"
+        let T = new __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__["b" /* LSymbol */]("T", function (lsys) {
+            lsys.useColor(woodColor);
+            let turtle = lsys.getTopTurtle();
+            // add twig
+            let bot = turtle.scaleBottom;
+            // overwrite scaleBottom and scaleTop to make twig thin
+            turtle.scaleBottom = TWIG_SCALE * bot;
+            turtle.scaleTop = TWIG_SCALE * bot;
+            lsys.addScaledPrismAtTurtleNoShrink(turtle, bot * 0.1);
+            // move forward
+            turtle.moveForward(bot * 1.05);
+            // add mesh to connect with next part
+            turtle.scaleBottom *= 1.1;
+            lsys.addMeshAtTurtle(turtle, __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].fromValues(turtle.scaleBottom, turtle.scaleBottom, turtle.scaleBottom), polySphere60);
+            // restore scaleBottom
+            turtle.scaleBottom = bot * 0.85;
+            // tweak direction upwards, with a bit of Z randomness
+            let tweak = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].fromValues(0, __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["b" /* lRandom */].getNext() * 0.3 + 0.4, __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["b" /* lRandom */].getNext() * 0.8 - 0.4);
+            // account for snowman's rotation
+            __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].transformMat3(tweak, tweak, snowmanRotation);
+            __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].add(turtle.orientation, turtle.orientation, tweak);
+            __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].normalize(turtle.orientation, turtle.orientation);
+        });
+        this.alphabet.push(T);
+        // hand
+        let H = new __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__["b" /* LSymbol */]("H", function (lsys) {
+            lsys.useColor(woodColor);
+            let turtle = lsys.getTopTurtle();
+            // add twig
+            let bot = turtle.scaleBottom;
+            // add 3 fingers. for each finger, pick a direction and draw prism
+            // overwrite scaleBottom and scaleTop to make twig thin
+            turtle.scaleBottom = TWIG_SCALE * bot * 0.5;
+            turtle.scaleTop = turtle.scaleBottom * 0.3;
+            // middle finger -- pick direction
+            let originalDir = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].clone(turtle.orientation);
+            let tweak = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].fromValues(0, __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["b" /* lRandom */].getNext() * 0.9 - 0.45, 0);
+            let tweakRotated = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].create();
+            __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].transformMat3(tweakRotated, tweak, snowmanRotation);
+            __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].add(turtle.orientation, originalDir, tweakRotated);
+            __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].normalize(turtle.orientation, turtle.orientation);
+            lsys.addScaledPrismAtTurtleNoShrink(turtle, bot * 0.05);
+            // left finger -- pick direction
+            tweak[2] = __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["b" /* lRandom */].getNext() * 1.5; // add strong Z component
+            if (tweak[2] < 0.75) {
+                tweak[2] *= 2.0;
+            }
+            __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].transformMat3(tweakRotated, tweak, snowmanRotation);
+            __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].add(turtle.orientation, originalDir, tweakRotated);
+            __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].normalize(turtle.orientation, turtle.orientation);
+            lsys.addScaledPrismAtTurtleNoShrink(turtle, bot * 0.05);
+            // right finger -- pick direction
+            tweak[2] *= -1.0; // go opposite direction of left finger
+            __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].transformMat3(tweakRotated, tweak, snowmanRotation);
+            __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].add(turtle.orientation, originalDir, tweakRotated);
+            __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].normalize(turtle.orientation, turtle.orientation);
+            lsys.addScaledPrismAtTurtleNoShrink(turtle, bot * 0.05);
+        });
+        this.alphabet.push(H);
+        // nose
+        let N = new __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__["b" /* LSymbol */]("N", function (lsys) {
+            lsys.useColor(noseColor);
+            let turtle = lsys.getTopTurtle();
+            // find face's direction
+            let faceDirection = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].fromValues(0, 0, 1);
+            __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].transformMat3(faceDirection, faceDirection, snowmanRotation);
+            __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].normalize(faceDirection, faceDirection);
+            // add nose ("cone")
+            __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].copy(turtle.orientation, faceDirection);
+            let bot = turtle.scaleBottom;
+            turtle.scaleBottom = NOSE_SCALE * bot * 2.0;
+            turtle.scaleTop = turtle.scaleBottom * 0.2;
+            lsys.addScaledPrismAtTurtleNoShrink(turtle, bot * 0.2);
+            turtle.scaleBottom = bot;
+        });
+        this.alphabet.push(H);
+        // scarf
+        let S = new __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__["b" /* LSymbol */]("S", function (lsys) {
+            lsys.useColor(scarfColor);
+            let turtle = lsys.getTopTurtle();
+            // temporarily move down a little
+            let oldY = turtle.position[1];
+            turtle.position[1] -= turtle.scaleBottom * 0.5;
+            lsys.addMeshAtTurtleRotation(turtle, __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].fromValues(turtle.scaleBottom, turtle.scaleBottom, turtle.scaleBottom), Object(__WEBPACK_IMPORTED_MODULE_6__Utils__["d" /* mat3ToMat4 */])(snowmanRotation), scarf);
+            turtle.position[1] = oldY;
+        });
+        this.alphabet.push(S);
+        // push
+        let push = new __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__["b" /* LSymbol */]("[", function (lsys) {
+            let turtle = lsys.getTopTurtle();
+            let copy = turtle.makeDeepCopy();
+            copy.depth++;
+            lsys.turtleStack.push(copy);
+        });
+        this.alphabet.push(push);
+        // pop
+        let pop = new __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__["b" /* LSymbol */]("]", function (lsys) {
+            lsys.turtleStack.pop();
+        });
+        this.alphabet.push(pop);
+        // nop
+        let nop = new __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__["b" /* LSymbol */]("0", function (lsys) {
+        });
+        this.alphabet.push(nop);
+        // set expansion rules
+        U.setExpansionRules([
+            new __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__["a" /* ExpansionRule */](4, [U]),
+            new __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__["a" /* ExpansionRule */](1, [U, terminalU]),
+            new __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__["a" /* ExpansionRule */](2, [terminalU]),
+            new __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__["a" /* ExpansionRule */](2, [terminalU, terminalU])
+        ]);
+        // make scarf rare on non-special snowmen
+        if (this.type == SnowmanType.NORMAL) {
+            S.setExpansionRules([
+                new __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__["a" /* ExpansionRule */](1, [S]),
+                new __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__["a" /* ExpansionRule */](2, [nop]),
+            ]);
+        }
+        else if (this.type == SnowmanType.HAUNTED) {
+            S.setExpansionRules([
+                new __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__["a" /* ExpansionRule */](2, [S]),
+                new __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__["a" /* ExpansionRule */](1, [nop]),
+            ]);
+        }
+        this.setAxiom([
+            U,
+            push, beginLeftArm, T, T, H, pop, push, beginRightArm, T, T, H, pop,
+            terminalU,
+            S, N,
+            terminalU,
+        ]);
+    }
+    executeString() {
+        __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["b" /* lRandom */].setMode(__WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["a" /* LRANDOM_DETERMINISTIC */]);
+        let seed = __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["b" /* lRandom */].state;
+        __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["b" /* lRandom */].setSeed(this.seed);
+        super.executeString();
+        __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["b" /* lRandom */].setSeed(seed);
+    }
+}
+;
+/* harmony default export */ __webpack_exports__["b"] = (Snowman);
+
+
+/***/ }),
+/* 18 */
 /***/ (function(module, exports, __webpack_require__) {
 
 !function(e,t){ true?module.exports=t():"function"==typeof define&&define.amd?define("OBJ",[],t):"object"==typeof exports?exports.OBJ=t():e.OBJ=t()}("undefined"!=typeof self?self:this,function(){return function(e){function t(a){if(r[a])return r[a].exports;var n=r[a]={i:a,l:!1,exports:{}};return e[a].call(n.exports,n,n.exports,t),n.l=!0,n.exports}var r={};return t.m=e,t.c=r,t.d=function(exports,e,r){t.o(exports,e)||Object.defineProperty(exports,e,{configurable:!1,enumerable:!0,get:r})},t.n=function(e){var r=e&&e.__esModule?function(){return e.default}:function(){return e};return t.d(r,"a",r),r},t.o=function(e,t){return Object.prototype.hasOwnProperty.call(e,t)},t.p="/",t(t.s=3)}([function(e,exports,t){"use strict";function r(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}function a(e){switch(e){case"BYTE":case"UNSIGNED_BYTE":return 1;case"SHORT":case"UNSIGNED_SHORT":return 2;case"FLOAT":return 4}}Object.defineProperty(exports,"__esModule",{value:!0});var n=exports.Layout=function e(){r(this,e);for(var t=arguments.length,a=Array(t),n=0;n<t;n++)a[n]=arguments[n];this.attributes=a;var s=0,l=0,o=!0,u=!1,c=void 0;try{for(var f,h=a[Symbol.iterator]();!(o=(f=h.next()).done);o=!0){var p=f.value;if(this[p.key])throw new i(p);s%p.sizeOfType!=0&&(s+=p.sizeOfType-s%p.sizeOfType),this[p.key]={attribute:p,size:p.size,type:p.type,normalized:p.normalized,offset:s},s+=p.sizeInBytes,l=Math.max(l,p.sizeOfType)}}catch(e){u=!0,c=e}finally{try{!o&&h.return&&h.return()}finally{if(u)throw c}}s%l!=0&&(s+=l-s%l),this.stride=s;var v=!0,d=!1,y=void 0;try{for(var m,M=a[Symbol.iterator]();!(v=(m=M.next()).done);v=!0){this[m.value.key].stride=this.stride}}catch(e){d=!0,y=e}finally{try{!v&&M.return&&M.return()}finally{if(d)throw y}}},i=function e(t){r(this,e),this.message="found duplicate attribute: "+t.key},s=function e(t,n,i){arguments.length>3&&void 0!==arguments[3]&&arguments[3];r(this,e),this.key=t,this.size=n,this.type=i,this.normalized=!1,this.sizeOfType=a(i),this.sizeInBytes=this.sizeOfType*n};n.POSITION=new s("position",3,"FLOAT"),n.NORMAL=new s("normal",3,"FLOAT"),n.TANGENT=new s("tangent",3,"FLOAT"),n.BITANGENT=new s("bitangent",3,"FLOAT"),n.UV=new s("uv",2,"FLOAT"),n.MATERIAL_INDEX=new s("materialIndex",1,"SHORT"),n.MATERIAL_ENABLED=new s("materialEnabled",1,"UNSIGNED_SHORT"),n.AMBIENT=new s("ambient",3,"FLOAT"),n.DIFFUSE=new s("diffuse",3,"FLOAT"),n.SPECULAR=new s("specular",3,"FLOAT"),n.SPECULAR_EXPONENT=new s("specularExponent",3,"FLOAT"),n.EMISSIVE=new s("emissive",3,"FLOAT"),n.TRANSMISSION_FILTER=new s("transmissionFilter",3,"FLOAT"),n.DISSOLVE=new s("dissolve",1,"FLOAT"),n.ILLUMINATION=new s("illumination",1,"UNSIGNED_SHORT"),n.REFRACTION_INDEX=new s("refractionIndex",1,"FLOAT"),n.SHARPNESS=new s("sharpness",1,"FLOAT"),n.MAP_DIFFUSE=new s("mapDiffuse",1,"SHORT"),n.MAP_AMBIENT=new s("mapAmbient",1,"SHORT"),n.MAP_SPECULAR=new s("mapSpecular",1,"SHORT"),n.MAP_SPECULAR_EXPONENT=new s("mapSpecularExponent",1,"SHORT"),n.MAP_DISSOLVE=new s("mapDissolve",1,"SHORT"),n.ANTI_ALIASING=new s("antiAliasing",1,"UNSIGNED_SHORT"),n.MAP_BUMP=new s("mapBump",1,"SHORT"),n.MAP_DISPLACEMENT=new s("mapDisplacement",1,"SHORT"),n.MAP_DECAL=new s("mapDecal",1,"SHORT"),n.MAP_EMISSIVE=new s("mapEmissive",1,"SHORT")},function(e,exports,t){"use strict";function r(e){if(Array.isArray(e)){for(var t=0,r=Array(e.length);t<e.length;t++)r[t]=e[t];return r}return Array.from(e)}function a(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}Object.defineProperty(exports,"__esModule",{value:!0});var n=function(){function e(e,t){for(var r=0;r<t.length;r++){var a=t[r];a.enumerable=a.enumerable||!1,a.configurable=!0,"value"in a&&(a.writable=!0),Object.defineProperty(e,a.key,a)}}return function(t,r,a){return r&&e(t.prototype,r),a&&e(t,a),t}}(),i=t(0),s=function(){function e(t,n){a(this,e),n=n||{},n.materials=n.materials||{},n.enableWTextureCoord=!!n.enableWTextureCoord,n.indicesPerMaterial=!!n.indicesPerMaterial;var i=this;i.vertices=[],i.vertexNormals=[],i.textures=[],i.indices=[],i.textureStride=n.enableWTextureCoord?3:2,this.name="";var s=[],l=[],o=[],u={},c=[],f={},h=-1,p=0;u.verts=[],u.norms=[],u.textures=[],u.hashindices={},u.indices=[[]],u.materialIndices=[],u.index=0;for(var v=/^v\s/,d=/^vn\s/,y=/^vt\s/,m=/^f\s/,M=/\s+/,b=/^usemtl/,x=t.split("\n"),I=0;I<x.length;I++){var A=x[I].trim();if(A&&!A.startsWith("#")){var _=A.split(M);if(_.shift(),v.test(A))s.push.apply(s,r(_));else if(d.test(A))l.push.apply(l,r(_));else if(y.test(A)){var k=_;_.length>2&&!n.enableWTextureCoord?k=_.slice(0,2):2===_.length&&n.enableWTextureCoord&&k.push(0),o.push.apply(o,r(k))}else if(b.test(A)){var T=_[0];T in f||(c.push(T),f[T]=c.length-1,n.indicesPerMaterial&&f[T]>0&&u.indices.push([])),h=f[T],n.indicesPerMaterial&&(p=h)}else if(m.test(A))for(var w=!1,F=0,S=_.length;F<S;F++){3!==F||w||(F=2,w=!0);var E=_[0]+","+h,g=_[F]+","+h;if(g in u.hashindices)u.indices[p].push(u.hashindices[g]);else{var O=_[F].split("/"),B=O.length-1;if(u.verts.push(+s[3*(O[0]-1)+0]),u.verts.push(+s[3*(O[0]-1)+1]),u.verts.push(+s[3*(O[0]-1)+2]),o.length){var L=n.enableWTextureCoord?3:2;u.textures.push(+o[(O[1]-1)*L+0]),u.textures.push(+o[(O[1]-1)*L+1]),n.enableWTextureCoord&&u.textures.push(+o[(O[1]-1)*L+2])}u.norms.push(+l[3*(O[B]-1)+0]),u.norms.push(+l[3*(O[B]-1)+1]),u.norms.push(+l[3*(O[B]-1)+2]),u.materialIndices.push(h),u.hashindices[g]=u.index,u.indices[p].push(u.hashindices[g]),u.index+=1}3===F&&w&&u.indices[p].push(u.hashindices[E])}}}i.vertices=u.verts,i.vertexNormals=u.norms,i.textures=u.textures,i.vertexMaterialIndices=u.materialIndices,i.indices=n.indicesPerMaterial?u.indices:u.indices[p],i.materialNames=c,i.materialIndices=f,i.materialsByIndex={},n.calcTangentsAndBitangents&&this.calculateTangentsAndBitangents()}return n(e,[{key:"calculateTangentsAndBitangents",value:function(){var e={};e.tangents=[].concat(r(new Array(this.vertices.length))).map(function(e){return 0}),e.bitangents=[].concat(r(new Array(this.vertices.length))).map(function(e){return 0});var t=void 0;t=Array.isArray(this.indices[0])?[].concat.apply([],this.indices):this.indices;for(var a=this.vertices,n=this.vertexNormals,i=this.textures,s=0;s<t.length;s+=3){var l=t[s+0],o=t[s+1],u=t[s+2],c=a[3*l+0],f=a[3*l+1],h=a[3*l+2],p=i[2*l+0],v=i[2*l+1],d=a[3*o+0],y=a[3*o+1],m=a[3*o+2],M=i[2*o+0],b=i[2*o+1],x=a[3*u+0],I=a[3*u+1],A=a[3*u+2],_=i[2*u+0],k=i[2*u+1],T=d-c,w=y-f,F=m-h,S=x-c,E=I-f,g=A-h,O=M-p,B=b-v,L=_-p,N=k-v,R=O*N-B*L,P=1/(Math.abs(R<1e-4)?1:R),D=(T*N-S*B)*P,C=(w*N-E*B)*P,U=(F*N-g*B)*P,j=(S*O-T*L)*P,z=(E*O-w*L)*P,H=(g*O-F*L)*P,W=n[3*l+0],G=n[3*l+1],V=n[3*l+2],K=n[3*o+0],q=n[3*o+1],X=n[3*o+2],Y=n[3*u+0],J=n[3*u+1],Q=n[3*u+2],Z=D*W+C*G+U*V,ee=D*K+C*q+U*X,te=D*Y+C*J+U*Q,re=D-W*Z,ae=C-G*Z,ne=U-V*Z,ie=D-K*ee,se=C-q*ee,le=U-X*ee,oe=D-Y*te,ue=C-J*te,ce=U-Q*te,fe=Math.sqrt(re*re+ae*ae+ne*ne),he=Math.sqrt(ie*ie+se*se+le*le),pe=Math.sqrt(oe*oe+ue*ue+ce*ce),ve=j*W+z*G+H*V,de=j*K+z*q+H*X,ye=j*Y+z*J+H*Q,me=j-W*ve,Me=z-G*ve,be=H-V*ve,xe=j-K*de,Ie=z-q*de,Ae=H-X*de,_e=j-Y*ye,ke=z-J*ye,Te=H-Q*ye,we=Math.sqrt(me*me+Me*Me+be*be),Fe=Math.sqrt(xe*xe+Ie*Ie+Ae*Ae),Se=Math.sqrt(_e*_e+ke*ke+Te*Te);e.tangents[3*l+0]+=re/fe,e.tangents[3*l+1]+=ae/fe,e.tangents[3*l+2]+=ne/fe,e.tangents[3*o+0]+=ie/he,e.tangents[3*o+1]+=se/he,e.tangents[3*o+2]+=le/he,e.tangents[3*u+0]+=oe/pe,e.tangents[3*u+1]+=ue/pe,e.tangents[3*u+2]+=ce/pe,e.bitangents[3*l+0]+=me/we,e.bitangents[3*l+1]+=Me/we,e.bitangents[3*l+2]+=be/we,e.bitangents[3*o+0]+=xe/Fe,e.bitangents[3*o+1]+=Ie/Fe,e.bitangents[3*o+2]+=Ae/Fe,e.bitangents[3*u+0]+=_e/Se,e.bitangents[3*u+1]+=ke/Se,e.bitangents[3*u+2]+=Te/Se}this.tangents=e.tangents,this.bitangents=e.bitangents}},{key:"makeBufferData",value:function(e){var t=this.vertices.length/3,r=new ArrayBuffer(e.stride*t);r.numItems=t;for(var a=new DataView(r),n=0,s=0;n<t;n++){s=n*e.stride;var l=!0,o=!1,u=void 0;try{for(var c,f=e.attributes[Symbol.iterator]();!(l=(c=f.next()).done);l=!0){var h=c.value,p=s+e[h.key].offset;switch(h.key){case i.Layout.POSITION.key:a.setFloat32(p,this.vertices[3*n],!0),a.setFloat32(p+4,this.vertices[3*n+1],!0),a.setFloat32(p+8,this.vertices[3*n+2],!0);break;case i.Layout.UV.key:a.setFloat32(p,this.textures[2*n],!0),a.setFloat32(p+4,this.vertices[2*n+1],!0);break;case i.Layout.NORMAL.key:a.setFloat32(p,this.vertexNormals[3*n],!0),a.setFloat32(p+4,this.vertexNormals[3*n+1],!0),a.setFloat32(p+8,this.vertexNormals[3*n+2],!0);break;case i.Layout.MATERIAL_INDEX.key:a.setInt16(p,this.vertexMaterialIndices[n],!0);break;case i.Layout.AMBIENT.key:var v=this.vertexMaterialIndices[n],d=this.materialsByIndex[v];if(!d)break;a.setFloat32(p,d.ambient[0],!0),a.setFloat32(p+4,d.ambient[1],!0),a.setFloat32(p+8,d.ambient[2],!0);break;case i.Layout.DIFFUSE.key:var y=this.vertexMaterialIndices[n],m=this.materialsByIndex[y];if(!m)break;a.setFloat32(p,m.diffuse[0],!0),a.setFloat32(p+4,m.diffuse[1],!0),a.setFloat32(p+8,m.diffuse[2],!0);break;case i.Layout.SPECULAR.key:var M=this.vertexMaterialIndices[n],b=this.materialsByIndex[M];if(!b)break;a.setFloat32(p,b.specular[0],!0),a.setFloat32(p+4,b.specular[1],!0),a.setFloat32(p+8,b.specular[2],!0);break;case i.Layout.SPECULAR_EXPONENT.key:var x=this.vertexMaterialIndices[n],I=this.materialsByIndex[x];if(!I)break;a.setFloat32(p,I.specularExponent,!0);break;case i.Layout.EMISSIVE.key:var A=this.vertexMaterialIndices[n],_=this.materialsByIndex[A];if(!_)break;a.setFloat32(p,_.emissive[0],!0),a.setFloat32(p+4,_.emissive[1],!0),a.setFloat32(p+8,_.emissive[2],!0);break;case i.Layout.TRANSMISSION_FILTER.key:var k=this.vertexMaterialIndices[n],T=this.materialsByIndex[k];if(!T)break;a.setFloat32(p,T.transmissionFilter[0],!0),a.setFloat32(p+4,T.transmissionFilter[1],!0),a.setFloat32(p+8,T.transmissionFilter[2],!0);break;case i.Layout.DISSOLVE.key:var w=this.vertexMaterialIndices[n],F=this.materialsByIndex[w];if(!F)break;a.setFloat32(p,F.dissolve,!0);break;case i.Layout.ILLUMINATION.key:var S=this.vertexMaterialIndices[n],E=this.materialsByIndex[S];if(!E)break;a.setInt16(p,E.illumination,!0);break;case i.Layout.REFRACTION_INDEX.key:var g=this.vertexMaterialIndices[n],O=this.materialsByIndex[g];if(!O)break;a.setFloat32(p,O.refractionIndex,!0);break;case i.Layout.SHARPNESS.key:var B=this.vertexMaterialIndices[n],L=this.materialsByIndex[B];if(!L)break;a.setFloat32(p,L.sharpness,!0);break;case i.Layout.ANTI_ALIASING.key:var N=this.vertexMaterialIndices[n],R=this.materialsByIndex[N];if(!R)break;a.setInt16(p,R.antiAliasing,!0)}}}catch(e){o=!0,u=e}finally{try{!l&&f.return&&f.return()}finally{if(o)throw u}}}return r}},{key:"makeIndexBufferData",value:function(){var e=new Uint16Array(this.indices);return e.numItems=this.indices.length,e}},{key:"addMaterialLibrary",value:function(e){for(var t in e.materials)if(t in this.materialIndices){var r=e.materials[t],a=this.materialIndices[r.name];this.materialsByIndex[a]=r}}}]),e}();exports.default=s},function(e,exports,t){"use strict";function r(e){return Array.isArray(e)?e:Array.from(e)}function a(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}Object.defineProperty(exports,"__esModule",{value:!0});var n=function(){function e(e,t){for(var r=0;r<t.length;r++){var a=t[r];a.enumerable=a.enumerable||!1,a.configurable=!0,"value"in a&&(a.writable=!0),Object.defineProperty(e,a.key,a)}}return function(t,r,a){return r&&e(t.prototype,r),a&&e(t,a),t}}(),i=exports.Material=function e(t){a(this,e),this.name=t,this.ambient=[0,0,0],this.diffuse=[0,0,0],this.specular=[0,0,0],this.emissive=[0,0,0],this.transmissionFilter=[0,0,0],this.dissolve=0,this.specularExponent=0,this.transparency=0,this.illumination=0,this.refractionIndex=1,this.sharpness=0,this.mapDiffuse=null,this.mapAmbient=null,this.mapSpecular=null,this.mapSpecularExponent=null,this.mapDissolve=null,this.antiAliasing=!1,this.mapBump=null,this.mapDisplacement=null,this.mapDecal=null,this.mapEmissive=null,this.mapReflections=[]};exports.MaterialLibrary=function(){function e(t){a(this,e),this.data=t,this.currentMaterial=null,this.materials={},this.parse()}return n(e,[{key:"parse_newmtl",value:function(e){var t=e[0];this.currentMaterial=new i(t),this.materials[t]=this.currentMaterial}},{key:"parseColor",value:function(e){if("spectral"!=e[0]&&"xyz"!=e[0]){if(3==e.length)return e.map(parseFloat);var t=parseFloat(e[0]);return[t,t,t]}}},{key:"parse_Ka",value:function(e){this.currentMaterial.ambient=this.parseColor(e)}},{key:"parse_Kd",value:function(e){this.currentMaterial.diffuse=this.parseColor(e)}},{key:"parse_Ks",value:function(e){this.currentMaterial.specular=this.parseColor(e)}},{key:"parse_Ke",value:function(e){this.currentMaterial.emissive=this.parseColor(e)}},{key:"parse_Tf",value:function(e){this.currentMaterial.transmissionFilter=this.parseColor(e)}},{key:"parse_d",value:function(e){this.currentMaterial.dissolve=parseFloat(e.pop())}},{key:"parse_illum",value:function(e){this.currentMaterial.illumination=parseInt(e[0])}},{key:"parse_Ni",value:function(e){this.currentMaterial.refractionIndex=parseFloat(e[0])}},{key:"parse_Ns",value:function(e){this.currentMaterial.specularExponent=parseInt(e[0])}},{key:"parse_sharpness",value:function(e){this.currentMaterial.sharpness=parseInt(e[0])}},{key:"parse_cc",value:function(e,t){t.colorCorrection="on"==e[0]}},{key:"parse_blendu",value:function(e,t){t.horizontalBlending="on"==e[0]}},{key:"parse_blendv",value:function(e,t){t.verticalBlending="on"==e[0]}},{key:"parse_boost",value:function(e,t){t.boostMipMapSharpness=parseFloat(e[0])}},{key:"parse_mm",value:function(e,t){t.modifyTextureMap.brightness=parseFloat(e[0]),t.modifyTextureMap.contrast=parseFloat(e[1])}},{key:"parse_ost",value:function(e,t,r){for(;e.length<3;)e.push(r);t.u=parseFloat(e[0]),t.v=parseFloat(e[1]),t.w=parseFloat(e[2])}},{key:"parse_o",value:function(e,t){this.parse_ost(e,t.offset,0)}},{key:"parse_s",value:function(e,t){this.parse_ost(e,t.scale,1)}},{key:"parse_t",value:function(e,t){this.parse_ost(e,t.turbulence,0)}},{key:"parse_texres",value:function(e,t){t.textureResolution=parseFloat(e[0])}},{key:"parse_clamp",value:function(e,t){t.clamp="on"==e[0]}},{key:"parse_bm",value:function(e,t){t.bumpMultiplier=parseFloat(e[0])}},{key:"parse_imfchan",value:function(e,t){t.imfChan=e[0]}},{key:"parse_type",value:function(e,t){t.reflectionType=e[0]}},{key:"parseOptions",value:function(e){var t={colorCorrection:!1,horizontalBlending:!0,verticalBlending:!0,boostMipMapSharpness:0,modifyTextureMap:{brightness:0,contrast:1},offset:{u:0,v:0,w:0},scale:{u:1,v:1,w:1},turbulence:{u:0,v:0,w:0},clamp:!1,textureResolution:null,bumpMultiplier:1,imfChan:null},r=void 0,a=void 0,n={};for(e.reverse();e.length;){var i=e.pop();i.startsWith("-")?(r=i.substr(1),n[r]=[]):n[r].push(i)}for(r in n)if(n.hasOwnProperty(r)){a=n[r];var s=this["parse_"+r];s&&s.bind(this)(a,t)}return t}},{key:"parseMap",value:function(e){var t=void 0,a=void 0;if(e[0].startsWith("-"))t=e.pop(),a=e;else{var n=r(e);t=n[0],a=n.slice(1)}return a=this.parseOptions(a),a.filename=t,a}},{key:"parse_map_Ka",value:function(e){this.currentMaterial.mapAmbient=this.parseMap(e)}},{key:"parse_map_Kd",value:function(e){this.currentMaterial.mapDiffuse=this.parseMap(e)}},{key:"parse_map_Ks",value:function(e){this.currentMaterial.mapSpecular=this.parseMap(e)}},{key:"parse_map_Ke",value:function(e){this.currentMaterial.mapEmissive=this.parseMap(e)}},{key:"parse_map_Ns",value:function(e){this.currentMaterial.mapSpecularExponent=this.parseMap(e)}},{key:"parse_map_d",value:function(e){this.currentMaterial.mapDissolve=this.parseMap(e)}},{key:"parse_map_aat",value:function(e){this.currentMaterial.antiAliasing="on"==e[0]}},{key:"parse_map_bump",value:function(e){this.currentMaterial.mapBump=this.parseMap(e)}},{key:"parse_bump",value:function(e){this.parse_map_bump(e)}},{key:"parse_disp",value:function(e){this.currentMaterial.mapDisplacement=this.parseMap(e)}},{key:"parse_decal",value:function(e){this.currentMaterial.mapDecal=this.parseMap(e)}},{key:"parse_refl",value:function(e){this.currentMaterial.mapReflections.push(this.parseMap(e))}},{key:"parse",value:function(){var e=this.data.split(/\r?\n/),t=!0,a=!1,n=void 0;try{for(var i,s=e[Symbol.iterator]();!(t=(i=s.next()).done);t=!0){var l=i.value;if((l=l.trim())&&!l.startsWith("#")){var o=l.split(/\s/),u=void 0,c=o,f=r(c);u=f[0],o=f.slice(1);var h=this["parse_"+u];h&&h.bind(this)(o)}}}catch(e){a=!0,n=e}finally{try{!t&&s.return&&s.return()}finally{if(a)throw n}}delete this.data,this.currentMaterial=null}}]),e}()},function(e,exports,t){e.exports=t(4)},function(e,exports,t){"use strict";Object.defineProperty(exports,"__esModule",{value:!0}),exports.version=exports.deleteMeshBuffers=exports.initMeshBuffers=exports.downloadMeshes=exports.downloadModels=exports.Layout=exports.MaterialLibrary=exports.Material=exports.Mesh=void 0;var r=t(1),a=function(e){return e&&e.__esModule?e:{default:e}}(r),n=t(2),i=t(0),s=t(5);exports.Mesh=a.default,exports.Material=n.Material,exports.MaterialLibrary=n.MaterialLibrary,exports.Layout=i.Layout,exports.downloadModels=s.downloadModels,exports.downloadMeshes=s.downloadMeshes,exports.initMeshBuffers=s.initMeshBuffers,exports.deleteMeshBuffers=s.deleteMeshBuffers,exports.version="1.1.3"},function(e,exports,t){"use strict";function r(e,t){var r=["mapDiffuse","mapAmbient","mapSpecular","mapDissolve","mapBump","mapDisplacement","mapDecal","mapEmissive"];t.endsWith("/")||(t+="/");var a=[];for(var n in e.materials)if(e.materials.hasOwnProperty(n)){n=e.materials[n];var i=!0,s=!1,l=void 0;try{for(var o,u=r[Symbol.iterator]();!(i=(o=u.next()).done);i=!0){var c=o.value;(function(e){var r=n[e];if(!r)return"continue";var i=t+r.filename;a.push(fetch(i).then(function(e){if(!e.ok)throw new Error;return e.blob()}).then(function(e){var t=new Image;return t.src=URL.createObjectURL(e),r.texture=t,new Promise(function(e){return t.onload=e})}).catch(function(){}))})(c)}}catch(e){s=!0,l=e}finally{try{!i&&u.return&&u.return()}finally{if(s)throw l}}}return Promise.all(a)}function a(e){var t=[],a=!0,n=!1,i=void 0;try{for(var s,o=e[Symbol.iterator]();!(a=(s=o.next()).done);a=!0){var f=s.value;!function(e){var a=[];if(!e.obj)throw new Error('"obj" attribute of model object not set. The .obj file is required to be set in order to use downloadModels()');var n={};n.indicesPerMaterial=!!e.indicesPerMaterial,n.calcTangentsAndBitangents=!!e.calcTangentsAndBitangents;var i=e.name;if(!i){var s=e.obj.split("/");i=s[s.length-1].replace(".obj","")}if(a.push(Promise.resolve(i)),a.push(fetch(e.obj).then(function(e){return e.text()}).then(function(e){return new u.default(e,n)})),e.mtl){var l=e.mtl;"boolean"==typeof l&&(l=e.obj.replace(/\.obj$/,".mtl")),a.push(fetch(l).then(function(e){return e.text()}).then(function(t){var a=new c.MaterialLibrary(t);if(!1!==e.downloadMtlTextures){var n=e.mtlTextureRoot;return n||(n=l.substr(0,l.lastIndexOf("/"))),Promise.all([Promise.resolve(a),r(a,n)])}return Promise.all(Promise.resolve(a))}).then(function(e){return e[0]}))}t.push(Promise.all(a))}(f)}}catch(e){n=!0,i=e}finally{try{!a&&o.return&&o.return()}finally{if(n)throw i}}return Promise.all(t).then(function(e){var t={},r=!0,a=!1,n=void 0;try{for(var i,s=e[Symbol.iterator]();!(r=(i=s.next()).done);r=!0){var o=i.value,u=l(o,3),c=u[0],f=u[1],h=u[2];f.name=c,h&&f.addMaterialLibrary(h),t[c]=f}}catch(e){a=!0,n=e}finally{try{!r&&s.return&&s.return()}finally{if(a)throw n}}return t})}function n(e,t,r){void 0===r&&(r={});var a=[];for(var n in e){(function(t){if(!e.hasOwnProperty(t))return"continue";var r=e[t];a.push(fetch(r).then(function(e){return e.text()}).then(function(e){return[t,new u.default(e)]}))})(n)}Promise.all(a).then(function(e){var a=!0,n=!1,i=void 0;try{for(var s,o=e[Symbol.iterator]();!(a=(s=o.next()).done);a=!0){var u=s.value,c=l(u,2),f=c[0],h=c[1];r[f]=h}}catch(e){n=!0,i=e}finally{try{!a&&o.return&&o.return()}finally{if(n)throw i}}return t(r)})}function i(e,t){t.normalBuffer=f(e,e.ARRAY_BUFFER,t.vertexNormals,3),t.textureBuffer=f(e,e.ARRAY_BUFFER,t.textures,t.textureStride),t.vertexBuffer=f(e,e.ARRAY_BUFFER,t.vertices,3),t.indexBuffer=f(e,e.ELEMENT_ARRAY_BUFFER,t.indices,1)}function s(e,t){e.deleteBuffer(t.normalBuffer),e.deleteBuffer(t.textureBuffer),e.deleteBuffer(t.vertexBuffer),e.deleteBuffer(t.indexBuffer)}Object.defineProperty(exports,"__esModule",{value:!0});var l=function(){function e(e,t){var r=[],a=!0,n=!1,i=void 0;try{for(var s,l=e[Symbol.iterator]();!(a=(s=l.next()).done)&&(r.push(s.value),!t||r.length!==t);a=!0);}catch(e){n=!0,i=e}finally{try{!a&&l.return&&l.return()}finally{if(n)throw i}}return r}return function(t,r){if(Array.isArray(t))return t;if(Symbol.iterator in Object(t))return e(t,r);throw new TypeError("Invalid attempt to destructure non-iterable instance")}}();exports.downloadModels=a,exports.downloadMeshes=n,exports.initMeshBuffers=i,exports.deleteMeshBuffers=s;var o=t(1),u=function(e){return e&&e.__esModule?e:{default:e}}(o),c=t(2),f=(t(0),function(e,t,r,a){var n=e.createBuffer(),i=t===e.ARRAY_BUFFER?Float32Array:Uint16Array;return e.bindBuffer(t,n),e.bufferData(t,new i(r),e.STATIC_DRAW),n.itemSize=a,n.numItems=r.length/a,n})}])});
 
 /***/ }),
-/* 17 */
+/* 19 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return GhostType; });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_gl_matrix__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__l_system_Turtle__ = __webpack_require__(5);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__ = __webpack_require__(6);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__l_system_LSystem__ = __webpack_require__(10);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__ = __webpack_require__(7);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__globals__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__Utils__ = __webpack_require__(3);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7_webgl_obj_loader__ = __webpack_require__(18);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7_webgl_obj_loader___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_7_webgl_obj_loader__);
+
+
+
+
+
+
+
+
+// ""static"" variables (I love JS. It's so bad.)
+let ghostBody = null;
+let roundEyes = null;
+let angryEyes = null;
+let scarf = null;
+const TWIG_SCALE = 0.1;
+const FINGER_SCALE = 0.05;
+const NOSE_SCALE = 0.075;
+const EYE_COLOR = Object(__WEBPACK_IMPORTED_MODULE_6__Utils__["h" /* normalizeRGB */])(200, 200, 255);
+const BODY_COLOR = Object(__WEBPACK_IMPORTED_MODULE_6__Utils__["h" /* normalizeRGB */])(17, 17, 17);
+const NOSE_COLOR = Object(__WEBPACK_IMPORTED_MODULE_6__Utils__["h" /* normalizeRGB */])(455, 83, 30);
+const NICE_COLOR = Object(__WEBPACK_IMPORTED_MODULE_6__Utils__["h" /* normalizeRGB */])(20, 140, 225);
+const SCARF_COLOR = Object(__WEBPACK_IMPORTED_MODULE_6__Utils__["h" /* normalizeRGB */])(200, 200, 25);
+var GhostType;
+(function (GhostType) {
+    GhostType[GhostType["EVIL"] = 1] = "EVIL";
+    GhostType[GhostType["NICE"] = 2] = "NICE";
+})(GhostType || (GhostType = {}));
+class Ghost extends __WEBPACK_IMPORTED_MODULE_3__l_system_LSystem__["a" /* default */] {
+    constructor(decoration, seed, type) {
+        super();
+        this.type = type;
+        if (ghostBody == null) {
+            let objString = Object(__WEBPACK_IMPORTED_MODULE_5__globals__["c" /* readTextFileSync */])("res/models/ghostBody.obj");
+            ghostBody = new __WEBPACK_IMPORTED_MODULE_7_webgl_obj_loader__["Mesh"](objString);
+        }
+        if (roundEyes == null) {
+            let objString = Object(__WEBPACK_IMPORTED_MODULE_5__globals__["c" /* readTextFileSync */])("res/models/roundEyes.obj");
+            roundEyes = new __WEBPACK_IMPORTED_MODULE_7_webgl_obj_loader__["Mesh"](objString);
+        }
+        if (scarf == null) {
+            let objString = Object(__WEBPACK_IMPORTED_MODULE_5__globals__["c" /* readTextFileSync */])("res/models/scarf.obj");
+            scarf = new __WEBPACK_IMPORTED_MODULE_7_webgl_obj_loader__["Mesh"](objString);
+        }
+        if (angryEyes == null) {
+            let objString = Object(__WEBPACK_IMPORTED_MODULE_5__globals__["c" /* readTextFileSync */])("res/models/angryEyes.obj");
+            angryEyes = new __WEBPACK_IMPORTED_MODULE_7_webgl_obj_loader__["Mesh"](objString);
+        }
+        this.decoration = decoration;
+        this.prismSides = 5;
+        this.seed = seed;
+        // compute this snowman's rotation about Y
+        // get deterministic direction
+        __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["b" /* lRandom */].setMode(__WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["a" /* LRANDOM_DETERMINISTIC */]);
+        let oldSeed = __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["b" /* lRandom */].state;
+        __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["b" /* lRandom */].setSeed(this.seed);
+        let xzAngle = __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["b" /* lRandom */].getNext() * Math.PI * 2.0;
+        this.bobValue = __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["b" /* lRandom */].getNext() * Math.PI;
+        this.bobFrequency = 3.0 + 5.0 * __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["b" /* lRandom */].getNext();
+        __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["b" /* lRandom */].setSeed(oldSeed);
+        // compute matrix, but only if nice ghost (override rotation otherwise)
+        this.rotation = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["a" /* mat3 */].create();
+        if (this.type == GhostType.NICE) {
+            let rotMat4 = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["b" /* mat4 */].create();
+            __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["b" /* mat4 */].fromYRotation(rotMat4, xzAngle);
+            __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["a" /* mat3 */].fromMat4(this.rotation, rotMat4);
+        }
+        this.playerOffset = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].create();
+    }
+    resetTurtleStack(pos) {
+        let t = new __WEBPACK_IMPORTED_MODULE_1__l_system_Turtle__["a" /* default */]();
+        __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].copy(t.position, pos);
+        t.scaleBottom = 1.5;
+        t.scaleTop = 1.5;
+        this.turtleStack = [t];
+    }
+    // TODO
+    initAlphabet() {
+        this.alphabet = [];
+        // do this to avoid "this" issues
+        let snowmanRotation = this.rotation;
+        let bodyColor = (this.type == GhostType.EVIL) ? BODY_COLOR : NICE_COLOR;
+        let eyeColor = (this.type == GhostType.EVIL) ? EYE_COLOR : BODY_COLOR;
+        // body
+        let B = new __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__["b" /* LSymbol */]("B", function (lsys) {
+            lsys.useColor(bodyColor);
+            let turtle = lsys.getTopTurtle();
+            lsys.addMeshAtTurtleRotation(turtle, __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].fromValues(turtle.scaleBottom, turtle.scaleBottom, turtle.scaleBottom), Object(__WEBPACK_IMPORTED_MODULE_6__Utils__["d" /* mat3ToMat4 */])(snowmanRotation), ghostBody);
+        });
+        this.alphabet.push(B);
+        // eyes
+        let neutral = new __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__["b" /* LSymbol */]("(00)", function (lsys) {
+            lsys.useColor(eyeColor);
+            let turtle = lsys.getTopTurtle();
+            lsys.addMeshAtTurtleRotation(turtle, __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].fromValues(turtle.scaleBottom, turtle.scaleBottom, turtle.scaleBottom), Object(__WEBPACK_IMPORTED_MODULE_6__Utils__["d" /* mat3ToMat4 */])(snowmanRotation), roundEyes);
+        });
+        this.alphabet.push(neutral);
+        let angry = new __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__["b" /* LSymbol */]("(\\/)", function (lsys) {
+            lsys.useColor(eyeColor);
+            let turtle = lsys.getTopTurtle();
+            lsys.addMeshAtTurtleRotation(turtle, __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].fromValues(turtle.scaleBottom, turtle.scaleBottom, turtle.scaleBottom), Object(__WEBPACK_IMPORTED_MODULE_6__Utils__["d" /* mat3ToMat4 */])(snowmanRotation), angryEyes);
+        });
+        this.alphabet.push(angry);
+        // scarf
+        let S = new __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__["b" /* LSymbol */]("S", function (lsys) {
+            lsys.useColor(SCARF_COLOR);
+            let turtle = lsys.getTopTurtle();
+            turtle.position[1] += 2.0;
+            lsys.addMeshAtTurtleRotation(turtle, __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].fromValues(turtle.scaleBottom, turtle.scaleBottom, turtle.scaleBottom), Object(__WEBPACK_IMPORTED_MODULE_6__Utils__["d" /* mat3ToMat4 */])(snowmanRotation), scarf);
+            turtle.position[1] -= 2.0;
+        });
+        this.alphabet.push(B);
+        // set expansion rules
+        if (this.type == GhostType.EVIL) {
+            this.setAxiom([
+                B, neutral
+            ]);
+        }
+        else {
+            this.setAxiom([
+                B, neutral, S
+            ]);
+        }
+    }
+    executeString() {
+        __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["b" /* lRandom */].setMode(__WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["a" /* LRANDOM_DETERMINISTIC */]);
+        let seed = __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["b" /* lRandom */].state;
+        __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["b" /* lRandom */].setSeed(this.seed);
+        super.executeString();
+        __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["b" /* lRandom */].setSeed(seed);
+    }
+    setModelMatrix(model) {
+        __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["b" /* mat4 */].copy(this.decoration.modelMatrix, model);
+    }
+}
+;
+/* harmony default export */ __webpack_exports__["b"] = (Ghost);
+
+
+/***/ }),
+/* 20 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -4840,7 +5802,7 @@ class Collider {
 
 
 /***/ }),
-/* 18 */
+/* 21 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -4857,24 +5819,24 @@ var ShaderFlags;
 
 
 /***/ }),
-/* 19 */
+/* 22 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_gl_matrix__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_stats_js__ = __webpack_require__(25);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_stats_js__ = __webpack_require__(28);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_stats_js___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_stats_js__);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__geometry_Square__ = __webpack_require__(15);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__game_Terrain__ = __webpack_require__(9);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__rendering_gl_OpenGLRenderer__ = __webpack_require__(32);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__Camera__ = __webpack_require__(50);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__game_Player__ = __webpack_require__(51);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__Camera__ = __webpack_require__(51);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__game_Player__ = __webpack_require__(52);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__globals__ = __webpack_require__(1);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__rendering_gl_ShaderProgram__ = __webpack_require__(11);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_9__rendering_gl_Texture__ = __webpack_require__(52);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_10__rendering_gl_ShaderFlags__ = __webpack_require__(18);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_11_howler__ = __webpack_require__(53);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_9__rendering_gl_Texture__ = __webpack_require__(53);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_10__rendering_gl_ShaderFlags__ = __webpack_require__(21);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_11_howler__ = __webpack_require__(54);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_11_howler___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_11_howler__);
 
 
@@ -5059,19 +6021,20 @@ function main() {
     const desertTerrain = new __WEBPACK_IMPORTED_MODULE_3__game_Terrain__["b" /* default */](__WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].fromValues(0, 0, 0), 4, 25, 4, 3, __WEBPACK_IMPORTED_MODULE_3__game_Terrain__["a" /* Level */].DESERT);
     const snowTerrain = new __WEBPACK_IMPORTED_MODULE_3__game_Terrain__["b" /* default */](__WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].fromValues(0, 0, 0), 4, 25, 4, 3, __WEBPACK_IMPORTED_MODULE_3__game_Terrain__["a" /* Level */].SNOW);
     const spookyTerrain = new __WEBPACK_IMPORTED_MODULE_3__game_Terrain__["b" /* default */](__WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].fromValues(0, 0, 0), 4, 25, 4, 3, __WEBPACK_IMPORTED_MODULE_3__game_Terrain__["a" /* Level */].SPOOKY);
+    const niceTerrain = new __WEBPACK_IMPORTED_MODULE_3__game_Terrain__["b" /* default */](__WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].fromValues(0, 0, 0), 4, 25, 4, 3, __WEBPACK_IMPORTED_MODULE_3__game_Terrain__["a" /* Level */].NICE);
     //terrain.drawables.push(mesh0);
     const renderer = new __WEBPACK_IMPORTED_MODULE_4__rendering_gl_OpenGLRenderer__["a" /* default */](canvas);
     renderer.updateShaderFlags(shaderFlags);
     renderer.setClearColor(0, 0, 0, 1);
     gl.enable(gl.DEPTH_TEST);
-    player.terrain = spookyTerrain;
+    player.terrain = desertTerrain;
     player.forceCorrectHeight();
-    renderer.setDeferredShader(__WEBPACK_IMPORTED_MODULE_3__game_Terrain__["a" /* Level */].SPOOKY);
+    renderer.setDeferredShader(__WEBPACK_IMPORTED_MODULE_3__game_Terrain__["a" /* Level */].DESERT);
     renderer.updateFadeInTime(0.0);
     renderer.updateFadeOutTime(0.0);
     const standardDeferred = new __WEBPACK_IMPORTED_MODULE_8__rendering_gl_ShaderProgram__["b" /* default */]([
-        new __WEBPACK_IMPORTED_MODULE_8__rendering_gl_ShaderProgram__["a" /* Shader */](gl.VERTEX_SHADER, __webpack_require__(55)),
-        new __WEBPACK_IMPORTED_MODULE_8__rendering_gl_ShaderProgram__["a" /* Shader */](gl.FRAGMENT_SHADER, __webpack_require__(56)),
+        new __WEBPACK_IMPORTED_MODULE_8__rendering_gl_ShaderProgram__["a" /* Shader */](gl.VERTEX_SHADER, __webpack_require__(56)),
+        new __WEBPACK_IMPORTED_MODULE_8__rendering_gl_ShaderProgram__["a" /* Shader */](gl.FRAGMENT_SHADER, __webpack_require__(57)),
     ]);
     standardDeferred.setupTexUnits(["tex_Color"]);
     let exiting = false;
@@ -5090,6 +6053,7 @@ function main() {
         if (player.terrain.shouldExit && !exiting && !entering) {
             exiting = true;
             exitTime = 0.0;
+            renderer.setBadEnd(player.terrain.badEnd ? 1.0 : 0.0);
             // TODO: disable player controls?
             player.terrain.shouldExit = false;
         }
@@ -5112,6 +6076,13 @@ function main() {
                         renderer.setDeferredShader(__WEBPACK_IMPORTED_MODULE_3__game_Terrain__["a" /* Level */].SPOOKY);
                         break;
                     case __WEBPACK_IMPORTED_MODULE_3__game_Terrain__["a" /* Level */].SPOOKY:
+                        if (!player.terrain.badEnd) {
+                            player.terrain = niceTerrain;
+                            renderer.setDeferredShader(__WEBPACK_IMPORTED_MODULE_3__game_Terrain__["a" /* Level */].NICE);
+                            break;
+                        }
+                    // else, fall to case below
+                    case __WEBPACK_IMPORTED_MODULE_3__game_Terrain__["a" /* Level */].NICE:
                         player.terrain = desertTerrain;
                         renderer.setDeferredShader(__WEBPACK_IMPORTED_MODULE_3__game_Terrain__["a" /* Level */].DESERT);
                         break;
@@ -5220,7 +6191,7 @@ setup();
 
 
 /***/ }),
-/* 20 */
+/* 23 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -5689,7 +6660,7 @@ const sub = subtract;
 
 
 /***/ }),
-/* 21 */
+/* 24 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -6190,7 +7161,7 @@ const sub = subtract;
 
 
 /***/ }),
-/* 22 */
+/* 25 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -7947,7 +8918,7 @@ const sub = subtract;
 
 
 /***/ }),
-/* 23 */
+/* 26 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -8638,7 +9609,7 @@ const setAxes = (function() {
 
 
 /***/ }),
-/* 24 */
+/* 27 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -9281,7 +10252,7 @@ const forEach = (function() {
 
 
 /***/ }),
-/* 25 */
+/* 28 */
 /***/ (function(module, exports) {
 
 // stats.js - http://github.com/mrdoob/stats.js
@@ -9293,7 +10264,7 @@ a+"px",m=b,r=0);return b},update:function(){l=this.end()}}};"object"===typeof mo
 
 
 /***/ }),
-/* 26 */
+/* 29 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -9305,7 +10276,8 @@ a+"px",m=b,r=0);return b},update:function(){l=this.end()}}};"object"===typeof mo
 
 
 
-const NOISE_OFFSET = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec2 */].fromValues(3.141, -5.965);
+//const NOISE_OFFSET = vec2.fromValues(3.141, -5.965);
+const NOISE_OFFSET = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec2 */].fromValues(Math.random() * 10.0, Math.random() * 10.0);
 class TerrainPlane extends __WEBPACK_IMPORTED_MODULE_1__rendering_gl_Drawable__["a" /* default */] {
     constructor(origin, tileDim, tileNum, frequency, heightModifier) {
         super(); // Call the constructor of the super class. This is required.
@@ -9472,121 +10444,7 @@ class TerrainPlane extends __WEBPACK_IMPORTED_MODULE_1__rendering_gl_Drawable__[
 
 
 /***/ }),
-/* 27 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_gl_matrix__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__l_system_Turtle__ = __webpack_require__(5);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__ = __webpack_require__(6);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__l_system_LSystem__ = __webpack_require__(10);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__geometry_Decoration__ = __webpack_require__(4);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__l_system_LRandom__ = __webpack_require__(7);
-
-
-
-
-
-
-class BasicTree extends __WEBPACK_IMPORTED_MODULE_3__l_system_LSystem__["a" /* default */] {
-    constructor(decoration) {
-        super();
-        this.decoration = decoration;
-        this.prismSides = 5;
-    }
-    resetTurtleStack(pos) {
-        let t = new __WEBPACK_IMPORTED_MODULE_1__l_system_Turtle__["a" /* default */]();
-        __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].copy(t.position, pos);
-        t.scaleBottom = 0.75;
-        t.scaleTop = 0.75;
-        this.turtleStack = [t];
-    }
-    initAlphabet() {
-        this.alphabet = [];
-        // forward
-        let F = new __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__["b" /* LSymbol */]("F", function (lsys) {
-            let turtle = lsys.getTopTurtle();
-            lsys.addScaledPrismAtTurtleNoShrink(turtle, 0.8);
-            turtle.moveForward(__WEBPACK_IMPORTED_MODULE_4__geometry_Decoration__["b" /* PRISM_HEIGHT */] * 0.6);
-        });
-        this.alphabet.push(F);
-        // turn
-        // make turtle face in a mostly vertical direction that's not up
-        let T = new __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__["b" /* LSymbol */]("T", function (lsys) {
-            let turtle = lsys.getTopTurtle();
-            let angle = __WEBPACK_IMPORTED_MODULE_5__l_system_LRandom__["b" /* lRandom */].getNext() * 2.0 * Math.PI;
-            let y = __WEBPACK_IMPORTED_MODULE_5__l_system_LRandom__["b" /* lRandom */].getNext() * 0.5 + 0.25;
-            __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].set(turtle.orientation, Math.cos(angle), y, Math.sin(angle));
-            __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].normalize(turtle.orientation, turtle.orientation);
-            // temporarily shrink top
-            let top = turtle.scaleTop;
-            let bot = turtle.scaleBottom;
-            turtle.scaleTop *= 0.75;
-            turtle.scaleBottom *= 0.9;
-            lsys.addScaledPrismAtTurtleNoShrink(turtle, 0.4);
-            turtle.scaleTop = top;
-            turtle.scaleBottom = bot;
-            turtle.moveForward(__WEBPACK_IMPORTED_MODULE_4__geometry_Decoration__["b" /* PRISM_HEIGHT */] * 0.35);
-            // make next prisms thinner so they "connect" better
-            turtle.scaleBottom *= 0.5;
-        });
-        this.alphabet.push(T);
-        // straighten
-        // make turtle face up again
-        let S = new __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__["b" /* LSymbol */]("S", function (lsys) {
-            let turtle = lsys.getTopTurtle();
-            let angle = __WEBPACK_IMPORTED_MODULE_5__l_system_LRandom__["b" /* lRandom */].getNext() * 2.0 * Math.PI;
-            let y = __WEBPACK_IMPORTED_MODULE_5__l_system_LRandom__["b" /* lRandom */].getNext() * 0.3 + 0.45;
-            __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].set(turtle.orientation, 0, 1, 0);
-            lsys.addScaledPrismAtTurtleNoShrink(turtle, 0.8);
-            turtle.moveForward(__WEBPACK_IMPORTED_MODULE_4__geometry_Decoration__["b" /* PRISM_HEIGHT */] * 0.8);
-        });
-        this.alphabet.push(S);
-        // push
-        let push = new __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__["b" /* LSymbol */]("[", function (lsys) {
-            let turtle = lsys.getTopTurtle();
-            let copy = turtle.makeDeepCopy();
-            copy.depth++;
-            lsys.turtleStack.push(copy);
-        });
-        this.alphabet.push(push);
-        // pop
-        let pop = new __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__["b" /* LSymbol */]("]", function (lsys) {
-            lsys.turtleStack.pop();
-        });
-        this.alphabet.push(pop);
-        // set expansion rules
-        F.setExpansionRules([
-            new __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__["a" /* ExpansionRule */](4, [F]),
-            new __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__["a" /* ExpansionRule */](1, [F, push, T, S, pop, F, F]),
-            new __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__["a" /* ExpansionRule */](1, [F, F])
-        ]);
-        T.setExpansionRules([
-            new __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__["a" /* ExpansionRule */](1, [T]),
-            new __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__["a" /* ExpansionRule */](1, [push, T, S, pop, T])
-        ]);
-        S.setExpansionRules([
-            new __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__["a" /* ExpansionRule */](2, [S]),
-            new __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__["a" /* ExpansionRule */](1, [S, S])
-        ]);
-        this.setAxiom([
-            F, push, T, S, pop, push, T, S, pop
-        ]);
-    }
-    executeString() {
-        __WEBPACK_IMPORTED_MODULE_5__l_system_LRandom__["b" /* lRandom */].setMode(__WEBPACK_IMPORTED_MODULE_5__l_system_LRandom__["a" /* LRANDOM_DETERMINISTIC */]);
-        let seed = __WEBPACK_IMPORTED_MODULE_5__l_system_LRandom__["b" /* lRandom */].state;
-        __WEBPACK_IMPORTED_MODULE_5__l_system_LRandom__["b" /* lRandom */].setSeed(0);
-        super.executeString();
-        __WEBPACK_IMPORTED_MODULE_5__l_system_LRandom__["b" /* lRandom */].setSeed(seed);
-    }
-}
-;
-/* harmony default export */ __webpack_exports__["a"] = (BasicTree);
-
-
-/***/ }),
-/* 28 */
+/* 30 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -9674,399 +10532,11 @@ class LString {
 
 
 /***/ }),
-/* 29 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_gl_matrix__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__l_system_Turtle__ = __webpack_require__(5);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__ = __webpack_require__(6);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__l_system_LSystem__ = __webpack_require__(10);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__ = __webpack_require__(7);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__globals__ = __webpack_require__(1);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__Utils__ = __webpack_require__(3);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7_webgl_obj_loader__ = __webpack_require__(16);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7_webgl_obj_loader___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_7_webgl_obj_loader__);
-
-
-
-
-
-
-
-
-// ""static"" variables (I love JS. It's so bad.)
-let polySphere60 = null;
-let scarf = null;
-const TWIG_SCALE = 0.1;
-const FINGER_SCALE = 0.05;
-const NOSE_SCALE = 0.075;
-const SNOW_COLOR = Object(__WEBPACK_IMPORTED_MODULE_6__Utils__["h" /* normalizeRGB */])(200, 200, 255);
-const WOOD_COLOR = Object(__WEBPACK_IMPORTED_MODULE_6__Utils__["h" /* normalizeRGB */])(60, 17, 0);
-const NOSE_COLOR = Object(__WEBPACK_IMPORTED_MODULE_6__Utils__["h" /* normalizeRGB */])(455, 83, 30);
-const SCARF_COLOR = Object(__WEBPACK_IMPORTED_MODULE_6__Utils__["h" /* normalizeRGB */])(20, 300, 300);
-class Snowman extends __WEBPACK_IMPORTED_MODULE_3__l_system_LSystem__["a" /* default */] {
-    constructor(decoration, seed, isSpecial) {
-        super();
-        if (polySphere60 == null) {
-            let objString = Object(__WEBPACK_IMPORTED_MODULE_5__globals__["c" /* readTextFileSync */])("res/models/polySphere60.obj");
-            polySphere60 = new __WEBPACK_IMPORTED_MODULE_7_webgl_obj_loader__["Mesh"](objString);
-        }
-        if (scarf == null) {
-            let objString = Object(__WEBPACK_IMPORTED_MODULE_5__globals__["c" /* readTextFileSync */])("res/models/scarf.obj");
-            scarf = new __WEBPACK_IMPORTED_MODULE_7_webgl_obj_loader__["Mesh"](objString);
-        }
-        this.decoration = decoration;
-        this.prismSides = 5;
-        this.seed = seed;
-        // compute this snowman's rotation about Y
-        // get deterministic direction
-        __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["b" /* lRandom */].setMode(__WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["a" /* LRANDOM_DETERMINISTIC */]);
-        let oldSeed = __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["b" /* lRandom */].state;
-        __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["b" /* lRandom */].setSeed(this.seed);
-        let xzAngle = __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["b" /* lRandom */].getNext() * Math.PI * 2.0;
-        __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["b" /* lRandom */].setSeed(oldSeed);
-        // compute matrix
-        let rotMat4 = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["b" /* mat4 */].create();
-        __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["b" /* mat4 */].fromYRotation(rotMat4, xzAngle);
-        this.rotation = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["a" /* mat3 */].create();
-        __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["a" /* mat3 */].fromMat4(this.rotation, rotMat4);
-        this.isSpecial = isSpecial;
-    }
-    resetTurtleStack(pos) {
-        let t = new __WEBPACK_IMPORTED_MODULE_1__l_system_Turtle__["a" /* default */]();
-        __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].copy(t.position, pos);
-        if (this.isSpecial) {
-            t.scaleBottom = 15;
-            t.scaleTop = 15;
-        }
-        else {
-            t.scaleBottom = 1.5;
-            t.scaleTop = 1.5;
-        }
-        this.turtleStack = [t];
-    }
-    // TODO
-    initAlphabet() {
-        this.alphabet = [];
-        // do this to avoid "this" issues
-        let snowmanRotation = this.rotation;
-        let upFunction = function (lsys) {
-            lsys.useColor(SNOW_COLOR);
-            let turtle = lsys.getTopTurtle();
-            // rotate mesh
-            // just want a random direction, so this is enough
-            // OK to overwrite orientation -- we generate a new one later
-            __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].set(turtle.orientation, __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["b" /* lRandom */].getNext() * 2.0 - 1.0, __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["b" /* lRandom */].getNext() * 2.0 - 1.0, __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["b" /* lRandom */].getNext() * 2.0 - 1.0);
-            __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].normalize(turtle.orientation, turtle.orientation);
-            // add mesh
-            lsys.addMeshAtTurtle(turtle, __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].fromValues(turtle.scaleBottom, turtle.scaleBottom, turtle.scaleBottom), polySphere60);
-            // move turtle up, but not exactly up
-            __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].set(turtle.orientation, __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["b" /* lRandom */].getNext() * 2.0 - 1.0, 5.0, // big Y component to make direction close to up
-            __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["b" /* lRandom */].getNext() * 2.0 - 1.0);
-            __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].normalize(turtle.orientation, turtle.orientation);
-            turtle.moveForward(turtle.scaleBottom * 1.2);
-            // shrink next mesh
-            turtle.scaleBottom *= 0.7 + __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["b" /* lRandom */].getNext() * 0.15;
-        };
-        // up
-        let U = new __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__["b" /* LSymbol */]("U", upFunction);
-        this.alphabet.push(U);
-        // terminal up
-        let terminalU = new __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__["b" /* LSymbol */]("u", upFunction);
-        this.alphabet.push(terminalU);
-        // arm setup -- set turtle orientation to something useful for arms
-        let beginLeftArm = new __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__["b" /* LSymbol */]("(LA)", function (lsys) {
-            let turtle = lsys.getTopTurtle();
-            __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].set(turtle.orientation, __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["b" /* lRandom */].getNext() * 0.4 + 0.6, // big positive X
-            __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["b" /* lRandom */].getNext() * 0.8 - 0.2, // medium Y
-            __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["b" /* lRandom */].getNext() * 0.2 - 0.1 // small Z
-            );
-            // account for snowman's rotation
-            __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].transformMat3(turtle.orientation, turtle.orientation, snowmanRotation);
-            __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].normalize(turtle.orientation, turtle.orientation);
-            // move turtle so we're closer to the outside of the snowball
-            turtle.moveForward(turtle.scaleBottom * 0.8);
-        });
-        this.alphabet.push(beginLeftArm);
-        let beginRightArm = new __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__["b" /* LSymbol */]("(RA)", function (lsys) {
-            let turtle = lsys.getTopTurtle();
-            __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].set(turtle.orientation, -(__WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["b" /* lRandom */].getNext() * 0.4 + 0.6), // big negative X
-            __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["b" /* lRandom */].getNext() * 0.8 - 0.2, // medium Y
-            __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["b" /* lRandom */].getNext() * 0.2 - 0.1 // small Z
-            );
-            // account for snowman's rotation
-            __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].transformMat3(turtle.orientation, turtle.orientation, snowmanRotation);
-            __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].normalize(turtle.orientation, turtle.orientation);
-            // move turtle so we're closer to the outside of the snowball
-            turtle.moveForward(turtle.scaleBottom * 0.8);
-        });
-        this.alphabet.push(beginRightArm);
-        // actual arm -- "twig"
-        let T = new __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__["b" /* LSymbol */]("T", function (lsys) {
-            lsys.useColor(WOOD_COLOR);
-            let turtle = lsys.getTopTurtle();
-            // add twig
-            let bot = turtle.scaleBottom;
-            // overwrite scaleBottom and scaleTop to make twig thin
-            turtle.scaleBottom = TWIG_SCALE * bot;
-            turtle.scaleTop = TWIG_SCALE * bot;
-            lsys.addScaledPrismAtTurtleNoShrink(turtle, bot * 0.1);
-            // move forward
-            turtle.moveForward(bot * 1.05);
-            // add mesh to connect with next part
-            turtle.scaleBottom *= 1.1;
-            lsys.addMeshAtTurtle(turtle, __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].fromValues(turtle.scaleBottom, turtle.scaleBottom, turtle.scaleBottom), polySphere60);
-            // restore scaleBottom
-            turtle.scaleBottom = bot * 0.85;
-            // tweak direction upwards, with a bit of Z randomness
-            let tweak = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].fromValues(0, __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["b" /* lRandom */].getNext() * 0.3 + 0.4, __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["b" /* lRandom */].getNext() * 0.8 - 0.4);
-            // account for snowman's rotation
-            __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].transformMat3(tweak, tweak, snowmanRotation);
-            __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].add(turtle.orientation, turtle.orientation, tweak);
-            __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].normalize(turtle.orientation, turtle.orientation);
-        });
-        this.alphabet.push(T);
-        // hand
-        let H = new __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__["b" /* LSymbol */]("H", function (lsys) {
-            lsys.useColor(WOOD_COLOR);
-            let turtle = lsys.getTopTurtle();
-            // add twig
-            let bot = turtle.scaleBottom;
-            // add 3 fingers. for each finger, pick a direction and draw prism
-            // overwrite scaleBottom and scaleTop to make twig thin
-            turtle.scaleBottom = TWIG_SCALE * bot * 0.5;
-            turtle.scaleTop = turtle.scaleBottom * 0.3;
-            // middle finger -- pick direction
-            let originalDir = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].clone(turtle.orientation);
-            let tweak = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].fromValues(0, __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["b" /* lRandom */].getNext() * 0.9 - 0.45, 0);
-            let tweakRotated = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].create();
-            __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].transformMat3(tweakRotated, tweak, snowmanRotation);
-            __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].add(turtle.orientation, originalDir, tweakRotated);
-            __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].normalize(turtle.orientation, turtle.orientation);
-            lsys.addScaledPrismAtTurtleNoShrink(turtle, bot * 0.05);
-            // left finger -- pick direction
-            tweak[2] = __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["b" /* lRandom */].getNext() * 1.5; // add strong Z component
-            if (tweak[2] < 0.75) {
-                tweak[2] *= 2.0;
-            }
-            __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].transformMat3(tweakRotated, tweak, snowmanRotation);
-            __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].add(turtle.orientation, originalDir, tweakRotated);
-            __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].normalize(turtle.orientation, turtle.orientation);
-            lsys.addScaledPrismAtTurtleNoShrink(turtle, bot * 0.05);
-            // right finger -- pick direction
-            tweak[2] *= -1.0; // go opposite direction of left finger
-            __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].transformMat3(tweakRotated, tweak, snowmanRotation);
-            __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].add(turtle.orientation, originalDir, tweakRotated);
-            __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].normalize(turtle.orientation, turtle.orientation);
-            lsys.addScaledPrismAtTurtleNoShrink(turtle, bot * 0.05);
-        });
-        this.alphabet.push(H);
-        // nose
-        let N = new __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__["b" /* LSymbol */]("N", function (lsys) {
-            lsys.useColor(NOSE_COLOR);
-            let turtle = lsys.getTopTurtle();
-            // find face's direction
-            let faceDirection = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].fromValues(0, 0, 1);
-            __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].transformMat3(faceDirection, faceDirection, snowmanRotation);
-            __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].normalize(faceDirection, faceDirection);
-            // add nose ("cone")
-            __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].copy(turtle.orientation, faceDirection);
-            let bot = turtle.scaleBottom;
-            turtle.scaleBottom = NOSE_SCALE * bot * 2.0;
-            turtle.scaleTop = turtle.scaleBottom * 0.2;
-            lsys.addScaledPrismAtTurtleNoShrink(turtle, bot * 0.2);
-            turtle.scaleBottom = bot;
-        });
-        this.alphabet.push(H);
-        // scarf
-        let S = new __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__["b" /* LSymbol */]("S", function (lsys) {
-            lsys.useColor(SCARF_COLOR);
-            let turtle = lsys.getTopTurtle();
-            // temporarily move down a little
-            let oldY = turtle.position[1];
-            turtle.position[1] -= turtle.scaleBottom * 0.5;
-            lsys.addMeshAtTurtleRotation(turtle, __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].fromValues(turtle.scaleBottom, turtle.scaleBottom, turtle.scaleBottom), Object(__WEBPACK_IMPORTED_MODULE_6__Utils__["d" /* mat3ToMat4 */])(snowmanRotation), scarf);
-            turtle.position[1] = oldY;
-        });
-        this.alphabet.push(S);
-        // push
-        let push = new __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__["b" /* LSymbol */]("[", function (lsys) {
-            let turtle = lsys.getTopTurtle();
-            let copy = turtle.makeDeepCopy();
-            copy.depth++;
-            lsys.turtleStack.push(copy);
-        });
-        this.alphabet.push(push);
-        // pop
-        let pop = new __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__["b" /* LSymbol */]("]", function (lsys) {
-            lsys.turtleStack.pop();
-        });
-        this.alphabet.push(pop);
-        // nop
-        let nop = new __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__["b" /* LSymbol */]("0", function (lsys) {
-        });
-        this.alphabet.push(nop);
-        // set expansion rules
-        U.setExpansionRules([
-            new __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__["a" /* ExpansionRule */](4, [U]),
-            new __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__["a" /* ExpansionRule */](1, [U, terminalU]),
-            new __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__["a" /* ExpansionRule */](2, [terminalU]),
-            new __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__["a" /* ExpansionRule */](2, [terminalU, terminalU])
-        ]);
-        // make scarf rare on non-special snowmen
-        if (!this.isSpecial) {
-            S.setExpansionRules([
-                new __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__["a" /* ExpansionRule */](1, [S]),
-                new __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__["a" /* ExpansionRule */](2, [nop]),
-            ]);
-        }
-        this.setAxiom([
-            U,
-            push, beginLeftArm, T, T, H, pop, push, beginRightArm, T, T, H, pop,
-            terminalU,
-            S, N,
-            terminalU,
-        ]);
-    }
-    executeString() {
-        __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["b" /* lRandom */].setMode(__WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["a" /* LRANDOM_DETERMINISTIC */]);
-        let seed = __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["b" /* lRandom */].state;
-        __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["b" /* lRandom */].setSeed(this.seed);
-        super.executeString();
-        __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["b" /* lRandom */].setSeed(seed);
-    }
-}
-;
-/* harmony default export */ __webpack_exports__["a"] = (Snowman);
-
-
-/***/ }),
-/* 30 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_gl_matrix__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__l_system_Turtle__ = __webpack_require__(5);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__ = __webpack_require__(6);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__l_system_LSystem__ = __webpack_require__(10);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__ = __webpack_require__(7);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__globals__ = __webpack_require__(1);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__Utils__ = __webpack_require__(3);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7_webgl_obj_loader__ = __webpack_require__(16);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7_webgl_obj_loader___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_7_webgl_obj_loader__);
-
-
-
-
-
-
-
-
-// ""static"" variables (I love JS. It's so bad.)
-let ghostBody = null;
-let roundEyes = null;
-const TWIG_SCALE = 0.1;
-const FINGER_SCALE = 0.05;
-const NOSE_SCALE = 0.075;
-const BODY_COLOR = Object(__WEBPACK_IMPORTED_MODULE_6__Utils__["h" /* normalizeRGB */])(200, 200, 255);
-const EYE_COLOR = Object(__WEBPACK_IMPORTED_MODULE_6__Utils__["h" /* normalizeRGB */])(60, 17, 0);
-const NOSE_COLOR = Object(__WEBPACK_IMPORTED_MODULE_6__Utils__["h" /* normalizeRGB */])(455, 83, 30);
-class Ghost extends __WEBPACK_IMPORTED_MODULE_3__l_system_LSystem__["a" /* default */] {
-    constructor(decoration, seed) {
-        super();
-        if (ghostBody == null) {
-            let objString = Object(__WEBPACK_IMPORTED_MODULE_5__globals__["c" /* readTextFileSync */])("res/models/ghostBody.obj");
-            ghostBody = new __WEBPACK_IMPORTED_MODULE_7_webgl_obj_loader__["Mesh"](objString);
-        }
-        if (roundEyes == null) {
-            let objString = Object(__WEBPACK_IMPORTED_MODULE_5__globals__["c" /* readTextFileSync */])("res/models/roundEyes.obj");
-            roundEyes = new __WEBPACK_IMPORTED_MODULE_7_webgl_obj_loader__["Mesh"](objString);
-        }
-        this.decoration = decoration;
-        this.prismSides = 5;
-        this.seed = seed;
-        // compute this snowman's rotation about Y
-        // get deterministic direction
-        __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["b" /* lRandom */].setMode(__WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["a" /* LRANDOM_DETERMINISTIC */]);
-        let oldSeed = __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["b" /* lRandom */].state;
-        __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["b" /* lRandom */].setSeed(this.seed);
-        let xzAngle = __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["b" /* lRandom */].getNext() * Math.PI * 2.0;
-        this.bobValue = __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["b" /* lRandom */].getNext() * Math.PI;
-        this.bobFrequency = 3.0 + 5.0 * __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["b" /* lRandom */].getNext();
-        __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["b" /* lRandom */].setSeed(oldSeed);
-        // compute matrix
-        //let rotMat4 = mat4.create();
-        //mat4.fromYRotation(rotMat4, xzAngle);
-        this.rotation = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["a" /* mat3 */].create();
-        //mat3.fromMat4(this.rotation, rotMat4);
-        this.playerOffset = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].create();
-    }
-    resetTurtleStack(pos) {
-        let t = new __WEBPACK_IMPORTED_MODULE_1__l_system_Turtle__["a" /* default */]();
-        __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].copy(t.position, pos);
-        t.scaleBottom = 1.5;
-        t.scaleTop = 1.5;
-        this.turtleStack = [t];
-    }
-    // TODO
-    initAlphabet() {
-        this.alphabet = [];
-        // do this to avoid "this" issues
-        let snowmanRotation = this.rotation;
-        // body
-        let B = new __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__["b" /* LSymbol */]("B", function (lsys) {
-            lsys.useColor(BODY_COLOR);
-            let turtle = lsys.getTopTurtle();
-            lsys.addMeshAtTurtleRotation(turtle, __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].fromValues(turtle.scaleBottom, turtle.scaleBottom, turtle.scaleBottom), Object(__WEBPACK_IMPORTED_MODULE_6__Utils__["d" /* mat3ToMat4 */])(snowmanRotation), ghostBody);
-        });
-        this.alphabet.push(B);
-        // eyes
-        let E = new __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__["b" /* LSymbol */]("E", function (lsys) {
-            lsys.useColor(EYE_COLOR);
-            let turtle = lsys.getTopTurtle();
-            lsys.addMeshAtTurtleRotation(turtle, __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["e" /* vec3 */].fromValues(turtle.scaleBottom, turtle.scaleBottom, turtle.scaleBottom), Object(__WEBPACK_IMPORTED_MODULE_6__Utils__["d" /* mat3ToMat4 */])(snowmanRotation), roundEyes);
-        });
-        this.alphabet.push(B);
-        // push
-        let push = new __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__["b" /* LSymbol */]("[", function (lsys) {
-            let turtle = lsys.getTopTurtle();
-            let copy = turtle.makeDeepCopy();
-            copy.depth++;
-            lsys.turtleStack.push(copy);
-        });
-        this.alphabet.push(push);
-        // pop
-        let pop = new __WEBPACK_IMPORTED_MODULE_2__l_system_LSymbol__["b" /* LSymbol */]("]", function (lsys) {
-            lsys.turtleStack.pop();
-        });
-        this.alphabet.push(pop);
-        // set expansion rules
-        this.setAxiom([
-            B, E,
-        ]);
-    }
-    executeString() {
-        __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["b" /* lRandom */].setMode(__WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["a" /* LRANDOM_DETERMINISTIC */]);
-        let seed = __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["b" /* lRandom */].state;
-        __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["b" /* lRandom */].setSeed(this.seed);
-        super.executeString();
-        __WEBPACK_IMPORTED_MODULE_4__l_system_LRandom__["b" /* lRandom */].setSeed(seed);
-    }
-    setModelMatrix(model) {
-        __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["b" /* mat4 */].copy(this.decoration.modelMatrix, model);
-    }
-}
-;
-/* harmony default export */ __webpack_exports__["a"] = (Ghost);
-
-
-/***/ }),
 /* 31 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__Collider__ = __webpack_require__(17);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__Collider__ = __webpack_require__(20);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__Utils__ = __webpack_require__(3);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_gl_matrix__ = __webpack_require__(0);
 
@@ -10130,7 +10600,7 @@ class SquareCollider extends __WEBPACK_IMPORTED_MODULE_0__Collider__["a" /* defa
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__ShaderProgram__ = __webpack_require__(11);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__PostProcess__ = __webpack_require__(33);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__game_Terrain__ = __webpack_require__(9);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__ShaderFlags__ = __webpack_require__(18);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__ShaderFlags__ = __webpack_require__(21);
 
 
 
@@ -10144,8 +10614,9 @@ class OpenGLRenderer {
         this.deferredShaderDesert = new __WEBPACK_IMPORTED_MODULE_3__PostProcess__["a" /* default */](new __WEBPACK_IMPORTED_MODULE_2__ShaderProgram__["a" /* Shader */](__WEBPACK_IMPORTED_MODULE_1__globals__["a" /* gl */].FRAGMENT_SHADER, __webpack_require__(35)));
         this.deferredShaderSnow = new __WEBPACK_IMPORTED_MODULE_3__PostProcess__["a" /* default */](new __WEBPACK_IMPORTED_MODULE_2__ShaderProgram__["a" /* Shader */](__WEBPACK_IMPORTED_MODULE_1__globals__["a" /* gl */].FRAGMENT_SHADER, __webpack_require__(36)));
         this.deferredShaderSpooky = new __WEBPACK_IMPORTED_MODULE_3__PostProcess__["a" /* default */](new __WEBPACK_IMPORTED_MODULE_2__ShaderProgram__["a" /* Shader */](__WEBPACK_IMPORTED_MODULE_1__globals__["a" /* gl */].FRAGMENT_SHADER, __webpack_require__(37)));
+        this.deferredShaderNice = new __WEBPACK_IMPORTED_MODULE_3__PostProcess__["a" /* default */](new __WEBPACK_IMPORTED_MODULE_2__ShaderProgram__["a" /* Shader */](__WEBPACK_IMPORTED_MODULE_1__globals__["a" /* gl */].FRAGMENT_SHADER, __webpack_require__(38)));
         // shader that maps 32-bit color to 8-bit color
-        this.tonemapPass = new __WEBPACK_IMPORTED_MODULE_3__PostProcess__["a" /* default */](new __WEBPACK_IMPORTED_MODULE_2__ShaderProgram__["a" /* Shader */](__WEBPACK_IMPORTED_MODULE_1__globals__["a" /* gl */].FRAGMENT_SHADER, __webpack_require__(38)));
+        this.tonemapPass = new __WEBPACK_IMPORTED_MODULE_3__PostProcess__["a" /* default */](new __WEBPACK_IMPORTED_MODULE_2__ShaderProgram__["a" /* Shader */](__WEBPACK_IMPORTED_MODULE_1__globals__["a" /* gl */].FRAGMENT_SHADER, __webpack_require__(39)));
         this.currentTime = 0.0;
         this.gbTargets = [undefined, undefined, undefined];
         this.post8Buffers = [undefined, undefined];
@@ -10161,37 +10632,37 @@ class OpenGLRenderer {
         // compile shaders if they haven't been compiled yet
         if (OpenGLRenderer.compiledShaders.get(__WEBPACK_IMPORTED_MODULE_5__ShaderFlags__["a" /* default */].DOF) == undefined) {
             let arr = [
-                new __WEBPACK_IMPORTED_MODULE_3__PostProcess__["a" /* default */](new __WEBPACK_IMPORTED_MODULE_2__ShaderProgram__["a" /* Shader */](__WEBPACK_IMPORTED_MODULE_1__globals__["a" /* gl */].FRAGMENT_SHADER, __webpack_require__(39))),
                 new __WEBPACK_IMPORTED_MODULE_3__PostProcess__["a" /* default */](new __WEBPACK_IMPORTED_MODULE_2__ShaderProgram__["a" /* Shader */](__WEBPACK_IMPORTED_MODULE_1__globals__["a" /* gl */].FRAGMENT_SHADER, __webpack_require__(40))),
+                new __WEBPACK_IMPORTED_MODULE_3__PostProcess__["a" /* default */](new __WEBPACK_IMPORTED_MODULE_2__ShaderProgram__["a" /* Shader */](__WEBPACK_IMPORTED_MODULE_1__globals__["a" /* gl */].FRAGMENT_SHADER, __webpack_require__(41))),
             ];
             OpenGLRenderer.compiledShaders.set(__WEBPACK_IMPORTED_MODULE_5__ShaderFlags__["a" /* default */].DOF, arr);
         }
         if (OpenGLRenderer.compiledShaders.get(__WEBPACK_IMPORTED_MODULE_5__ShaderFlags__["a" /* default */].BLOOM) == undefined) {
             let arr = [
-                new __WEBPACK_IMPORTED_MODULE_3__PostProcess__["a" /* default */](new __WEBPACK_IMPORTED_MODULE_2__ShaderProgram__["a" /* Shader */](__WEBPACK_IMPORTED_MODULE_1__globals__["a" /* gl */].FRAGMENT_SHADER, __webpack_require__(41))),
                 new __WEBPACK_IMPORTED_MODULE_3__PostProcess__["a" /* default */](new __WEBPACK_IMPORTED_MODULE_2__ShaderProgram__["a" /* Shader */](__WEBPACK_IMPORTED_MODULE_1__globals__["a" /* gl */].FRAGMENT_SHADER, __webpack_require__(42))),
                 new __WEBPACK_IMPORTED_MODULE_3__PostProcess__["a" /* default */](new __WEBPACK_IMPORTED_MODULE_2__ShaderProgram__["a" /* Shader */](__WEBPACK_IMPORTED_MODULE_1__globals__["a" /* gl */].FRAGMENT_SHADER, __webpack_require__(43))),
                 new __WEBPACK_IMPORTED_MODULE_3__PostProcess__["a" /* default */](new __WEBPACK_IMPORTED_MODULE_2__ShaderProgram__["a" /* Shader */](__WEBPACK_IMPORTED_MODULE_1__globals__["a" /* gl */].FRAGMENT_SHADER, __webpack_require__(44))),
+                new __WEBPACK_IMPORTED_MODULE_3__PostProcess__["a" /* default */](new __WEBPACK_IMPORTED_MODULE_2__ShaderProgram__["a" /* Shader */](__WEBPACK_IMPORTED_MODULE_1__globals__["a" /* gl */].FRAGMENT_SHADER, __webpack_require__(45))),
             ];
             OpenGLRenderer.compiledShaders.set(__WEBPACK_IMPORTED_MODULE_5__ShaderFlags__["a" /* default */].BLOOM, arr);
         }
         if (OpenGLRenderer.compiledShaders.get(__WEBPACK_IMPORTED_MODULE_5__ShaderFlags__["a" /* default */].POINTILISM) == undefined) {
             let arr = [
-                new __WEBPACK_IMPORTED_MODULE_3__PostProcess__["a" /* default */](new __WEBPACK_IMPORTED_MODULE_2__ShaderProgram__["a" /* Shader */](__WEBPACK_IMPORTED_MODULE_1__globals__["a" /* gl */].FRAGMENT_SHADER, __webpack_require__(45))),
+                new __WEBPACK_IMPORTED_MODULE_3__PostProcess__["a" /* default */](new __WEBPACK_IMPORTED_MODULE_2__ShaderProgram__["a" /* Shader */](__WEBPACK_IMPORTED_MODULE_1__globals__["a" /* gl */].FRAGMENT_SHADER, __webpack_require__(46))),
             ];
             OpenGLRenderer.compiledShaders.set(__WEBPACK_IMPORTED_MODULE_5__ShaderFlags__["a" /* default */].POINTILISM, arr);
         }
         if (OpenGLRenderer.compiledShaders.get(__WEBPACK_IMPORTED_MODULE_5__ShaderFlags__["a" /* default */].PAINT) == undefined) {
             let arr = [
-                new __WEBPACK_IMPORTED_MODULE_3__PostProcess__["a" /* default */](new __WEBPACK_IMPORTED_MODULE_2__ShaderProgram__["a" /* Shader */](__WEBPACK_IMPORTED_MODULE_1__globals__["a" /* gl */].FRAGMENT_SHADER, __webpack_require__(46))),
                 new __WEBPACK_IMPORTED_MODULE_3__PostProcess__["a" /* default */](new __WEBPACK_IMPORTED_MODULE_2__ShaderProgram__["a" /* Shader */](__WEBPACK_IMPORTED_MODULE_1__globals__["a" /* gl */].FRAGMENT_SHADER, __webpack_require__(47))),
+                new __WEBPACK_IMPORTED_MODULE_3__PostProcess__["a" /* default */](new __WEBPACK_IMPORTED_MODULE_2__ShaderProgram__["a" /* Shader */](__WEBPACK_IMPORTED_MODULE_1__globals__["a" /* gl */].FRAGMENT_SHADER, __webpack_require__(48))),
             ];
             OpenGLRenderer.compiledShaders.set(__WEBPACK_IMPORTED_MODULE_5__ShaderFlags__["a" /* default */].PAINT, arr);
         }
         if (OpenGLRenderer.compiledShaders.get(__WEBPACK_IMPORTED_MODULE_5__ShaderFlags__["a" /* default */].VAPORWAVE) == undefined) {
             let arr = [
-                new __WEBPACK_IMPORTED_MODULE_3__PostProcess__["a" /* default */](new __WEBPACK_IMPORTED_MODULE_2__ShaderProgram__["a" /* Shader */](__WEBPACK_IMPORTED_MODULE_1__globals__["a" /* gl */].FRAGMENT_SHADER, __webpack_require__(48))),
                 new __WEBPACK_IMPORTED_MODULE_3__PostProcess__["a" /* default */](new __WEBPACK_IMPORTED_MODULE_2__ShaderProgram__["a" /* Shader */](__WEBPACK_IMPORTED_MODULE_1__globals__["a" /* gl */].FRAGMENT_SHADER, __webpack_require__(49))),
+                new __WEBPACK_IMPORTED_MODULE_3__PostProcess__["a" /* default */](new __WEBPACK_IMPORTED_MODULE_2__ShaderProgram__["a" /* Shader */](__WEBPACK_IMPORTED_MODULE_1__globals__["a" /* gl */].FRAGMENT_SHADER, __webpack_require__(50))),
             ];
             OpenGLRenderer.compiledShaders.set(__WEBPACK_IMPORTED_MODULE_5__ShaderFlags__["a" /* default */].VAPORWAVE, arr);
         }
@@ -10284,6 +10755,9 @@ class OpenGLRenderer {
             case __WEBPACK_IMPORTED_MODULE_4__game_Terrain__["a" /* Level */].SPOOKY:
                 this.deferredShader = this.deferredShaderSpooky;
                 break;
+            case __WEBPACK_IMPORTED_MODULE_4__game_Terrain__["a" /* Level */].NICE:
+                this.deferredShader = this.deferredShaderNice;
+                break;
         }
         var gb0loc = __WEBPACK_IMPORTED_MODULE_1__globals__["a" /* gl */].getUniformLocation(this.deferredShader.prog, "u_gb0");
         var gb1loc = __WEBPACK_IMPORTED_MODULE_1__globals__["a" /* gl */].getUniformLocation(this.deferredShader.prog, "u_gb1");
@@ -10292,6 +10766,9 @@ class OpenGLRenderer {
         __WEBPACK_IMPORTED_MODULE_1__globals__["a" /* gl */].uniform1i(gb0loc, 0);
         __WEBPACK_IMPORTED_MODULE_1__globals__["a" /* gl */].uniform1i(gb1loc, 1);
         __WEBPACK_IMPORTED_MODULE_1__globals__["a" /* gl */].uniform1i(gb2loc, 2);
+    }
+    setBadEnd(badEnd) {
+        this.deferredShader.setBadEnd(badEnd);
     }
     setClearColor(r, g, b, a) {
         __WEBPACK_IMPORTED_MODULE_1__globals__["a" /* gl */].clearColor(r, g, b, a);
@@ -10694,82 +11171,88 @@ module.exports = "#version 300 es\r\nprecision highp float;\r\n\r\n#define EPS 0
 /* 37 */
 /***/ (function(module, exports) {
 
-module.exports = "#version 300 es\r\nprecision highp float;\r\n\r\n#define EPS 0.0001\r\n#define PI 3.1415962\r\n#define FAR 100.0\r\n\r\n// 1 / (e - 1)\r\n#define INV_E_MINUS_ONE 0.5819767\r\n\r\nin vec2 fs_UV;\r\nout vec4 out_Col;\r\n\r\nuniform sampler2D u_gb0;\r\n//uniform sampler2D u_gb1;\r\nuniform sampler2D u_gb2;\r\n\r\nuniform float u_Time;\r\nuniform float u_AspectRatio;\r\n\r\nuniform float u_FadeInTime;\r\nuniform float u_FadeOutTime;\r\n\r\nuniform mat4 u_View;\r\nuniform vec4 u_CamPos;   \r\n\r\nconst float CAMERA_TAN = tan(0.5 * 45.0 * 3.1415962 / 180.0);\r\nconst float DEPTH_OFFSET = 0.0;\r\n\r\nconst vec3 LIGHT_DIR = vec3(50, 120, 100);\r\n\r\nconst vec3 NEXT_BG_COLOR = vec3(1.99, 0.1, 0.0);\r\n\r\nfloat getLambert(vec3 worldPos, vec3 normal) {\r\n    vec3 toLight = normalize(LIGHT_DIR);\r\n    float dotProd = clamp(dot(toLight, normal), 0.0, 1.0);\r\n    return pow(dotProd, 2.5);\r\n}\r\n\r\n// noise helper functions\r\n\r\n// from Adam's demo\r\nvec2 random2(vec2 p) {\r\n    //vec2 sinVec = sin(vec2(dot(p, vec2(127.1, 311.7)), dot(p, vec2(269.5, 183.3))));\r\n    //return sinVec * 0.5 + vec2(0.5);\r\n    //return fract(sinVec * 123.45);\r\n    //return fract(sinVec * 43758.5453);\r\n    return normalize(2.0 * fract(sin(vec2(dot(p, vec2(127.1, 311.7)), dot(p, vec2(269.5, 183.3))))*123.45) - 1.0);\r\n}\r\n\r\nfloat surflet(vec2 P, vec2 gridPoint)\r\n{\r\n    //return (P.x * P.x) * 0.07;\r\n    // Compute falloff function by converting linear distance to a polynomial\r\n    float distX = abs(P.x - gridPoint.x);\r\n    float distY = abs(P.y - gridPoint.y);\r\n    float tX = 1.0 - 6.0 * pow(distX, 5.0) + 15.0 * pow(distX, 4.0) - 10.0 * pow(distX, 3.0);\r\n    float tY = 1.0 - 6.0 * pow(distY, 5.0) + 15.0 * pow(distY, 4.0) - 10.0 * pow(distY, 3.0);\r\n\r\n    // Get the random vector for the grid point\r\n    vec2 gradient = random2(gridPoint);\r\n    // Get the vector from the grid point to P\r\n    vec2 diff = P - gridPoint;\r\n    // Get the value of our height field by dotting grid->P with our gradient\r\n    float height = dot(diff, gradient);\r\n    // Scale our height field (i.e. reduce it) by our polynomial falloff function\r\n    return height * tX * tY;\r\n}\r\n\r\nfloat PerlinNoise(vec2 uv)\r\n{\r\n    // Tile the space\r\n    vec2 uvXLYL = floor(uv);\r\n    vec2 uvXHYL = uvXLYL + vec2(1, 0);\r\n    vec2 uvXHYH = uvXLYL + vec2(1, 1);\r\n    vec2 uvXLYH = uvXLYL + vec2(0, 1);\r\n\r\n    return surflet(uv, uvXLYL) + surflet(uv, uvXHYL) + surflet(uv, uvXHYH) + surflet(uv, uvXLYH);\r\n}\r\n\r\n\r\nfloat normalizedPerlinNoise(vec2 v) {\r\n    return clamp(PerlinNoise(v) + 0.5, 0.0, 1.0);\r\n}\r\n\r\n/* FBM (uses Perlin) */\r\nfloat getFBM(vec2 pt, float startFreq) {\r\n    float noiseSum = 0.0;\r\n    float amplitudeSum = 0.0;\r\n    float amplitude = 1.0;\r\n    float frequency = startFreq;\r\n    for (int i = 0; i < 6; i++) {\r\n        float perlin = normalizedPerlinNoise(pt * frequency);\r\n        noiseSum += perlin * amplitude;\r\n        amplitudeSum += amplitude;\r\n        amplitude *= 0.5;\r\n        frequency *= 2.0;\r\n    }\r\n    return noiseSum / amplitudeSum;\r\n}\r\n\r\n// \"normalizes\" coordinate before calling FBM\r\nfloat getFBMFromRawPosition(vec2 pos, float startFreq) {\r\n    vec2 coord = pos;\r\n    coord += vec2(3.14, 5.01);// +vec2(u_PerlinSeed);\r\n                              //return pow(sin(coord.x + coord.y), 2.0);\r\n    float fbm = getFBM(coord, startFreq);\r\n    // [0.1, 0.8]\r\n    //return pow((fbm - 0.05) / 0.7, 3.2);\r\n    fbm = pow((fbm - 0.05) / 0.7, 3.2);\r\n    fbm = smoothstep(0.0, 1.3, fbm);\r\n    return fbm;\r\n    //return pow(1.0 - fbm, 2.2);\r\n    //return pow(clamp(0.0, 1.0, (fbm - 0.25) / 0.6), 3.2) * 0.5;\r\n}\r\n\r\nvec3 getBGColor(float fbm) {\r\n    float f = smoothstep(-0.8, 3.0, fbm);\r\n    float H = mod(u_Time * 15.0, 360.0);\r\n    const float V = 0.8;\r\n    float S = 0.7 * (1.0 - f);\r\n    /*\r\n    float f = smoothstep(0.0, 1.0, fbm);\r\n    const float H = 288.0;\r\n    float V = 1.0;\r\n    float S = 0.5 * (1.0 - f);\r\n    */\r\n\r\n    float C = V * S;\r\n    // h = H / 60\r\n    float h = H / 60.0;\r\n    float X = C * (1.0 - abs(mod(h, 2.0) - 1.0));\r\n    //float X = C * 0.8;\r\n    vec3 col;\r\n    if (h <= 1.0) {\r\n        col = vec3(C, X, 0.0);\r\n    }\r\n    else if (h <= 2.0) {\r\n        col = vec3(X, C, 0.0);\r\n    }\r\n    else if (h <= 3.0) {\r\n        col = vec3(0.0, C, X);\r\n    }\r\n    else if (h <= 4.0) {\r\n        col = vec3(0.0, X, C);\r\n    }\r\n    else if (h <= 5.0) {\r\n        col = vec3(X, 0.0, C);\r\n    }\r\n    else {\r\n        col = vec3(C, 0.0, X);\r\n    }\r\n    float m = V - C;\r\n    return pow(col + vec3(m), vec3(4.2));\r\n}\r\n\r\nfloat getFogFactor(float dist) {\r\n    return min(1.0, INV_E_MINUS_ONE * (exp(dist * 1.5 / FAR) - 1.0));\r\n}\r\n\r\nvoid main() { \r\n\t// read from GBuffers\r\n\tvec4 gb0 = texture(u_gb0, fs_UV);\r\n\t//vec4 gb1 = texture(u_gb1, fs_UV);\r\n\tvec4 gb2 = texture(u_gb2, fs_UV);\r\n\r\n    // put GBuffer data in more readable variables\r\n    vec3 nor = gb0.xyz;\r\n    float depth = gb0.w;\r\n    vec3 albedo = gb2.xyz;\r\n\r\n    // final color of this fragment\r\n    vec3 col;\r\n\r\n    float time = u_Time * 0.03;\r\n    //float fbm = getFBMFromRawPosition(fs_UV + vec2(-8.88 + cos(time * 5.0), 7.22 + time * 1.5), 1.0 + 0.5 * sin(time * 2.0));\r\n    //vec3 bgColor = getBGColor(fbm);\r\n    //vec3 bgColor = vec3(0.1, 0.1, 1.99);\r\n    vec3 bgColor = vec3(0.19, 0.09, 0.19);\r\n    float fogFactor = getFogFactor(-depth);\r\n    // background\r\n    if (depth >= -DEPTH_OFFSET) {\r\n        //fogFactor = getFogFactor(FAR);\r\n        col = bgColor;\r\n    }\r\n    // shade\r\n    else {\r\n        depth += DEPTH_OFFSET;\r\n        // get cam-space position\r\n        vec3 ndcPos = vec3(fs_UV.xy * 2.0 - 1.0, depth);\r\n        float vert = CAMERA_TAN * abs(depth);\r\n        float hori = vert * u_AspectRatio;\r\n        vec3 camPos = ndcPos * vec3(hori, vert, 1.0);\r\n        // convert to world-space pos\r\n        vec3 worldPos = vec3(inverse(u_View) * vec4(camPos, 1.0));\r\n        //vec3 lookDir = normalize(vec3(inverse(u_View) * vec4(0, 0, 1, 0)));\r\n        //vec3 halfDir = normalize(lookDir + normalize(LIGHT_DIR));\r\n        //float blinn = pow(clamp(0.0, 1.0, dot(halfDir, nor)), 8.0);\r\n        //col = max(0.05, (0.05 + 0.95 * getLambert(worldPos, nor))) * albedo + vec3(0.02 * blinn);\r\n        col = max(0.05, (0.05 + 0.95 * getLambert(worldPos, nor))) * albedo;\r\n        //col = abs(nor) * 0.6;\r\n        //vec3 someLight = vec3(15, 0, 15);\r\n        //float d = 0.000001 + distance(worldPos, someLight);\r\n        //float lightFactor = min(1.0, 0.1 / (d * d));\r\n        //col += vec3(0, 0, 100.0 + 300.0 * (cos(time * 100.0) * 0.5 + 0.5)) * lightFactor;\r\n    }\r\n    col = mix(col, bgColor, fogFactor);\r\n    col = mix(bgColor, col, u_FadeInTime); // fade in from this BG color\r\n    col = mix(col, NEXT_BG_COLOR, u_FadeOutTime); // fade out into \"next\" BG color\r\n    col *= 5.0;\r\n\tout_Col = vec4(col, 1.0);\r\n}"
+module.exports = "#version 300 es\r\nprecision highp float;\r\n\r\n#define EPS 0.0001\r\n#define PI 3.1415962\r\n#define FAR 100.0\r\n\r\n// 1 / (e - 1)\r\n#define INV_E_MINUS_ONE 0.5819767\r\n\r\nin vec2 fs_UV;\r\nout vec4 out_Col;\r\n\r\nuniform sampler2D u_gb0;\r\n//uniform sampler2D u_gb1;\r\nuniform sampler2D u_gb2;\r\n\r\nuniform float u_Time;\r\nuniform float u_AspectRatio;\r\n\r\nuniform float u_FadeInTime;\r\nuniform float u_FadeOutTime;\r\nuniform float u_BadEnd;\r\n\r\nuniform mat4 u_View;\r\nuniform vec4 u_CamPos;   \r\n\r\nconst float CAMERA_TAN = tan(0.5 * 45.0 * 3.1415962 / 180.0);\r\nconst float DEPTH_OFFSET = 0.0;\r\n\r\nconst vec3 LIGHT_DIR = vec3(50, 120, 100);\r\n\r\nconst vec3 NEXT_BG_COLOR_BAD_END = vec3(1.99, 0.1, 0.0);\r\nconst vec3 NEXT_BG_COLOR = vec3(0.19, 0.89, 0.89);\r\n\r\nfloat getLambert(vec3 worldPos, vec3 normal) {\r\n    vec3 toLight = normalize(LIGHT_DIR);\r\n    float dotProd = clamp(dot(toLight, normal), 0.0, 1.0);\r\n    return pow(dotProd, 2.5);\r\n}\r\n\r\n// noise helper functions\r\n\r\n// from Adam's demo\r\nvec2 random2(vec2 p) {\r\n    //vec2 sinVec = sin(vec2(dot(p, vec2(127.1, 311.7)), dot(p, vec2(269.5, 183.3))));\r\n    //return sinVec * 0.5 + vec2(0.5);\r\n    //return fract(sinVec * 123.45);\r\n    //return fract(sinVec * 43758.5453);\r\n    return normalize(2.0 * fract(sin(vec2(dot(p, vec2(127.1, 311.7)), dot(p, vec2(269.5, 183.3))))*123.45) - 1.0);\r\n}\r\n\r\nfloat surflet(vec2 P, vec2 gridPoint)\r\n{\r\n    //return (P.x * P.x) * 0.07;\r\n    // Compute falloff function by converting linear distance to a polynomial\r\n    float distX = abs(P.x - gridPoint.x);\r\n    float distY = abs(P.y - gridPoint.y);\r\n    float tX = 1.0 - 6.0 * pow(distX, 5.0) + 15.0 * pow(distX, 4.0) - 10.0 * pow(distX, 3.0);\r\n    float tY = 1.0 - 6.0 * pow(distY, 5.0) + 15.0 * pow(distY, 4.0) - 10.0 * pow(distY, 3.0);\r\n\r\n    // Get the random vector for the grid point\r\n    vec2 gradient = random2(gridPoint);\r\n    // Get the vector from the grid point to P\r\n    vec2 diff = P - gridPoint;\r\n    // Get the value of our height field by dotting grid->P with our gradient\r\n    float height = dot(diff, gradient);\r\n    // Scale our height field (i.e. reduce it) by our polynomial falloff function\r\n    return height * tX * tY;\r\n}\r\n\r\nfloat PerlinNoise(vec2 uv)\r\n{\r\n    // Tile the space\r\n    vec2 uvXLYL = floor(uv);\r\n    vec2 uvXHYL = uvXLYL + vec2(1, 0);\r\n    vec2 uvXHYH = uvXLYL + vec2(1, 1);\r\n    vec2 uvXLYH = uvXLYL + vec2(0, 1);\r\n\r\n    return surflet(uv, uvXLYL) + surflet(uv, uvXHYL) + surflet(uv, uvXHYH) + surflet(uv, uvXLYH);\r\n}\r\n\r\n\r\nfloat normalizedPerlinNoise(vec2 v) {\r\n    return clamp(PerlinNoise(v) + 0.5, 0.0, 1.0);\r\n}\r\n\r\n/* FBM (uses Perlin) */\r\nfloat getFBM(vec2 pt, float startFreq) {\r\n    float noiseSum = 0.0;\r\n    float amplitudeSum = 0.0;\r\n    float amplitude = 1.0;\r\n    float frequency = startFreq;\r\n    for (int i = 0; i < 6; i++) {\r\n        float perlin = normalizedPerlinNoise(pt * frequency);\r\n        noiseSum += perlin * amplitude;\r\n        amplitudeSum += amplitude;\r\n        amplitude *= 0.5;\r\n        frequency *= 2.0;\r\n    }\r\n    return noiseSum / amplitudeSum;\r\n}\r\n\r\n// \"normalizes\" coordinate before calling FBM\r\nfloat getFBMFromRawPosition(vec2 pos, float startFreq) {\r\n    vec2 coord = pos;\r\n    coord += vec2(3.14, 5.01);// +vec2(u_PerlinSeed);\r\n                              //return pow(sin(coord.x + coord.y), 2.0);\r\n    float fbm = getFBM(coord, startFreq);\r\n    // [0.1, 0.8]\r\n    //return pow((fbm - 0.05) / 0.7, 3.2);\r\n    fbm = pow((fbm - 0.05) / 0.7, 3.2);\r\n    fbm = smoothstep(0.0, 1.3, fbm);\r\n    return fbm;\r\n    //return pow(1.0 - fbm, 2.2);\r\n    //return pow(clamp(0.0, 1.0, (fbm - 0.25) / 0.6), 3.2) * 0.5;\r\n}\r\n\r\nvec3 getBGColor(float fbm) {\r\n    float f = smoothstep(-0.8, 3.0, fbm);\r\n    float H = mod(u_Time * 15.0, 360.0);\r\n    const float V = 0.8;\r\n    float S = 0.7 * (1.0 - f);\r\n    /*\r\n    float f = smoothstep(0.0, 1.0, fbm);\r\n    const float H = 288.0;\r\n    float V = 1.0;\r\n    float S = 0.5 * (1.0 - f);\r\n    */\r\n\r\n    float C = V * S;\r\n    // h = H / 60\r\n    float h = H / 60.0;\r\n    float X = C * (1.0 - abs(mod(h, 2.0) - 1.0));\r\n    //float X = C * 0.8;\r\n    vec3 col;\r\n    if (h <= 1.0) {\r\n        col = vec3(C, X, 0.0);\r\n    }\r\n    else if (h <= 2.0) {\r\n        col = vec3(X, C, 0.0);\r\n    }\r\n    else if (h <= 3.0) {\r\n        col = vec3(0.0, C, X);\r\n    }\r\n    else if (h <= 4.0) {\r\n        col = vec3(0.0, X, C);\r\n    }\r\n    else if (h <= 5.0) {\r\n        col = vec3(X, 0.0, C);\r\n    }\r\n    else {\r\n        col = vec3(C, 0.0, X);\r\n    }\r\n    float m = V - C;\r\n    return pow(col + vec3(m), vec3(4.2));\r\n}\r\n\r\nfloat getFogFactor(float dist) {\r\n    return min(1.0, INV_E_MINUS_ONE * (exp(dist * 1.5 / FAR) - 1.0));\r\n}\r\n\r\nvoid main() { \r\n\t// read from GBuffers\r\n\tvec4 gb0 = texture(u_gb0, fs_UV);\r\n\t//vec4 gb1 = texture(u_gb1, fs_UV);\r\n\tvec4 gb2 = texture(u_gb2, fs_UV);\r\n\r\n    // put GBuffer data in more readable variables\r\n    vec3 nor = gb0.xyz;\r\n    float depth = gb0.w;\r\n    vec3 albedo = gb2.xyz;\r\n\r\n    // final color of this fragment\r\n    vec3 col;\r\n\r\n    float time = u_Time * 0.03;\r\n    //float fbm = getFBMFromRawPosition(fs_UV + vec2(-8.88 + cos(time * 5.0), 7.22 + time * 1.5), 1.0 + 0.5 * sin(time * 2.0));\r\n    //vec3 bgColor = getBGColor(fbm);\r\n    //vec3 bgColor = vec3(0.1, 0.1, 1.99);\r\n    vec3 bgColor = vec3(0.19, 0.09, 0.19);\r\n    float fogFactor = getFogFactor(-depth);\r\n    // background\r\n    if (depth >= -DEPTH_OFFSET) {\r\n        //fogFactor = getFogFactor(FAR);\r\n        col = bgColor;\r\n    }\r\n    // shade\r\n    else {\r\n        depth += DEPTH_OFFSET;\r\n        // get cam-space position\r\n        vec3 ndcPos = vec3(fs_UV.xy * 2.0 - 1.0, depth);\r\n        float vert = CAMERA_TAN * abs(depth);\r\n        float hori = vert * u_AspectRatio;\r\n        vec3 camPos = ndcPos * vec3(hori, vert, 1.0);\r\n        // convert to world-space pos\r\n        vec3 worldPos = vec3(inverse(u_View) * vec4(camPos, 1.0));\r\n        //vec3 lookDir = normalize(vec3(inverse(u_View) * vec4(0, 0, 1, 0)));\r\n        //vec3 halfDir = normalize(lookDir + normalize(LIGHT_DIR));\r\n        //float blinn = pow(clamp(0.0, 1.0, dot(halfDir, nor)), 8.0);\r\n        //col = max(0.05, (0.05 + 0.95 * getLambert(worldPos, nor))) * albedo + vec3(0.02 * blinn);\r\n        col = max(0.05, (0.05 + 0.95 * getLambert(worldPos, nor))) * albedo;\r\n        //col = abs(nor) * 0.6;\r\n        //vec3 someLight = vec3(15, 0, 15);\r\n        //float d = 0.000001 + distance(worldPos, someLight);\r\n        //float lightFactor = min(1.0, 0.1 / (d * d));\r\n        //col += vec3(0, 0, 100.0 + 300.0 * (cos(time * 100.0) * 0.5 + 0.5)) * lightFactor;\r\n    }\r\n    col = mix(col, bgColor, fogFactor);\r\n    col = mix(bgColor, col, u_FadeInTime); // fade in from this BG color\r\n    vec3 nextBGColor = mix(NEXT_BG_COLOR, NEXT_BG_COLOR_BAD_END, u_BadEnd);\r\n    col = mix(col, nextBGColor, u_FadeOutTime); // fade out into \"next\" BG color\r\n    col *= 5.0;\r\n\tout_Col = vec4(col, 1.0);\r\n}"
 
 /***/ }),
 /* 38 */
 /***/ (function(module, exports) {
 
-module.exports = "#version 300 es\r\nprecision highp float;\r\n\r\nin vec2 fs_UV;\r\nout vec4 out_Col;\r\n\r\nuniform sampler2D u_frame;\r\nuniform float u_Time;\r\n\r\n// based on: http://filmicworlds.com/blog/filmic-tonemapping-operators/\r\n\r\nvec3 defaultHDR(vec3 color) {\r\n\tcolor = min(vec3(1.0), color);\r\n\tcolor = pow(color, vec3(1.0 / 2.2));\r\n    return color;\r\n}\r\n\r\nvec3 HejlBurgessDawson(vec3 color) {\r\n    color = max(vec3(0.0), color - vec3(0.004));\r\n    color = (color * (6.2 * color + vec3(0.5))) / (color * (6.2 * color + vec3(1.7)) + vec3(0.06));\r\n    return color;\r\n}\r\n\r\nvoid main() {\r\n\t// TODO: proper tonemapping\r\n\t// This shader just clamps the input color to the range [0, 1]\r\n\t// and performs basic gamma correction.\r\n\t// It does not properly handle HDR values; you must implement that.\r\n\r\n\tvec3 color = texture(u_frame, fs_UV).xyz;\r\n\t//color = min(vec3(1.0), color);\r\n    // Reinhard\r\n    //color *= 2.0;\r\n    //color = color / (color + vec3(1.0));\r\n\r\n    // Hejl and Burgess-Dawson\r\n    //color = max(vec3(0.0), color - vec3(0.004));\r\n    //color = (color * (6.2 * color + vec3(0.5))) / (color * (6.2 * color + vec3(1.7)) + vec3(0.06));\r\n\r\n\t// gamma correction\r\n\t//color = pow(color, vec3(1.0 / 2.2));\r\n    //color = defaultHDR(color);\r\n    color = HejlBurgessDawson(color);\r\n\tout_Col = vec4(color, 1.0);\r\n}\r\n"
+module.exports = "#version 300 es\r\nprecision highp float;\r\n\r\n#define EPS 0.0001\r\n#define PI 3.1415962\r\n#define FAR 100.0\r\n\r\n// 1 / (e - 1)\r\n#define INV_E_MINUS_ONE 0.5819767\r\n\r\nin vec2 fs_UV;\r\nout vec4 out_Col;\r\n\r\nuniform sampler2D u_gb0;\r\n//uniform sampler2D u_gb1;\r\nuniform sampler2D u_gb2;\r\n\r\nuniform float u_Time;\r\nuniform float u_AspectRatio;\r\n\r\nuniform float u_FadeInTime;\r\nuniform float u_FadeOutTime;\r\n\r\nuniform mat4 u_View;\r\nuniform vec4 u_CamPos;   \r\n\r\nconst float CAMERA_TAN = tan(0.5 * 45.0 * 3.1415962 / 180.0);\r\nconst float DEPTH_OFFSET = 0.0;\r\n\r\nconst vec3 LIGHT_DIR = vec3(50, 120, 100);\r\n\r\nconst vec3 NEXT_BG_COLOR = vec3(1.99, 0.1, 0.0);\r\n\r\nfloat getLambert(vec3 worldPos, vec3 normal) {\r\n    vec3 toLight = normalize(LIGHT_DIR);\r\n    float dotProd = clamp(dot(toLight, normal), 0.0, 1.0);\r\n    return pow(dotProd, 2.5);\r\n}\r\n\r\n// noise helper functions\r\n\r\n// from Adam's demo\r\nvec2 random2(vec2 p) {\r\n    //vec2 sinVec = sin(vec2(dot(p, vec2(127.1, 311.7)), dot(p, vec2(269.5, 183.3))));\r\n    //return sinVec * 0.5 + vec2(0.5);\r\n    //return fract(sinVec * 123.45);\r\n    //return fract(sinVec * 43758.5453);\r\n    return normalize(2.0 * fract(sin(vec2(dot(p, vec2(127.1, 311.7)), dot(p, vec2(269.5, 183.3))))*123.45) - 1.0);\r\n}\r\n\r\nfloat surflet(vec2 P, vec2 gridPoint)\r\n{\r\n    //return (P.x * P.x) * 0.07;\r\n    // Compute falloff function by converting linear distance to a polynomial\r\n    float distX = abs(P.x - gridPoint.x);\r\n    float distY = abs(P.y - gridPoint.y);\r\n    float tX = 1.0 - 6.0 * pow(distX, 5.0) + 15.0 * pow(distX, 4.0) - 10.0 * pow(distX, 3.0);\r\n    float tY = 1.0 - 6.0 * pow(distY, 5.0) + 15.0 * pow(distY, 4.0) - 10.0 * pow(distY, 3.0);\r\n\r\n    // Get the random vector for the grid point\r\n    vec2 gradient = random2(gridPoint);\r\n    // Get the vector from the grid point to P\r\n    vec2 diff = P - gridPoint;\r\n    // Get the value of our height field by dotting grid->P with our gradient\r\n    float height = dot(diff, gradient);\r\n    // Scale our height field (i.e. reduce it) by our polynomial falloff function\r\n    return height * tX * tY;\r\n}\r\n\r\nfloat PerlinNoise(vec2 uv)\r\n{\r\n    // Tile the space\r\n    vec2 uvXLYL = floor(uv);\r\n    vec2 uvXHYL = uvXLYL + vec2(1, 0);\r\n    vec2 uvXHYH = uvXLYL + vec2(1, 1);\r\n    vec2 uvXLYH = uvXLYL + vec2(0, 1);\r\n\r\n    return surflet(uv, uvXLYL) + surflet(uv, uvXHYL) + surflet(uv, uvXHYH) + surflet(uv, uvXLYH);\r\n}\r\n\r\n\r\nfloat normalizedPerlinNoise(vec2 v) {\r\n    return clamp(PerlinNoise(v) + 0.5, 0.0, 1.0);\r\n}\r\n\r\n/* FBM (uses Perlin) */\r\nfloat getFBM(vec2 pt, float startFreq) {\r\n    float noiseSum = 0.0;\r\n    float amplitudeSum = 0.0;\r\n    float amplitude = 1.0;\r\n    float frequency = startFreq;\r\n    for (int i = 0; i < 6; i++) {\r\n        float perlin = normalizedPerlinNoise(pt * frequency);\r\n        noiseSum += perlin * amplitude;\r\n        amplitudeSum += amplitude;\r\n        amplitude *= 0.5;\r\n        frequency *= 2.0;\r\n    }\r\n    return noiseSum / amplitudeSum;\r\n}\r\n\r\n// \"normalizes\" coordinate before calling FBM\r\nfloat getFBMFromRawPosition(vec2 pos, float startFreq) {\r\n    vec2 coord = pos;\r\n    coord += vec2(3.14, 5.01);// +vec2(u_PerlinSeed);\r\n                              //return pow(sin(coord.x + coord.y), 2.0);\r\n    float fbm = getFBM(coord, startFreq);\r\n    // [0.1, 0.8]\r\n    //return pow((fbm - 0.05) / 0.7, 3.2);\r\n    fbm = pow((fbm - 0.05) / 0.7, 3.2);\r\n    fbm = smoothstep(0.0, 1.3, fbm);\r\n    return fbm;\r\n    //return pow(1.0 - fbm, 2.2);\r\n    //return pow(clamp(0.0, 1.0, (fbm - 0.25) / 0.6), 3.2) * 0.5;\r\n}\r\n\r\nvec3 getBGColor(float fbm) {\r\n    float f = smoothstep(-0.8, 3.0, fbm);\r\n    float H = mod(u_Time * 15.0, 360.0);\r\n    const float V = 0.8;\r\n    float S = 0.7 * (1.0 - f);\r\n    /*\r\n    float f = smoothstep(0.0, 1.0, fbm);\r\n    const float H = 288.0;\r\n    float V = 1.0;\r\n    float S = 0.5 * (1.0 - f);\r\n    */\r\n\r\n    float C = V * S;\r\n    // h = H / 60\r\n    float h = H / 60.0;\r\n    float X = C * (1.0 - abs(mod(h, 2.0) - 1.0));\r\n    //float X = C * 0.8;\r\n    vec3 col;\r\n    if (h <= 1.0) {\r\n        col = vec3(C, X, 0.0);\r\n    }\r\n    else if (h <= 2.0) {\r\n        col = vec3(X, C, 0.0);\r\n    }\r\n    else if (h <= 3.0) {\r\n        col = vec3(0.0, C, X);\r\n    }\r\n    else if (h <= 4.0) {\r\n        col = vec3(0.0, X, C);\r\n    }\r\n    else if (h <= 5.0) {\r\n        col = vec3(X, 0.0, C);\r\n    }\r\n    else {\r\n        col = vec3(C, 0.0, X);\r\n    }\r\n    float m = V - C;\r\n    return pow(col + vec3(m), vec3(4.2));\r\n}\r\n\r\nfloat getFogFactor(float dist) {\r\n    return min(1.0, INV_E_MINUS_ONE * (exp(dist * 1.5 / FAR) - 1.0));\r\n}\r\n\r\nvoid main() { \r\n\t// read from GBuffers\r\n\tvec4 gb0 = texture(u_gb0, fs_UV);\r\n\t//vec4 gb1 = texture(u_gb1, fs_UV);\r\n\tvec4 gb2 = texture(u_gb2, fs_UV);\r\n\r\n    // put GBuffer data in more readable variables\r\n    vec3 nor = gb0.xyz;\r\n    float depth = gb0.w;\r\n    vec3 albedo = gb2.xyz;\r\n\r\n    // final color of this fragment\r\n    vec3 col;\r\n\r\n    float time = u_Time * 0.03;\r\n    //float fbm = getFBMFromRawPosition(fs_UV + vec2(-8.88 + cos(time * 5.0), 7.22 + time * 1.5), 1.0 + 0.5 * sin(time * 2.0));\r\n    //vec3 bgColor = getBGColor(fbm);\r\n    //vec3 bgColor = vec3(0.1, 0.1, 1.99);\r\n    vec3 bgColor = vec3(0.19, 0.89, 0.89);\r\n    float fogFactor = getFogFactor(-depth);\r\n    // background\r\n    if (depth >= -DEPTH_OFFSET) {\r\n        //fogFactor = getFogFactor(FAR);\r\n        col = bgColor;\r\n    }\r\n    // shade\r\n    else {\r\n        depth += DEPTH_OFFSET;\r\n        // get cam-space position\r\n        vec3 ndcPos = vec3(fs_UV.xy * 2.0 - 1.0, depth);\r\n        float vert = CAMERA_TAN * abs(depth);\r\n        float hori = vert * u_AspectRatio;\r\n        vec3 camPos = ndcPos * vec3(hori, vert, 1.0);\r\n        // convert to world-space pos\r\n        vec3 worldPos = vec3(inverse(u_View) * vec4(camPos, 1.0));\r\n        //vec3 lookDir = normalize(vec3(inverse(u_View) * vec4(0, 0, 1, 0)));\r\n        //vec3 halfDir = normalize(lookDir + normalize(LIGHT_DIR));\r\n        //float blinn = pow(clamp(0.0, 1.0, dot(halfDir, nor)), 8.0);\r\n        //col = max(0.05, (0.05 + 0.95 * getLambert(worldPos, nor))) * albedo + vec3(0.02 * blinn);\r\n        col = max(0.05, (0.05 + 0.95 * getLambert(worldPos, nor))) * albedo;\r\n        //col = abs(nor) * 0.6;\r\n        //vec3 someLight = vec3(15, 0, 15);\r\n        //float d = 0.000001 + distance(worldPos, someLight);\r\n        //float lightFactor = min(1.0, 0.1 / (d * d));\r\n        //col += vec3(0, 0, 100.0 + 300.0 * (cos(time * 100.0) * 0.5 + 0.5)) * lightFactor;\r\n    }\r\n    col = mix(col, bgColor, fogFactor);\r\n    col = mix(bgColor, col, u_FadeInTime); // fade in from this BG color\r\n    col = mix(col, NEXT_BG_COLOR, u_FadeOutTime); // fade out into \"next\" BG color\r\n    col *= 5.0;\r\n\tout_Col = vec4(col, 1.0);\r\n}"
 
 /***/ }),
 /* 39 */
 /***/ (function(module, exports) {
 
-module.exports = "#version 300 es\r\nprecision highp float;\r\n\r\nin vec2 fs_UV;\r\nout vec4 out_Col;\r\n\r\nuniform sampler2D u_frame;\r\n//uniform sampler2D u_preFrame;\r\nuniform sampler2D u_gb0;\r\n//uniform float u_Time;\r\nuniform vec2 u_Dims;\r\n\r\nconst float GAUSS_KERNEL[7] = float[7](\r\n    0.092904, 0.137865, 0.174704, 0.189054, 0.174704, 0.137865, 0.092904);\r\n\r\nconst float IDENTITY_KERNEL[7] = float[7](\r\n    0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0);\r\n\r\nconst float FOCAL_LENGTH = -60.0; \r\n\r\nvoid main() {\r\n\tvec3 color = vec3(0.0);\r\n    vec4 gb0 = texture(u_gb0, fs_UV);\r\n    float depth = gb0.w;\r\n    float weight = smoothstep(14.0, 40.0, abs(depth - FOCAL_LENGTH));\r\n    float pixelDim = 1.0 / u_Dims.x;\r\n    for (int i = -3; i <= 3; i++) {\r\n        color += mix(IDENTITY_KERNEL[i + 3], GAUSS_KERNEL[i + 3], weight) * texture(u_frame, fs_UV + vec2(float(i) * pixelDim, 0.0)).xyz;\r\n    }\r\n\tout_Col = vec4(color, 1.0);\r\n}\r\n"
+module.exports = "#version 300 es\r\nprecision highp float;\r\n\r\nin vec2 fs_UV;\r\nout vec4 out_Col;\r\n\r\nuniform sampler2D u_frame;\r\nuniform float u_Time;\r\n\r\n// based on: http://filmicworlds.com/blog/filmic-tonemapping-operators/\r\n\r\nvec3 defaultHDR(vec3 color) {\r\n\tcolor = min(vec3(1.0), color);\r\n\tcolor = pow(color, vec3(1.0 / 2.2));\r\n    return color;\r\n}\r\n\r\nvec3 HejlBurgessDawson(vec3 color) {\r\n    color = max(vec3(0.0), color - vec3(0.004));\r\n    color = (color * (6.2 * color + vec3(0.5))) / (color * (6.2 * color + vec3(1.7)) + vec3(0.06));\r\n    return color;\r\n}\r\n\r\nvoid main() {\r\n\t// TODO: proper tonemapping\r\n\t// This shader just clamps the input color to the range [0, 1]\r\n\t// and performs basic gamma correction.\r\n\t// It does not properly handle HDR values; you must implement that.\r\n\r\n\tvec3 color = texture(u_frame, fs_UV).xyz;\r\n\t//color = min(vec3(1.0), color);\r\n    // Reinhard\r\n    //color *= 2.0;\r\n    //color = color / (color + vec3(1.0));\r\n\r\n    // Hejl and Burgess-Dawson\r\n    //color = max(vec3(0.0), color - vec3(0.004));\r\n    //color = (color * (6.2 * color + vec3(0.5))) / (color * (6.2 * color + vec3(1.7)) + vec3(0.06));\r\n\r\n\t// gamma correction\r\n\t//color = pow(color, vec3(1.0 / 2.2));\r\n    //color = defaultHDR(color);\r\n    color = HejlBurgessDawson(color);\r\n\tout_Col = vec4(color, 1.0);\r\n}\r\n"
 
 /***/ }),
 /* 40 */
 /***/ (function(module, exports) {
 
-module.exports = "#version 300 es\r\nprecision highp float;\r\n\r\nin vec2 fs_UV;\r\nout vec4 out_Col;\r\n\r\nuniform sampler2D u_frame;\r\n//uniform sampler2D u_preFrame;\r\nuniform sampler2D u_gb0;\r\n//uniform float u_Time;\r\nuniform vec2 u_Dims;\r\n\r\nconst float GAUSS_KERNEL[7] = float[7](\r\n    0.092904, 0.137865, 0.174704, 0.189054, 0.174704, 0.137865, 0.092904);\r\n\r\nconst float IDENTITY_KERNEL[7] = float[7](\r\n    0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0);\r\n\r\nconst float FOCAL_LENGTH = -60.0; \r\n\r\nvoid main() {\r\n\tvec3 color = vec3(0.0);\r\n    vec4 gb0 = texture(u_gb0, fs_UV);\r\n    float depth = gb0.w;\r\n    float weight = smoothstep(14.0, 40.0, abs(depth - FOCAL_LENGTH));\r\n    float pixelDim = 1.0 / u_Dims.y;\r\n    for (int i = -3; i <= 3; i++) {\r\n        color += mix(IDENTITY_KERNEL[i + 3], GAUSS_KERNEL[i + 3], weight) * texture(u_frame, fs_UV + vec2(0.0, float(i) * pixelDim)).xyz;\r\n    }\r\n\tout_Col = vec4(color, 1.0);\r\n}\r\n"
+module.exports = "#version 300 es\r\nprecision highp float;\r\n\r\nin vec2 fs_UV;\r\nout vec4 out_Col;\r\n\r\nuniform sampler2D u_frame;\r\n//uniform sampler2D u_preFrame;\r\nuniform sampler2D u_gb0;\r\n//uniform float u_Time;\r\nuniform vec2 u_Dims;\r\n\r\nconst float GAUSS_KERNEL[7] = float[7](\r\n    0.092904, 0.137865, 0.174704, 0.189054, 0.174704, 0.137865, 0.092904);\r\n\r\nconst float IDENTITY_KERNEL[7] = float[7](\r\n    0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0);\r\n\r\nconst float FOCAL_LENGTH = -60.0; \r\n\r\nvoid main() {\r\n\tvec3 color = vec3(0.0);\r\n    vec4 gb0 = texture(u_gb0, fs_UV);\r\n    float depth = gb0.w;\r\n    float weight = smoothstep(14.0, 40.0, abs(depth - FOCAL_LENGTH));\r\n    float pixelDim = 1.0 / u_Dims.x;\r\n    for (int i = -3; i <= 3; i++) {\r\n        color += mix(IDENTITY_KERNEL[i + 3], GAUSS_KERNEL[i + 3], weight) * texture(u_frame, fs_UV + vec2(float(i) * pixelDim, 0.0)).xyz;\r\n    }\r\n\tout_Col = vec4(color, 1.0);\r\n}\r\n"
 
 /***/ }),
 /* 41 */
 /***/ (function(module, exports) {
 
-module.exports = "#version 300 es\r\nprecision highp float;\r\n\r\nin vec2 fs_UV;\r\nout vec4 out_Col;\r\n\r\nuniform sampler2D u_frame;\r\n//uniform sampler2D u_preFrame;\r\nuniform sampler2D u_gb0;\r\n//uniform float u_Time;\r\n\r\n// Interpolation between color and greyscale over time on left half of screen\r\nvoid main() {\r\n\tvec3 color = texture(u_frame, fs_UV).xyz;\r\n    float depth = texture(u_gb0, fs_UV).w;\r\n    float lum = dot(color, vec3(0.2126, 0.7152, 0.072));\r\n    // add to bloom if background or bright enough\r\n    color = ((depth >= 0.0) || (lum > 0.9)) ? color : vec3(0.0);\r\n\tout_Col = vec4(color, 1.0);\r\n}\r\n"
+module.exports = "#version 300 es\r\nprecision highp float;\r\n\r\nin vec2 fs_UV;\r\nout vec4 out_Col;\r\n\r\nuniform sampler2D u_frame;\r\n//uniform sampler2D u_preFrame;\r\nuniform sampler2D u_gb0;\r\n//uniform float u_Time;\r\nuniform vec2 u_Dims;\r\n\r\nconst float GAUSS_KERNEL[7] = float[7](\r\n    0.092904, 0.137865, 0.174704, 0.189054, 0.174704, 0.137865, 0.092904);\r\n\r\nconst float IDENTITY_KERNEL[7] = float[7](\r\n    0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0);\r\n\r\nconst float FOCAL_LENGTH = -60.0; \r\n\r\nvoid main() {\r\n\tvec3 color = vec3(0.0);\r\n    vec4 gb0 = texture(u_gb0, fs_UV);\r\n    float depth = gb0.w;\r\n    float weight = smoothstep(14.0, 40.0, abs(depth - FOCAL_LENGTH));\r\n    float pixelDim = 1.0 / u_Dims.y;\r\n    for (int i = -3; i <= 3; i++) {\r\n        color += mix(IDENTITY_KERNEL[i + 3], GAUSS_KERNEL[i + 3], weight) * texture(u_frame, fs_UV + vec2(0.0, float(i) * pixelDim)).xyz;\r\n    }\r\n\tout_Col = vec4(color, 1.0);\r\n}\r\n"
 
 /***/ }),
 /* 42 */
 /***/ (function(module, exports) {
 
-module.exports = "#version 300 es\r\nprecision highp float;\r\n\r\nin vec2 fs_UV;\r\nout vec4 out_Col;\r\n\r\nuniform sampler2D u_frame;\r\nuniform sampler2D u_preFrame;\r\n//uniform float u_Time;\r\nuniform vec2 u_Dims;\r\n\r\nconst float GAUSS_KERNEL[5] = float[5](\r\n\r\n    0.153388, 0.221461, 0.250301, 0.221461, 0.153388);\r\n    //0.06136, 0.24477, 0.38774, 0.24477, 0.06136);\r\n//const float GAUSS_KERNEL[9] = float[9](\r\n    //0.028532, 0.067234, 0.124009, 0.179044, 0.20236, 0.179044, 0.124009, 0.067234, 0.028532);\r\n\r\nvoid main() {\r\n\tvec3 color = vec3(0.0);\r\n    float pixelDim = 1.0 / u_Dims.x;\r\n    for (int i = -2; i <= 2; i++) {\r\n    \tcolor += GAUSS_KERNEL[i + 2] * texture(u_preFrame, fs_UV + vec2(float(i) * pixelDim, 0.0)).xyz;\r\n    }\r\n\tout_Col = vec4(color, 1.0);\r\n}\r\n"
+module.exports = "#version 300 es\r\nprecision highp float;\r\n\r\nin vec2 fs_UV;\r\nout vec4 out_Col;\r\n\r\nuniform sampler2D u_frame;\r\n//uniform sampler2D u_preFrame;\r\nuniform sampler2D u_gb0;\r\n//uniform float u_Time;\r\n\r\n// Interpolation between color and greyscale over time on left half of screen\r\nvoid main() {\r\n\tvec3 color = texture(u_frame, fs_UV).xyz;\r\n    float depth = texture(u_gb0, fs_UV).w;\r\n    float lum = dot(color, vec3(0.2126, 0.7152, 0.072));\r\n    // add to bloom if background or bright enough\r\n    color = ((depth >= 0.0) || (lum > 0.9)) ? color : vec3(0.0);\r\n\tout_Col = vec4(color, 1.0);\r\n}\r\n"
 
 /***/ }),
 /* 43 */
 /***/ (function(module, exports) {
 
-module.exports = "#version 300 es\r\nprecision highp float;\r\n\r\nin vec2 fs_UV;\r\nout vec4 out_Col;\r\n\r\nuniform sampler2D u_frame;\r\nuniform sampler2D u_preFrame;\r\n//uniform float u_Time;\r\nuniform vec2 u_Dims;\r\n\r\nconst float GAUSS_KERNEL[5] = float[5](\r\n    0.153388, 0.221461, 0.250301, 0.221461, 0.153388);\r\n    //0.06136, 0.24477, 0.38774, 0.24477, 0.06136);\r\n\r\nvoid main() {\r\n\tvec3 color = vec3(0.0);\r\n    float pixelDim = 1.0 / u_Dims.y;\r\n    for (int i = -2; i <= 2; i++) {\r\n    \tcolor += GAUSS_KERNEL[i + 2] * texture(u_preFrame, fs_UV + vec2(0.0, float(i) * pixelDim)).xyz;\r\n    }\r\n\tout_Col = vec4(color, 1.0);\r\n}\r\n"
+module.exports = "#version 300 es\r\nprecision highp float;\r\n\r\nin vec2 fs_UV;\r\nout vec4 out_Col;\r\n\r\nuniform sampler2D u_frame;\r\nuniform sampler2D u_preFrame;\r\n//uniform float u_Time;\r\nuniform vec2 u_Dims;\r\n\r\nconst float GAUSS_KERNEL[5] = float[5](\r\n\r\n    0.153388, 0.221461, 0.250301, 0.221461, 0.153388);\r\n    //0.06136, 0.24477, 0.38774, 0.24477, 0.06136);\r\n//const float GAUSS_KERNEL[9] = float[9](\r\n    //0.028532, 0.067234, 0.124009, 0.179044, 0.20236, 0.179044, 0.124009, 0.067234, 0.028532);\r\n\r\nvoid main() {\r\n\tvec3 color = vec3(0.0);\r\n    float pixelDim = 1.0 / u_Dims.x;\r\n    for (int i = -2; i <= 2; i++) {\r\n    \tcolor += GAUSS_KERNEL[i + 2] * texture(u_preFrame, fs_UV + vec2(float(i) * pixelDim, 0.0)).xyz;\r\n    }\r\n\tout_Col = vec4(color, 1.0);\r\n}\r\n"
 
 /***/ }),
 /* 44 */
 /***/ (function(module, exports) {
 
-module.exports = "#version 300 es\r\nprecision highp float;\r\n\r\nin vec2 fs_UV;\r\nout vec4 out_Col;\r\n\r\nuniform sampler2D u_frame;\r\nuniform sampler2D u_preFrame;\r\n//uniform float u_Time;\r\n\r\nvoid main() {\r\n\tvec3 color = texture(u_frame, fs_UV).xyz;\r\n\tcolor += texture(u_preFrame, fs_UV).xyz;\r\n\tout_Col = vec4(color, 1.0);\r\n}\r\n"
+module.exports = "#version 300 es\r\nprecision highp float;\r\n\r\nin vec2 fs_UV;\r\nout vec4 out_Col;\r\n\r\nuniform sampler2D u_frame;\r\nuniform sampler2D u_preFrame;\r\n//uniform float u_Time;\r\nuniform vec2 u_Dims;\r\n\r\nconst float GAUSS_KERNEL[5] = float[5](\r\n    0.153388, 0.221461, 0.250301, 0.221461, 0.153388);\r\n    //0.06136, 0.24477, 0.38774, 0.24477, 0.06136);\r\n\r\nvoid main() {\r\n\tvec3 color = vec3(0.0);\r\n    float pixelDim = 1.0 / u_Dims.y;\r\n    for (int i = -2; i <= 2; i++) {\r\n    \tcolor += GAUSS_KERNEL[i + 2] * texture(u_preFrame, fs_UV + vec2(0.0, float(i) * pixelDim)).xyz;\r\n    }\r\n\tout_Col = vec4(color, 1.0);\r\n}\r\n"
 
 /***/ }),
 /* 45 */
 /***/ (function(module, exports) {
 
-module.exports = "#version 300 es\r\nprecision highp float;\r\n\r\nin vec2 fs_UV;\r\nout vec4 out_Col;\r\n\r\nuniform sampler2D u_frame;\r\n//uniform sampler2D u_preFrame;\r\n//uniform sampler2D u_gb0;\r\n//uniform float u_Time;\r\nuniform vec2 u_Dims;\r\n\r\n\r\nvoid main() {\r\n    vec2 screenRatio = u_Dims / vec2(1295.0, 759.0);\r\n    vec2 GRID_DIMS = vec2(150.0) * screenRatio;\r\n    vec2 cellCorner = floor(fs_UV * GRID_DIMS) / GRID_DIMS;\r\n    float minF = 5.0;\r\n    for (int i = -1; i <= 1; i++) {\r\n        for (int j = -1; j <= 1; j++) {\r\n            vec2 sampleCorner = cellCorner + vec2(i, j) / GRID_DIMS;\r\n            vec4 sampleColor = texture(u_frame, sampleCorner);\r\n            vec2 p = sampleCorner - fs_UV;\r\n            p.x *= u_Dims.x / u_Dims.y; // adjust for aspect ratio\r\n            float lum = dot(sampleColor.xyz, vec3(0.2126, 0.7152, 0.072));\r\n            float dist = (0.00001 + 0.0016 * (1.0 - clamp(0.0, 1.5, lum) / 1.5)) / sqrt(screenRatio.x);\r\n            float f = smoothstep(dist, 3.0 * dist, distance(sampleCorner, fs_UV));\r\n            minF = min(minF, 5.0 * f);\r\n        }\r\n    }\r\n\tvec3 color = vec3(minF);\r\n\tout_Col = vec4(color, 1.0);\r\n}\r\n"
+module.exports = "#version 300 es\r\nprecision highp float;\r\n\r\nin vec2 fs_UV;\r\nout vec4 out_Col;\r\n\r\nuniform sampler2D u_frame;\r\nuniform sampler2D u_preFrame;\r\n//uniform float u_Time;\r\n\r\nvoid main() {\r\n\tvec3 color = texture(u_frame, fs_UV).xyz;\r\n\tcolor += texture(u_preFrame, fs_UV).xyz;\r\n\tout_Col = vec4(color, 1.0);\r\n}\r\n"
 
 /***/ }),
 /* 46 */
 /***/ (function(module, exports) {
 
-module.exports = "#version 300 es\r\nprecision highp float;\r\n\r\nin vec2 fs_UV;\r\nout vec4 out_Col;\r\n\r\nuniform sampler2D u_frame;\r\n//uniform sampler2D u_preFrame;\r\n//uniform sampler2D u_gb0;\r\nuniform float u_Time;\r\n//uniform vec2 u_Dims;\r\n\r\nuniform float u_Coherence;\r\n\r\n// noise helper functions\r\n\r\n// from Adam's demo\r\nvec2 random2(vec2 p) {\r\n    return normalize(2.0 * fract(sin(vec2(dot(p, vec2(127.1, 311.7)), dot(p, vec2(269.5, 183.3))))*123.45) - 1.0);\r\n}\r\n\r\nfloat surflet(vec2 P, vec2 gridPoint)\r\n{\r\n    //return (P.x * P.x) * 0.07;\r\n    // Compute falloff function by converting linear distance to a polynomial\r\n    float distX = abs(P.x - gridPoint.x);\r\n    float distY = abs(P.y - gridPoint.y);\r\n    float tX = 1.0 - 6.0 * pow(distX, 5.0) + 15.0 * pow(distX, 4.0) - 10.0 * pow(distX, 3.0);\r\n    float tY = 1.0 - 6.0 * pow(distY, 5.0) + 15.0 * pow(distY, 4.0) - 10.0 * pow(distY, 3.0);\r\n\r\n    // Get the random vector for the grid point\r\n    vec2 gradient = random2(gridPoint);\r\n    // Get the vector from the grid point to P\r\n    vec2 diff = P - gridPoint;\r\n    // Get the value of our height field by dotting grid->P with our gradient\r\n    float height = dot(diff, gradient);\r\n    // Scale our height field (i.e. reduce it) by our polynomial falloff function\r\n    return height * tX * tY;\r\n}\r\n\r\nfloat PerlinNoise(vec2 uv)\r\n{\r\n    // Tile the space\r\n    vec2 uvXLYL = floor(uv);\r\n    vec2 uvXHYL = uvXLYL + vec2(1, 0);\r\n    vec2 uvXHYH = uvXLYL + vec2(1, 1);\r\n    vec2 uvXLYH = uvXLYL + vec2(0, 1);\r\n\r\n    return surflet(uv, uvXLYL) + surflet(uv, uvXHYL) + surflet(uv, uvXHYH) + surflet(uv, uvXLYH);\r\n}\r\n\r\n\r\nfloat normalizedPerlinNoise(vec2 v) {\r\n    return clamp(0.0, 1.0, PerlinNoise(v) + 0.5);\r\n}\r\n\r\n/* FBM (uses Perlin) */\r\nfloat getFBM(vec2 pt, float startFreq) {\r\n    float noiseSum = 0.0;\r\n    float amplitudeSum = 0.0;\r\n    float amplitude = 1.0;\r\n    float frequency = startFreq;\r\n    for (int i = 0; i < 2; i++) {\r\n        float perlin = normalizedPerlinNoise(pt * frequency);\r\n        noiseSum += perlin * amplitude;\r\n        amplitudeSum += amplitude;\r\n        amplitude *= 0.5;\r\n        frequency *= 2.0;\r\n    }\r\n    return noiseSum / amplitudeSum;\r\n}\r\n\r\n// \"normalizes\" coordinate before calling FBM\r\nfloat getFBMFromRawPosition(vec2 pos, float startFreq) {\r\n    vec2 coord = pos;\r\n    coord += vec2(3.14, 5.01);// +vec2(u_PerlinSeed);\r\n                              //return pow(sin(coord.x + coord.y), 2.0);\r\n    float fbm = getFBM(coord, startFreq);\r\n    // [0.1, 0.8]\r\n    //return pow((fbm - 0.05) / 0.7, 3.2);\r\n    fbm = pow((fbm - 0.05) / 0.7, 3.2);\r\n    fbm = smoothstep(0.0, 1.3, fbm);\r\n    return fbm;\r\n    //return pow(1.0 - fbm, 2.2);\r\n    //return pow(clamp(0.0, 1.0, (fbm - 0.25) / 0.6), 3.2) * 0.5;\r\n}\r\n\r\nconst float SMOOTH_DELTA = 0.05;\r\n// not smoothstep... well, only partially\r\nfloat smoothStep(float t) {\r\n    float base = floor(t); // creates a step function\r\n    float f = fract(t); // gets fractional component\r\n    // sstep === smoothstep\r\n    // sstep(0.9, 1.1, f) creates a smooth increase from 0.9 to 1.0\r\n    // this handles smoothing the left half of the rising edge if we add it to base\r\n    // sstep(-0.1, 0.1, f) kind of looks like a smooth increase from 1.0 to 1.1, but it's \"upside down\"\r\n    // 1.0 - sstep(-0.1, 0.1, f) creates a smooth _decrease_ from 1.0 to 1.1\r\n    // so we multiply it by -1 to get a smooth _increase_ instead\r\n    // we can generalize 0.9 = 1.0 - SMOOTH_DELTA, 1.1 = 1.0 + SMOOTH_DELTA, for SMOOTH_DELTA = 0.1\r\n    float smoother = smoothstep(1.0 - SMOOTH_DELTA, 1.0 + SMOOTH_DELTA, f) - 1.0 + smoothstep(-SMOOTH_DELTA, SMOOTH_DELTA, f);\r\n    return base + smoother;\r\n}\r\n\r\nvoid main() {\r\n    float FREQ = 3.2 - u_Coherence * 3.0;\r\n    const float EPSILON = 0.00001;\r\n    float n1, n2, a, b;\r\n    vec2 noisePos = fs_UV + vec2(-7.88 + 0.5 * smoothStep(u_Time * 0.04), 2.32);\r\n    n1 = getFBMFromRawPosition(noisePos + vec2(0.0, +EPSILON), FREQ);\r\n    n2 = getFBMFromRawPosition(noisePos + vec2(0.0, -EPSILON), FREQ);\r\n    a = (n1 - n2) / (2.0 * EPSILON);\r\n    n1 = getFBMFromRawPosition(noisePos + vec2(+EPSILON, 0.0), FREQ);\r\n    n2 = getFBMFromRawPosition(noisePos + vec2(-EPSILON, 0.0), FREQ);\r\n    b = (n1 - n2) / (2.0 * EPSILON);\r\n    vec3 color = texture(u_frame, fs_UV).xyz;\r\n    out_Col = vec4(color, atan(-b, a));\r\n}\r\n"
+module.exports = "#version 300 es\r\nprecision highp float;\r\n\r\nin vec2 fs_UV;\r\nout vec4 out_Col;\r\n\r\nuniform sampler2D u_frame;\r\n//uniform sampler2D u_preFrame;\r\n//uniform sampler2D u_gb0;\r\n//uniform float u_Time;\r\nuniform vec2 u_Dims;\r\n\r\n\r\nvoid main() {\r\n    vec2 screenRatio = u_Dims / vec2(1295.0, 759.0);\r\n    vec2 GRID_DIMS = vec2(150.0) * screenRatio;\r\n    vec2 cellCorner = floor(fs_UV * GRID_DIMS) / GRID_DIMS;\r\n    float minF = 5.0;\r\n    for (int i = -1; i <= 1; i++) {\r\n        for (int j = -1; j <= 1; j++) {\r\n            vec2 sampleCorner = cellCorner + vec2(i, j) / GRID_DIMS;\r\n            vec4 sampleColor = texture(u_frame, sampleCorner);\r\n            vec2 p = sampleCorner - fs_UV;\r\n            p.x *= u_Dims.x / u_Dims.y; // adjust for aspect ratio\r\n            float lum = dot(sampleColor.xyz, vec3(0.2126, 0.7152, 0.072));\r\n            float dist = (0.00001 + 0.0016 * (1.0 - clamp(0.0, 1.5, lum) / 1.5)) / sqrt(screenRatio.x);\r\n            float f = smoothstep(dist, 3.0 * dist, distance(sampleCorner, fs_UV));\r\n            minF = min(minF, 5.0 * f);\r\n        }\r\n    }\r\n\tvec3 color = vec3(minF);\r\n\tout_Col = vec4(color, 1.0);\r\n}\r\n"
 
 /***/ }),
 /* 47 */
 /***/ (function(module, exports) {
 
-module.exports = "#version 300 es\r\nprecision highp float;\r\n\r\nin vec2 fs_UV;\r\nout vec4 out_Col;\r\n\r\nuniform sampler2D u_frame;\r\nuniform sampler2D u_preFrame;\r\n//uniform sampler2D u_gb0;\r\nuniform float u_Time;\r\nuniform vec2 u_Dims;\r\n\r\nuniform float u_BrushSize;\r\nuniform float u_BrushNoise;\r\n\r\nvec2 random2(vec2 p) {\r\n    return normalize(2.0 * fract(sin(vec2(dot(p, vec2(127.1, 311.7)), dot(p, vec2(269.5, 183.3))))*123.45) - 1.0);\r\n}\r\n\r\nvoid main() {\r\n    vec2 GRID_DIMS = vec2(70.0) * 0.5 * u_Dims.x / 526.0;\r\n    // making radius noisy gives airbrush effect\r\n    float rand = random2(fs_UV * 314.159).x;\r\n    // radius = (scale from u_BrushSize) * (base_size + random_element) / (estimate of screen size)\r\n    float radius = (0.5 + u_BrushSize) * (0.4 + 0.05 * rand * (2.0 * u_BrushNoise) ) / GRID_DIMS.x;\r\n\tvec3 color = vec3(5.0);\r\n    vec2 cellCorner = floor(fs_UV * GRID_DIMS) / GRID_DIMS;\r\n    vec3 minColor = vec3(0.0);\r\n    float minLen = 100.0;\r\n    float accWeight = 0.0;\r\n    vec3 defaultColor;\r\n    for (int i = -3; i <= 3; i++) {\r\n        for (int j = -3; j <= 3; j++) {\r\n            // read curl noise's angle and color from prepass frame\r\n            vec2 sampleCorner = cellCorner + vec2(i, j) / GRID_DIMS;\r\n            vec4 prepass = texture(u_preFrame, sampleCorner);\r\n            vec2 p = fs_UV - sampleCorner; // in corner-space\r\n            p.x *= u_Dims.x / u_Dims.y;\r\n            // find rotation\r\n            float angle = prepass.w;\r\n            float c = cos(angle);\r\n            float s = sin(angle);\r\n            // rotate\r\n            vec2 pRot = vec2(c * p.x - s * p.y, s * p.x + c * p.y);\r\n            // stretch along X\r\n            pRot.x *= 0.15;\r\n            pRot.y *= 0.31;\r\n            float l = length(pRot);\r\n            if (l < radius) {\r\n                float darkness = 1.0;// -0.6 * smoothstep(-radius, radius, pRot.x);\r\n                float weight = 1.0 - 0.4 * pow(smoothstep(0.0, radius, l), 1.0);\r\n                minLen = l;\r\n                accWeight += weight;\r\n                minColor += weight * prepass.xyz * darkness;\r\n            }\r\n            else if (i == 0 && j == 0) {\r\n                defaultColor = prepass.xyz; // use this fragment's default color\r\n            }\r\n        }\r\n    }\r\n    // if we hit nothing, use default color\r\n    if (minLen == 100.0) {\r\n        minColor = defaultColor;\r\n    }\r\n    // else, divide by sum of weights\r\n    else {\r\n        minColor /= accWeight;\r\n    }\r\n\tout_Col = vec4(minColor, 1.0);\r\n}\r\n"
+module.exports = "#version 300 es\r\nprecision highp float;\r\n\r\nin vec2 fs_UV;\r\nout vec4 out_Col;\r\n\r\nuniform sampler2D u_frame;\r\n//uniform sampler2D u_preFrame;\r\n//uniform sampler2D u_gb0;\r\nuniform float u_Time;\r\n//uniform vec2 u_Dims;\r\n\r\nuniform float u_Coherence;\r\n\r\n// noise helper functions\r\n\r\n// from Adam's demo\r\nvec2 random2(vec2 p) {\r\n    return normalize(2.0 * fract(sin(vec2(dot(p, vec2(127.1, 311.7)), dot(p, vec2(269.5, 183.3))))*123.45) - 1.0);\r\n}\r\n\r\nfloat surflet(vec2 P, vec2 gridPoint)\r\n{\r\n    //return (P.x * P.x) * 0.07;\r\n    // Compute falloff function by converting linear distance to a polynomial\r\n    float distX = abs(P.x - gridPoint.x);\r\n    float distY = abs(P.y - gridPoint.y);\r\n    float tX = 1.0 - 6.0 * pow(distX, 5.0) + 15.0 * pow(distX, 4.0) - 10.0 * pow(distX, 3.0);\r\n    float tY = 1.0 - 6.0 * pow(distY, 5.0) + 15.0 * pow(distY, 4.0) - 10.0 * pow(distY, 3.0);\r\n\r\n    // Get the random vector for the grid point\r\n    vec2 gradient = random2(gridPoint);\r\n    // Get the vector from the grid point to P\r\n    vec2 diff = P - gridPoint;\r\n    // Get the value of our height field by dotting grid->P with our gradient\r\n    float height = dot(diff, gradient);\r\n    // Scale our height field (i.e. reduce it) by our polynomial falloff function\r\n    return height * tX * tY;\r\n}\r\n\r\nfloat PerlinNoise(vec2 uv)\r\n{\r\n    // Tile the space\r\n    vec2 uvXLYL = floor(uv);\r\n    vec2 uvXHYL = uvXLYL + vec2(1, 0);\r\n    vec2 uvXHYH = uvXLYL + vec2(1, 1);\r\n    vec2 uvXLYH = uvXLYL + vec2(0, 1);\r\n\r\n    return surflet(uv, uvXLYL) + surflet(uv, uvXHYL) + surflet(uv, uvXHYH) + surflet(uv, uvXLYH);\r\n}\r\n\r\n\r\nfloat normalizedPerlinNoise(vec2 v) {\r\n    return clamp(0.0, 1.0, PerlinNoise(v) + 0.5);\r\n}\r\n\r\n/* FBM (uses Perlin) */\r\nfloat getFBM(vec2 pt, float startFreq) {\r\n    float noiseSum = 0.0;\r\n    float amplitudeSum = 0.0;\r\n    float amplitude = 1.0;\r\n    float frequency = startFreq;\r\n    for (int i = 0; i < 2; i++) {\r\n        float perlin = normalizedPerlinNoise(pt * frequency);\r\n        noiseSum += perlin * amplitude;\r\n        amplitudeSum += amplitude;\r\n        amplitude *= 0.5;\r\n        frequency *= 2.0;\r\n    }\r\n    return noiseSum / amplitudeSum;\r\n}\r\n\r\n// \"normalizes\" coordinate before calling FBM\r\nfloat getFBMFromRawPosition(vec2 pos, float startFreq) {\r\n    vec2 coord = pos;\r\n    coord += vec2(3.14, 5.01);// +vec2(u_PerlinSeed);\r\n                              //return pow(sin(coord.x + coord.y), 2.0);\r\n    float fbm = getFBM(coord, startFreq);\r\n    // [0.1, 0.8]\r\n    //return pow((fbm - 0.05) / 0.7, 3.2);\r\n    fbm = pow((fbm - 0.05) / 0.7, 3.2);\r\n    fbm = smoothstep(0.0, 1.3, fbm);\r\n    return fbm;\r\n    //return pow(1.0 - fbm, 2.2);\r\n    //return pow(clamp(0.0, 1.0, (fbm - 0.25) / 0.6), 3.2) * 0.5;\r\n}\r\n\r\nconst float SMOOTH_DELTA = 0.05;\r\n// not smoothstep... well, only partially\r\nfloat smoothStep(float t) {\r\n    float base = floor(t); // creates a step function\r\n    float f = fract(t); // gets fractional component\r\n    // sstep === smoothstep\r\n    // sstep(0.9, 1.1, f) creates a smooth increase from 0.9 to 1.0\r\n    // this handles smoothing the left half of the rising edge if we add it to base\r\n    // sstep(-0.1, 0.1, f) kind of looks like a smooth increase from 1.0 to 1.1, but it's \"upside down\"\r\n    // 1.0 - sstep(-0.1, 0.1, f) creates a smooth _decrease_ from 1.0 to 1.1\r\n    // so we multiply it by -1 to get a smooth _increase_ instead\r\n    // we can generalize 0.9 = 1.0 - SMOOTH_DELTA, 1.1 = 1.0 + SMOOTH_DELTA, for SMOOTH_DELTA = 0.1\r\n    float smoother = smoothstep(1.0 - SMOOTH_DELTA, 1.0 + SMOOTH_DELTA, f) - 1.0 + smoothstep(-SMOOTH_DELTA, SMOOTH_DELTA, f);\r\n    return base + smoother;\r\n}\r\n\r\nvoid main() {\r\n    float FREQ = 3.2 - u_Coherence * 3.0;\r\n    const float EPSILON = 0.00001;\r\n    float n1, n2, a, b;\r\n    vec2 noisePos = fs_UV + vec2(-7.88 + 0.5 * smoothStep(u_Time * 0.04), 2.32);\r\n    n1 = getFBMFromRawPosition(noisePos + vec2(0.0, +EPSILON), FREQ);\r\n    n2 = getFBMFromRawPosition(noisePos + vec2(0.0, -EPSILON), FREQ);\r\n    a = (n1 - n2) / (2.0 * EPSILON);\r\n    n1 = getFBMFromRawPosition(noisePos + vec2(+EPSILON, 0.0), FREQ);\r\n    n2 = getFBMFromRawPosition(noisePos + vec2(-EPSILON, 0.0), FREQ);\r\n    b = (n1 - n2) / (2.0 * EPSILON);\r\n    vec3 color = texture(u_frame, fs_UV).xyz;\r\n    out_Col = vec4(color, atan(-b, a));\r\n}\r\n"
 
 /***/ }),
 /* 48 */
 /***/ (function(module, exports) {
 
-module.exports = "#version 300 es\r\nprecision highp float;\r\n\r\nin vec2 fs_UV;\r\nout vec4 out_Col;\r\n\r\nuniform sampler2D u_frame;\r\n//uniform sampler2D u_preFrame;\r\nuniform sampler2D u_gb0;\r\nuniform float u_Time;\r\nuniform vec2 u_Dims;\r\n\r\n// from https://stackoverflow.com/questions/15095909/from-rgb-to-hsv-in-opengl-glsl\r\nvec3 rgb2hsv(vec3 c)\r\n{\r\n    vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);\r\n    vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));\r\n    vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));\r\n\r\n    float d = q.x - min(q.w, q.y);\r\n    float e = 1.0e-10;\r\n    return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);\r\n}\r\n\r\nvec3 hsv2rgb(vec3 c)\r\n{\r\n    vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);\r\n    vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);\r\n    return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);\r\n}\r\n\r\nvec2 random2(vec2 p) {\r\n    return normalize(2.0 * fract(sin(vec2(dot(p, vec2(127.1, 311.7)), dot(p, vec2(269.5, 183.3))))*123.45) - 1.0);\r\n}\r\n\r\nconst vec3 PURPLE_RGB = vec3(0.7098, 0.0392156, 1.0);\r\nconst float X_TILE_DIM = 100.0;\r\nconst float Y_TILE_DIM = 20.0;\r\nconst float NOISE_TILE_DIM = 400.0;\r\nconst float GREEN_OFFSET = 5.0;\r\n\r\nvoid main() {\r\n    // desaturate\r\n    vec3 color = texture(u_frame, fs_UV).xyz;\r\n    // detour and make BG if applicable\r\n    if (fs_UV.y < 0.5) {\r\n        float depth = texture(u_gb0, fs_UV).w;\r\n        if (depth >= 0.0) {\r\n            vec2 pixelDims = 1.0 / u_Dims;\r\n            float xTile = mod((-0.5 + fs_UV.x) * (0.2 + fs_UV.y), 2.0 * X_TILE_DIM * pixelDims.x);\r\n            float yTile = mod(fs_UV.y, 2.0 * Y_TILE_DIM * pixelDims.y);\r\n            bool isBlack = (xTile > X_TILE_DIM * pixelDims.x) ^^ (yTile > Y_TILE_DIM * pixelDims.y);\r\n            if (isBlack) {\r\n                color = vec3(0.0);\r\n            }\r\n            else {\r\n                color = vec3(1.0, 0.0, 0.0);\r\n            }\r\n        }\r\n    }\r\n    vec3 hsv = rgb2hsv(color);\r\n    hsv.y *= 0.3;\r\n    hsv.z *= 0.8;\r\n    color = hsv2rgb(hsv);\r\n    // blend with purple\r\n    color = 0.7 * color + 0.3 * PURPLE_RGB;\r\n\r\n\tout_Col = vec4(color, 1.0);\r\n}\r\n"
+module.exports = "#version 300 es\r\nprecision highp float;\r\n\r\nin vec2 fs_UV;\r\nout vec4 out_Col;\r\n\r\nuniform sampler2D u_frame;\r\nuniform sampler2D u_preFrame;\r\n//uniform sampler2D u_gb0;\r\nuniform float u_Time;\r\nuniform vec2 u_Dims;\r\n\r\nuniform float u_BrushSize;\r\nuniform float u_BrushNoise;\r\n\r\nvec2 random2(vec2 p) {\r\n    return normalize(2.0 * fract(sin(vec2(dot(p, vec2(127.1, 311.7)), dot(p, vec2(269.5, 183.3))))*123.45) - 1.0);\r\n}\r\n\r\nvoid main() {\r\n    vec2 GRID_DIMS = vec2(70.0) * 0.5 * u_Dims.x / 526.0;\r\n    // making radius noisy gives airbrush effect\r\n    float rand = random2(fs_UV * 314.159).x;\r\n    // radius = (scale from u_BrushSize) * (base_size + random_element) / (estimate of screen size)\r\n    float radius = (0.5 + u_BrushSize) * (0.4 + 0.05 * rand * (2.0 * u_BrushNoise) ) / GRID_DIMS.x;\r\n\tvec3 color = vec3(5.0);\r\n    vec2 cellCorner = floor(fs_UV * GRID_DIMS) / GRID_DIMS;\r\n    vec3 minColor = vec3(0.0);\r\n    float minLen = 100.0;\r\n    float accWeight = 0.0;\r\n    vec3 defaultColor;\r\n    for (int i = -3; i <= 3; i++) {\r\n        for (int j = -3; j <= 3; j++) {\r\n            // read curl noise's angle and color from prepass frame\r\n            vec2 sampleCorner = cellCorner + vec2(i, j) / GRID_DIMS;\r\n            vec4 prepass = texture(u_preFrame, sampleCorner);\r\n            vec2 p = fs_UV - sampleCorner; // in corner-space\r\n            p.x *= u_Dims.x / u_Dims.y;\r\n            // find rotation\r\n            float angle = prepass.w;\r\n            float c = cos(angle);\r\n            float s = sin(angle);\r\n            // rotate\r\n            vec2 pRot = vec2(c * p.x - s * p.y, s * p.x + c * p.y);\r\n            // stretch along X\r\n            pRot.x *= 0.15;\r\n            pRot.y *= 0.31;\r\n            float l = length(pRot);\r\n            if (l < radius) {\r\n                float darkness = 1.0;// -0.6 * smoothstep(-radius, radius, pRot.x);\r\n                float weight = 1.0 - 0.4 * pow(smoothstep(0.0, radius, l), 1.0);\r\n                minLen = l;\r\n                accWeight += weight;\r\n                minColor += weight * prepass.xyz * darkness;\r\n            }\r\n            else if (i == 0 && j == 0) {\r\n                defaultColor = prepass.xyz; // use this fragment's default color\r\n            }\r\n        }\r\n    }\r\n    // if we hit nothing, use default color\r\n    if (minLen == 100.0) {\r\n        minColor = defaultColor;\r\n    }\r\n    // else, divide by sum of weights\r\n    else {\r\n        minColor /= accWeight;\r\n    }\r\n\tout_Col = vec4(minColor, 1.0);\r\n}\r\n"
 
 /***/ }),
 /* 49 */
 /***/ (function(module, exports) {
 
-module.exports = "#version 300 es\r\nprecision highp float;\r\n\r\nin vec2 fs_UV;\r\nout vec4 out_Col;\r\n\r\nuniform sampler2D u_frame;\r\n//uniform sampler2D u_preFrame;\r\nuniform sampler2D u_gb0;\r\nuniform float u_Time;\r\nuniform vec2 u_Dims;\r\n\r\n// from https://stackoverflow.com/questions/15095909/from-rgb-to-hsv-in-opengl-glsl\r\nvec3 rgb2hsv(vec3 c)\r\n{\r\n    vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);\r\n    vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));\r\n    vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));\r\n\r\n    float d = q.x - min(q.w, q.y);\r\n    float e = 1.0e-10;\r\n    return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);\r\n}\r\n\r\nvec3 hsv2rgb(vec3 c)\r\n{\r\n    vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);\r\n    vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);\r\n    return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);\r\n}\r\n\r\nvec2 random2(vec2 p) {\r\n    return normalize(2.0 * fract(sin(vec2(dot(p, vec2(127.1, 311.7)), dot(p, vec2(269.5, 183.3))))*123.45) - 1.0);\r\n}\r\n\r\nfloat randomer2(vec2 p, float seed) {\r\n    return fract(sin(dot(p, vec2(127.1 * seed, 311.7))) * 123.45);\r\n    //return normalize(2.0 * fract(sin(vec2(dot(p, vec2(127.1 * seed, 311.7)), dot(p, vec2(269.5, 183.3 + seed))))*123.45) - 1.0);\r\n}\r\n\r\nconst float PI = 3.14159265;\r\nconst float NOISE_TILE_DIM = 400.0;\r\n//const float NOISE_COS = 0.93969;\r\n//const float NOISE_SIN = -0.3420201;\r\nconst float NOISE_STRIPE_DIM = 30.0;\r\n\r\nconst float GAUSS_KERNEL[5] = float[5](\r\n    0.122581, 0.233062, 0.288713, 0.233062, 0.122581);\r\n\r\nvoid main() {\r\n    vec3 color = texture(u_frame, fs_UV).xyz;\r\n    vec2 pixelDims = 1.0 / u_Dims;\r\n    // chromatic aberration\r\n    float GREEN_OFFSET = 5.0 * (1.0 + abs(fs_UV.x - 0.5) * 5.0) * (1.0 + 0.1 * random2(vec2(fs_UV.y * 9.12)).y);\r\n    float sqrWave = (mod(u_Time * 0.73, 2.2) > 2.0) ? 1.0 : 0.0;\r\n    GREEN_OFFSET += sqrWave * 5.0;\r\n    vec3 neighbor = texture(u_frame, fs_UV + pixelDims * vec2(GREEN_OFFSET, 0.0)).xyz;\r\n    color.y = neighbor.y;\r\n\r\n    // distort -- move pixels to the side\r\n    float time = u_Time * 0.47;\r\n    vec2 distortRand = random2(vec2(floor(time)));\r\n    // use mod to compute a random boolean value without random2\r\n    float DISTORT_THRESH = (mod(distortRand.x, 0.0003) > 0.00015) ? 0.8 : 0.5;\r\n    sqrWave = (mod(time, 1.0) > DISTORT_THRESH) ? 1.0 : 0.0;\r\n    float DISTORT_START = 0.5 + 0.5 * distortRand.x;\r\n    float DISTORT_STRIPE_DIM = 50.0 + 20.0 * (distortRand.y);\r\n    float DISTORT_OFFSET = GREEN_OFFSET * 1.6;\r\n    if (DISTORT_START < fs_UV.y && fs_UV.y < DISTORT_START + pixelDims.y * DISTORT_STRIPE_DIM) {\r\n        float distIntoStripe = (fs_UV.y - DISTORT_START) / (pixelDims.y * DISTORT_STRIPE_DIM) * PI;\r\n        // pow is for making offset \"spikier\". mod randomly switches between offseting to left or right\r\n        float extraOffset = pow(sin(distIntoStripe), 5.0) * ((mod(DISTORT_START, 0.0012) > 0.0006) ? -1.0 : 1.0);\r\n        vec3 neighbor = texture(u_frame, fs_UV - pixelDims * vec2(DISTORT_OFFSET + extraOffset * 47.0, 2.0)).xyz;\r\n        color = mix(color, color * 0.2 + neighbor * 0.8, sqrWave);\r\n    }\r\n\r\n    // add constant static\r\n    vec2 noiseCell = floor(fs_UV * NOISE_TILE_DIM) / NOISE_TILE_DIM;\r\n    float noise = randomer2(noiseCell * 0.1 + vec2(u_Time * 0.0002, -u_Time * 0.00003), noiseCell.x * 9.78 + noiseCell.y * 295.1);\r\n    color *= 0.85 + 0.15 * noise;\r\n\r\n    // compute \"forceStart\" -- add some chance to add line noise\r\n    // outside of main noise stripe\r\n    float time2 = u_Time * 4.0;\r\n    vec2 forceRand = random2(vec2(floor(time2), fs_UV.y));\r\n    bool forceStart = mod(forceRand.x, 0.00001) > 0.0000097;\r\n    // also compute a \"flipFactor\" -- sometimes make noise light instead of dark\r\n    bool flipColor = mod(forceRand.y, 0.0001) > 0.00009;\r\n    float flipFactor = (forceStart && flipColor) ? 0.5 : 0.2;\r\n\r\n    float STRIPE_START = mod(-u_Time * 0.4, 1.5);\r\n\r\n    // add intermittent static stripe\r\n    if (forceStart || (STRIPE_START < fs_UV.y && fs_UV.y < STRIPE_START + pixelDims.y * NOISE_STRIPE_DIM)) {\r\n        noise = 0.0;\r\n        // 1 pixel tall -- not needed now?\r\n        noiseCell.y = floor(fs_UV.y * u_Dims.y) / (u_Dims.y);\r\n        // randomly scale size of noise column for each row\r\n        float rowScale = random2(noiseCell.yy).y * 0.5 + 1.5;\r\n        for (int i = -2; i <= 2; i++) {\r\n            // each line of noise is made of multiple segments\r\n            // NOISE_TILE_DIM * 0.05 * rowScale controls the length of these segments\r\n            // since rowScale changes for each Y, the lengths differ for each pixel row\r\n            noiseCell.x = floor((fs_UV.x + float(i) * pixelDims.x) * NOISE_TILE_DIM * 0.05 * rowScale) / (NOISE_TILE_DIM * 0.05 * rowScale);\r\n            // \"blur\" to make noise less harsh\r\n            noise += GAUSS_KERNEL[i + 2] * 1.3 * smoothstep(-0.9, 0.95, random2(noiseCell + vec2(u_Time * 0.0002, u_Time * 0.000)).y);\r\n        }\r\n        // if we decide to \"flip color\", we make the noise contribution higher \r\n        // to make it look whiter\r\n        color *= 0.8 + flipFactor * noise;\r\n    }\r\n\r\n\r\n\tout_Col = vec4(color, 1.0);\r\n}\r\n"
+module.exports = "#version 300 es\r\nprecision highp float;\r\n\r\nin vec2 fs_UV;\r\nout vec4 out_Col;\r\n\r\nuniform sampler2D u_frame;\r\n//uniform sampler2D u_preFrame;\r\nuniform sampler2D u_gb0;\r\nuniform float u_Time;\r\nuniform vec2 u_Dims;\r\n\r\n// from https://stackoverflow.com/questions/15095909/from-rgb-to-hsv-in-opengl-glsl\r\nvec3 rgb2hsv(vec3 c)\r\n{\r\n    vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);\r\n    vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));\r\n    vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));\r\n\r\n    float d = q.x - min(q.w, q.y);\r\n    float e = 1.0e-10;\r\n    return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);\r\n}\r\n\r\nvec3 hsv2rgb(vec3 c)\r\n{\r\n    vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);\r\n    vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);\r\n    return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);\r\n}\r\n\r\nvec2 random2(vec2 p) {\r\n    return normalize(2.0 * fract(sin(vec2(dot(p, vec2(127.1, 311.7)), dot(p, vec2(269.5, 183.3))))*123.45) - 1.0);\r\n}\r\n\r\nconst vec3 PURPLE_RGB = vec3(0.7098, 0.0392156, 1.0);\r\nconst float X_TILE_DIM = 100.0;\r\nconst float Y_TILE_DIM = 20.0;\r\nconst float NOISE_TILE_DIM = 400.0;\r\nconst float GREEN_OFFSET = 5.0;\r\n\r\nvoid main() {\r\n    // desaturate\r\n    vec3 color = texture(u_frame, fs_UV).xyz;\r\n    // detour and make BG if applicable\r\n    if (fs_UV.y < 0.5) {\r\n        float depth = texture(u_gb0, fs_UV).w;\r\n        if (depth >= 0.0) {\r\n            vec2 pixelDims = 1.0 / u_Dims;\r\n            float xTile = mod((-0.5 + fs_UV.x) * (0.2 + fs_UV.y), 2.0 * X_TILE_DIM * pixelDims.x);\r\n            float yTile = mod(fs_UV.y, 2.0 * Y_TILE_DIM * pixelDims.y);\r\n            bool isBlack = (xTile > X_TILE_DIM * pixelDims.x) ^^ (yTile > Y_TILE_DIM * pixelDims.y);\r\n            if (isBlack) {\r\n                color = vec3(0.0);\r\n            }\r\n            else {\r\n                color = vec3(1.0, 0.0, 0.0);\r\n            }\r\n        }\r\n    }\r\n    vec3 hsv = rgb2hsv(color);\r\n    hsv.y *= 0.3;\r\n    hsv.z *= 0.8;\r\n    color = hsv2rgb(hsv);\r\n    // blend with purple\r\n    color = 0.7 * color + 0.3 * PURPLE_RGB;\r\n\r\n\tout_Col = vec4(color, 1.0);\r\n}\r\n"
 
 /***/ }),
 /* 50 */
+/***/ (function(module, exports) {
+
+module.exports = "#version 300 es\r\nprecision highp float;\r\n\r\nin vec2 fs_UV;\r\nout vec4 out_Col;\r\n\r\nuniform sampler2D u_frame;\r\n//uniform sampler2D u_preFrame;\r\nuniform sampler2D u_gb0;\r\nuniform float u_Time;\r\nuniform vec2 u_Dims;\r\n\r\n// from https://stackoverflow.com/questions/15095909/from-rgb-to-hsv-in-opengl-glsl\r\nvec3 rgb2hsv(vec3 c)\r\n{\r\n    vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);\r\n    vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));\r\n    vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));\r\n\r\n    float d = q.x - min(q.w, q.y);\r\n    float e = 1.0e-10;\r\n    return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);\r\n}\r\n\r\nvec3 hsv2rgb(vec3 c)\r\n{\r\n    vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);\r\n    vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);\r\n    return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);\r\n}\r\n\r\nvec2 random2(vec2 p) {\r\n    return normalize(2.0 * fract(sin(vec2(dot(p, vec2(127.1, 311.7)), dot(p, vec2(269.5, 183.3))))*123.45) - 1.0);\r\n}\r\n\r\nfloat randomer2(vec2 p, float seed) {\r\n    return fract(sin(dot(p, vec2(127.1 * seed, 311.7))) * 123.45);\r\n    //return normalize(2.0 * fract(sin(vec2(dot(p, vec2(127.1 * seed, 311.7)), dot(p, vec2(269.5, 183.3 + seed))))*123.45) - 1.0);\r\n}\r\n\r\nconst float PI = 3.14159265;\r\nconst float NOISE_TILE_DIM = 400.0;\r\n//const float NOISE_COS = 0.93969;\r\n//const float NOISE_SIN = -0.3420201;\r\nconst float NOISE_STRIPE_DIM = 30.0;\r\n\r\nconst float GAUSS_KERNEL[5] = float[5](\r\n    0.122581, 0.233062, 0.288713, 0.233062, 0.122581);\r\n\r\nvoid main() {\r\n    vec3 color = texture(u_frame, fs_UV).xyz;\r\n    vec2 pixelDims = 1.0 / u_Dims;\r\n    // chromatic aberration\r\n    float GREEN_OFFSET = 5.0 * (1.0 + abs(fs_UV.x - 0.5) * 5.0) * (1.0 + 0.1 * random2(vec2(fs_UV.y * 9.12)).y);\r\n    float sqrWave = (mod(u_Time * 0.73, 2.2) > 2.0) ? 1.0 : 0.0;\r\n    GREEN_OFFSET += sqrWave * 5.0;\r\n    vec3 neighbor = texture(u_frame, fs_UV + pixelDims * vec2(GREEN_OFFSET, 0.0)).xyz;\r\n    color.y = neighbor.y;\r\n\r\n    // distort -- move pixels to the side\r\n    float time = u_Time * 0.47;\r\n    vec2 distortRand = random2(vec2(floor(time)));\r\n    // use mod to compute a random boolean value without random2\r\n    float DISTORT_THRESH = (mod(distortRand.x, 0.0003) > 0.00015) ? 0.8 : 0.5;\r\n    sqrWave = (mod(time, 1.0) > DISTORT_THRESH) ? 1.0 : 0.0;\r\n    float DISTORT_START = 0.5 + 0.5 * distortRand.x;\r\n    float DISTORT_STRIPE_DIM = 50.0 + 20.0 * (distortRand.y);\r\n    float DISTORT_OFFSET = GREEN_OFFSET * 1.6;\r\n    if (DISTORT_START < fs_UV.y && fs_UV.y < DISTORT_START + pixelDims.y * DISTORT_STRIPE_DIM) {\r\n        float distIntoStripe = (fs_UV.y - DISTORT_START) / (pixelDims.y * DISTORT_STRIPE_DIM) * PI;\r\n        // pow is for making offset \"spikier\". mod randomly switches between offseting to left or right\r\n        float extraOffset = pow(sin(distIntoStripe), 5.0) * ((mod(DISTORT_START, 0.0012) > 0.0006) ? -1.0 : 1.0);\r\n        vec3 neighbor = texture(u_frame, fs_UV - pixelDims * vec2(DISTORT_OFFSET + extraOffset * 47.0, 2.0)).xyz;\r\n        color = mix(color, color * 0.2 + neighbor * 0.8, sqrWave);\r\n    }\r\n\r\n    // add constant static\r\n    vec2 noiseCell = floor(fs_UV * NOISE_TILE_DIM) / NOISE_TILE_DIM;\r\n    float noise = randomer2(noiseCell * 0.1 + vec2(u_Time * 0.0002, -u_Time * 0.00003), noiseCell.x * 9.78 + noiseCell.y * 295.1);\r\n    color *= 0.85 + 0.15 * noise;\r\n\r\n    // compute \"forceStart\" -- add some chance to add line noise\r\n    // outside of main noise stripe\r\n    float time2 = u_Time * 4.0;\r\n    vec2 forceRand = random2(vec2(floor(time2), fs_UV.y));\r\n    bool forceStart = mod(forceRand.x, 0.00001) > 0.0000097;\r\n    // also compute a \"flipFactor\" -- sometimes make noise light instead of dark\r\n    bool flipColor = mod(forceRand.y, 0.0001) > 0.00009;\r\n    float flipFactor = (forceStart && flipColor) ? 0.5 : 0.2;\r\n\r\n    float STRIPE_START = mod(-u_Time * 0.4, 1.5);\r\n\r\n    // add intermittent static stripe\r\n    if (forceStart || (STRIPE_START < fs_UV.y && fs_UV.y < STRIPE_START + pixelDims.y * NOISE_STRIPE_DIM)) {\r\n        noise = 0.0;\r\n        // 1 pixel tall -- not needed now?\r\n        noiseCell.y = floor(fs_UV.y * u_Dims.y) / (u_Dims.y);\r\n        // randomly scale size of noise column for each row\r\n        float rowScale = random2(noiseCell.yy).y * 0.5 + 1.5;\r\n        for (int i = -2; i <= 2; i++) {\r\n            // each line of noise is made of multiple segments\r\n            // NOISE_TILE_DIM * 0.05 * rowScale controls the length of these segments\r\n            // since rowScale changes for each Y, the lengths differ for each pixel row\r\n            noiseCell.x = floor((fs_UV.x + float(i) * pixelDims.x) * NOISE_TILE_DIM * 0.05 * rowScale) / (NOISE_TILE_DIM * 0.05 * rowScale);\r\n            // \"blur\" to make noise less harsh\r\n            noise += GAUSS_KERNEL[i + 2] * 1.3 * smoothstep(-0.9, 0.95, random2(noiseCell + vec2(u_Time * 0.0002, u_Time * 0.000)).y);\r\n        }\r\n        // if we decide to \"flip color\", we make the noise contribution higher \r\n        // to make it look whiter\r\n        color *= 0.8 + flipFactor * noise;\r\n    }\r\n\r\n\r\n\tout_Col = vec4(color, 1.0);\r\n}\r\n"
+
+/***/ }),
+/* 51 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -10828,7 +11311,7 @@ class Camera {
 
 
 /***/ }),
-/* 51 */
+/* 52 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -10934,6 +11417,11 @@ class Player {
             case "a":
             case "A":
                 this.movementFlags &= ~MovementFlags.LEFT;
+                break;
+            case "n":
+            case "N":
+                // ~~cheat codes!!~~
+                this.terrain.shouldExit = true;
                 break;
             //case "e":
             //case "E":
@@ -11047,7 +11535,7 @@ class Player {
 
 
 /***/ }),
-/* 52 */
+/* 53 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -11095,7 +11583,7 @@ class Texture {
 
 
 /***/ }),
-/* 53 */
+/* 54 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(global) {var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
@@ -14003,10 +14491,10 @@ class Texture {
   };
 })();
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(54)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(55)))
 
 /***/ }),
-/* 54 */
+/* 55 */
 /***/ (function(module, exports) {
 
 var g;
@@ -14033,13 +14521,13 @@ module.exports = g;
 
 
 /***/ }),
-/* 55 */
+/* 56 */
 /***/ (function(module, exports) {
 
 module.exports = "#version 300 es\r\nprecision highp float;\r\n\r\nuniform mat4 u_Model;\r\nuniform mat3 u_ModelInvTr;  \r\n\r\nuniform mat4 u_View;   \r\nuniform mat4 u_Proj; \r\n\r\nin vec4 vs_Pos;\r\nin vec4 vs_Nor;\r\nin vec4 vs_Col;\r\nin vec2 vs_UV;\r\n\r\nout vec4 fs_Pos;\r\nout vec4 fs_Nor;            \r\nout vec4 fs_Col;           \r\nout vec2 fs_UV;\r\n\r\n//out vec4 fs_WorldPos;\r\n\r\nvoid main()\r\n{\r\n    fs_Col = vs_Col;\r\n    fs_UV = vs_UV;\r\n    fs_UV.y = 1.0 - fs_UV.y;\r\n\r\n    // fragment info is in view space\r\n    //mat3 invTranspose = mat3(u_ModelInvTr);\r\n    mat3 view = mat3(u_View);\r\n    //fs_Nor = vec4(view * invTranspose * vec3(vs_Nor), 0);\r\n    fs_Nor = vec4(u_ModelInvTr * vec3(vs_Nor), 0);\r\n    //fs_Pos = u_Model * vs_Pos;\r\n    fs_Pos = u_View * u_Model * vs_Pos;\r\n    //fs_WorldPos = u_Model * vs_Pos;\r\n    \r\n    gl_Position = u_Proj * u_View * u_Model * vs_Pos;\r\n}\r\n"
 
 /***/ }),
-/* 56 */
+/* 57 */
 /***/ (function(module, exports) {
 
 module.exports = "#version 300 es\r\nprecision highp float;\r\n\r\nin vec4 fs_Pos;\r\nin vec4 fs_Nor;\r\nin vec4 fs_Col;\r\nin vec2 fs_UV;\r\n\r\n//in vec4 fs_WorldPos;\r\n\r\nout vec4 fragColor[3]; // The data in the ith index of this array of outputs\r\n                       // is passed to the ith index of OpenGLRenderer's\r\n                       // gbTargets array, which is an array of textures.\r\n                       // This lets us output different types of data,\r\n                       // such as albedo, normal, and position, as\r\n                       // separate images from a single render pass.\r\n\r\nuniform sampler2D tex_Color;\r\n\r\nconst float DEPTH_OFFSET = 0.0;\r\n\r\nvoid main() {\r\n    // TODO: pass proper data into gbuffers\r\n    // Presently, the provided shader passes \"nothing\" to the first\r\n    // two gbuffers and basic color to the third.\r\n\r\n    //vec3 col = texture(tex_Color, fs_UV).rgb;\r\n    vec3 col = fs_Col.xyz;\r\n\r\n    // if using textures, inverse gamma correct\r\n    //col = pow(col, vec3(2.2));\r\n\r\n    // normal.xyz, depth\r\n    fragColor[0] = vec4(fs_Nor.xyz, fs_Pos.z - DEPTH_OFFSET);\r\n    //fragColor[0] = vec4(fs_Nor.xyz, gl_FragCoord.w);\r\n    fragColor[1] = vec4(fs_Pos.xyz, 0.0);\r\n    //fragColor[1] = vec4(fs_Pos.xyz, 0.0);\r\n    fragColor[2] = vec4(col, 1.0);\r\n}\r\n"
