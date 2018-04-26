@@ -12,6 +12,7 @@ Click below for the live demo!
         - Move the mouse to look around. Like your usual first-person game.
         - Click the left button to interact with a few special objects in the world. You only need to interact with the ones that look most out of place.
     - There are **4** levels to see in total.
+    - This should run smoothly (about 60 FPS) if your browser is using a relatively new GPU.
 
 
 ## Student Info
