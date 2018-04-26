@@ -3,6 +3,7 @@ import TerrainPlane from '../geometry/TerrainPlane';
 import Decoration from '../geometry/Decoration';
 import BasicTree from './BasicTree';
 import Snowman from './Snowman';
+import {SnowmanType} from './Snowman';
 import Ghost from './Ghost';
 import {GhostType} from './Ghost';
 import Collider from './Collider';
@@ -156,7 +157,7 @@ class Terrain {
                     let height = this.getHeight(posInTile, posTileIdx, tp);
                     treeOrigin[1] = this.origin[1] + height - 1.0;
                     //let tree = new BasicTree(decorations);
-                    let tree = new Snowman(decorations, Math.floor(Math.random() * 2048), false);
+                    let tree = new Snowman(decorations, Math.floor(Math.random() * 2048), SnowmanType.HAUNTED);
                     tree.initAlphabet();
                     tree.resetTurtleStack(treeOrigin);
                     tree.expandString();
@@ -369,7 +370,7 @@ class Terrain {
                     let height = this.getHeight(posInTile, posTileIdx, tp);
                     treeOrigin[1] = this.origin[1] + height - 1.0;
                     //let tree = new BasicTree(decorations);
-                    let tree = new Snowman(decorations, Math.floor(Math.random() * 2048), false);
+                    let tree = new Snowman(decorations, Math.floor(Math.random() * 2048), SnowmanType.NORMAL);
                     tree.initAlphabet();
                     tree.resetTurtleStack(treeOrigin);
                     tree.expandString();
@@ -423,7 +424,7 @@ class Terrain {
             planeOrigin[0] += baseInPlane[0];
             planeOrigin[2] += baseInPlane[2];
 
-            let tree = new Snowman(decorations, Math.floor(Math.random() * 2048), true);
+            let tree = new Snowman(decorations, Math.floor(Math.random() * 2048), SnowmanType.BIG);
             tree.initAlphabet();
             tree.resetTurtleStack(planeOrigin);
             tree.expandString();

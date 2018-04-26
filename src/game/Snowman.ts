@@ -22,14 +22,21 @@ const SNOW_COLOR = normalizeRGB(200, 200, 255);
 const WOOD_COLOR = normalizeRGB(60, 17, 0);
 const NOSE_COLOR = normalizeRGB(455, 83, 30);
 const SCARF_COLOR = normalizeRGB(20, 300, 300);
+const HAUNTED_COLOR = normalizeRGB(17, 17, 17);
+
+export enum SnowmanType {
+    NORMAL = 1,
+    BIG,
+    HAUNTED,
+}
 
 class Snowman extends LSystem {
 
     seed: number;
     rotation: mat3;
-    isSpecial: boolean;
+    type: SnowmanType;
 
-    constructor(decoration: Decoration, seed: number, isSpecial: boolean) {
+    constructor(decoration: Decoration, seed: number, type: SnowmanType) {
         super();
         if (polySphere60 == null) {
             let objString = readTextFileSync("res/models/polySphere60.obj");
@@ -55,13 +62,13 @@ class Snowman extends LSystem {
         this.rotation = mat3.create();
         mat3.fromMat4(this.rotation, rotMat4);
 
-        this.isSpecial = isSpecial;
+        this.type = type;
     }
 
     resetTurtleStack(pos: vec3) {
         let t = new Turtle();
         vec3.copy(t.position, pos);
-        if (this.isSpecial) {
+        if (this.type == SnowmanType.BIG) {
             t.scaleBottom = 15;
             t.scaleTop = 15;
          }
@@ -77,6 +84,9 @@ class Snowman extends LSystem {
         this.alphabet = [];
         // do this to avoid "this" issues
         let snowmanRotation = this.rotation;
+        let woodColor = (this.type == SnowmanType.HAUNTED) ? HAUNTED_COLOR : WOOD_COLOR;
+        let scarfColor = (this.type == SnowmanType.HAUNTED) ? HAUNTED_COLOR : SCARF_COLOR;
+        let noseColor = (this.type == SnowmanType.HAUNTED) ? HAUNTED_COLOR : NOSE_COLOR;
         let upFunction = function (lsys: LSystem) {
             lsys.useColor(SNOW_COLOR);
             let turtle = lsys.getTopTurtle();
@@ -140,7 +150,7 @@ class Snowman extends LSystem {
         this.alphabet.push(beginRightArm);
         // actual arm -- "twig"
         let T = new LSymbol("T", function (lsys: LSystem) {
-            lsys.useColor(WOOD_COLOR);
+            lsys.useColor(woodColor);
             let turtle = lsys.getTopTurtle();
             // add twig
             let bot = turtle.scaleBottom;
@@ -169,7 +179,7 @@ class Snowman extends LSystem {
         this.alphabet.push(T);
         // hand
         let H = new LSymbol("H", function (lsys: LSystem) {
-            lsys.useColor(WOOD_COLOR);
+            lsys.useColor(woodColor);
             let turtle = lsys.getTopTurtle();
             // add twig
             let bot = turtle.scaleBottom;
@@ -208,7 +218,7 @@ class Snowman extends LSystem {
         this.alphabet.push(H);
         // nose
         let N = new LSymbol("N", function (lsys: LSystem) {
-            lsys.useColor(NOSE_COLOR);
+            lsys.useColor(noseColor);
             let turtle = lsys.getTopTurtle();
             // find face's direction
             let faceDirection = vec3.fromValues(0, 0, 1);
@@ -225,7 +235,7 @@ class Snowman extends LSystem {
         this.alphabet.push(H);
         // scarf
         let S = new LSymbol("S", function (lsys: LSystem) {
-            lsys.useColor(SCARF_COLOR);
+            lsys.useColor(scarfColor);
             let turtle = lsys.getTopTurtle();
             // temporarily move down a little
             let oldY = turtle.position[1];
@@ -262,10 +272,16 @@ class Snowman extends LSystem {
         ]);
 
         // make scarf rare on non-special snowmen
-        if (!this.isSpecial) {
+        if (this.type == SnowmanType.NORMAL) {
             S.setExpansionRules([
                 new ExpansionRule(1, [S]),
                 new ExpansionRule(2, [nop]),
+            ]);
+        }
+        else if (this.type == SnowmanType.HAUNTED) {
+            S.setExpansionRules([
+                new ExpansionRule(2, [S]),
+                new ExpansionRule(1, [nop]),
             ]);
         }
 
