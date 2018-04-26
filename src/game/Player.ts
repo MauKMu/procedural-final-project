@@ -117,6 +117,11 @@ class Player {
             case "A":
                 this.movementFlags &= ~MovementFlags.LEFT;
                 break;
+            case "n":
+            case "N":
+                // ~~cheat codes!!~~
+                this.terrain.shouldExit = true;
+                break;
             //case "e":
             //case "E":
                 //this.movementFlags &= ~MovementFlags.UP;
