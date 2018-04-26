@@ -58,6 +58,9 @@ class OpenGLRenderer {
     deferredShaderSpooky: PostProcess = new PostProcess(
         new Shader(gl.FRAGMENT_SHADER, require('../../shaders/deferred-render.glsl'))
     );
+    deferredShaderNice: PostProcess = new PostProcess(
+        new Shader(gl.FRAGMENT_SHADER, require('../../shaders/deferred-render-nice.glsl'))
+    );
     deferredShader: PostProcess;
 
     // shader that maps 32-bit color to 8-bit color
@@ -223,6 +226,9 @@ class OpenGLRenderer {
                 break;
             case Level.SPOOKY:
                 this.deferredShader = this.deferredShaderSpooky;
+                break;
+            case Level.NICE:
+                this.deferredShader = this.deferredShaderNice;
                 break;
         }
 
